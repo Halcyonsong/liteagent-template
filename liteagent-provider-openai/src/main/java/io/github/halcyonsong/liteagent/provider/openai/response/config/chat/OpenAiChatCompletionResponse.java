@@ -1,11 +1,13 @@
-package io.github.halcyonsong.liteagent.provider.openai.response.config;
+package io.github.halcyonsong.liteagent.provider.openai.response.config.chat;
 
 import io.github.halcyonsong.liteagent.core.message.Message;
 import io.github.halcyonsong.liteagent.core.message.type.AssistantMessage;
-import io.github.halcyonsong.liteagent.core.model.response.ChatChoice;
-import io.github.halcyonsong.liteagent.core.model.response.ChatResponse;
-import io.github.halcyonsong.liteagent.core.model.response.ChatResult;
-import io.github.halcyonsong.liteagent.core.model.response.Usage;
+import io.github.halcyonsong.liteagent.core.model.response.chat.ChatChoice;
+import io.github.halcyonsong.liteagent.core.model.response.chat.ChatResponse;
+import io.github.halcyonsong.liteagent.core.model.response.chat.ChatResult;
+import io.github.halcyonsong.liteagent.core.support.JsonSupport;
+import io.github.halcyonsong.liteagent.provider.openai.response.config.OpenAiBaseResponse;
+import io.github.halcyonsong.liteagent.provider.openai.response.config.OpenAiUsage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,11 +23,11 @@ public class OpenAiChatCompletionResponse {
 
     private final OpenAiBaseResponse baseResponse;
     private final List<ChatChoice> choices;
-    private final Usage usage;
+    private final OpenAiUsage usage;
 
     public OpenAiChatCompletionResponse(OpenAiBaseResponse baseResponse,
                                         List<ChatChoice> choices,
-                                        Usage usage) {
+                                        OpenAiUsage usage) {
         this.baseResponse = Objects.requireNonNull(baseResponse, "baseResponse must not be null");
         Objects.requireNonNull(choices, "choices must not be null");
         this.choices = List.copyOf(choices);
@@ -40,17 +42,10 @@ public class OpenAiChatCompletionResponse {
         return choices;
     }
 
-    public Usage getUsage() {
+    public OpenAiUsage getUsage() {
         return usage;
     }
 
-    /**
-     * 将当前 provider 响应转换为框架统一响应结果。
-     * <p>
-     * 转换过程中会降级为 core 通用消息类型，不保留 OpenAI provider 特有字段。
-     *
-     * @return 统一聊天调用结果
-     */
     public ChatResult toChatResult() {
         List<ChatChoice> normalizedChoices = new ArrayList<>();
 
@@ -75,5 +70,19 @@ public class OpenAiChatCompletionResponse {
         }
 
         return new ChatResult(baseResponse, normalizedChoices, usage);
+    }
+
+    public String toJson() {
+        return JsonSupport.toJson(this);
+    }
+
+    @Override
+    public String toString() {
+        return "OpenAiChatCompletionResponse{" +
+                "responseId='" + baseResponse.getId() + '\'' +
+                ", model='" + baseResponse.getModel() + '\'' +
+                ", choiceCount=" + choices.size() +
+                ", usage=" + usage +
+                '}';
     }
 }

@@ -1,8 +1,11 @@
 package io.github.halcyonsong.liteagent.provider.openai.response.raw;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.github.halcyonsong.liteagent.core.support.JsonSupport;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * OpenAI-compatible chat completions 原始响应体。
@@ -10,6 +13,7 @@ import java.util.List;
  * 该类字段与远端返回的 JSON 结构一一对应，
  * 用于接收原始协议响应，并在后续映射为 provider 包装响应对象。
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class OpenAiChatCompletionRawResponse {
 
     @JsonProperty("id")
@@ -29,6 +33,16 @@ public class OpenAiChatCompletionRawResponse {
 
     @JsonProperty("usage")
     private RawUsage usage;
+
+    @JsonProperty("system_fingerprint")
+    private String systemFingerprint;
+
+    /**
+     * 某些 OpenAI-compatible 供应商可能返回的扩展字段。
+     * 结构不统一，先按原始 map 接收。
+     */
+    @JsonProperty("base_resp")
+    private Map<String, Object> baseResp;
 
     public OpenAiChatCompletionRawResponse() {
     }
@@ -81,9 +95,44 @@ public class OpenAiChatCompletionRawResponse {
         this.usage = usage;
     }
 
+    public String getSystemFingerprint() {
+        return systemFingerprint;
+    }
+
+    public void setSystemFingerprint(String systemFingerprint) {
+        this.systemFingerprint = systemFingerprint;
+    }
+
+    public Map<String, Object> getBaseResp() {
+        return baseResp;
+    }
+
+    public void setBaseResp(Map<String, Object> baseResp) {
+        this.baseResp = baseResp;
+    }
+
+    public String toJson() {
+        return JsonSupport.toJson(this);
+    }
+
+    @Override
+    public String toString() {
+        return "OpenAiChatCompletionRawResponse{" +
+                "id='" + id + '\'' +
+                ", object='" + object + '\'' +
+                ", model='" + model + '\'' +
+                ", choiceCount=" + (choices == null ? 0 : choices.size()) +
+                ", usage=" + usage +
+                '}';
+    }
+
     /**
      * 原始响应中的单条 choice 结构。
+     * <p>
+     * 普通响应使用 message；
+     * 流式 chunk 使用 delta。
      */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class RawChoice {
 
         @JsonProperty("index")
@@ -91,6 +140,9 @@ public class OpenAiChatCompletionRawResponse {
 
         @JsonProperty("message")
         private RawMessage message;
+
+        @JsonProperty("delta")
+        private RawMessage delta;
 
         @JsonProperty("finish_reason")
         private String finishReason;
@@ -114,6 +166,14 @@ public class OpenAiChatCompletionRawResponse {
             this.message = message;
         }
 
+        public RawMessage getDelta() {
+            return delta;
+        }
+
+        public void setDelta(RawMessage delta) {
+            this.delta = delta;
+        }
+
         public String getFinishReason() {
             return finishReason;
         }
@@ -121,11 +181,28 @@ public class OpenAiChatCompletionRawResponse {
         public void setFinishReason(String finishReason) {
             this.finishReason = finishReason;
         }
+
+        public String toJson() {
+            return JsonSupport.toJson(this);
+        }
+
+        @Override
+        public String toString() {
+            return "RawChoice{" +
+                    "index=" + index +
+                    ", hasMessage=" + (message != null) +
+                    ", hasDelta=" + (delta != null) +
+                    ", finishReason='" + finishReason + '\'' +
+                    '}';
+        }
     }
 
     /**
-     * 原始响应中的 message 结构。
+     * 原始响应中的 message/delta 结构。
+     * <p>
+     * 普通响应和流式 chunk 均可复用该结构。
      */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class RawMessage {
 
         @JsonProperty("role")
@@ -174,8 +251,23 @@ public class OpenAiChatCompletionRawResponse {
         public void setToolCalls(List<RawToolCall> toolCalls) {
             this.toolCalls = toolCalls;
         }
+
+        public String toJson() {
+            return JsonSupport.toJson(this);
+        }
+
+        @Override
+        public String toString() {
+            return "RawMessage{" +
+                    "role='" + role + '\'' +
+                    ", content='" + content + '\'' +
+                    ", reasoningContent='" + reasoningContent + '\'' +
+                    ", toolCallCount=" + (toolCalls == null ? 0 : toolCalls.size()) +
+                    '}';
+        }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class RawToolCall {
 
         @JsonProperty("index")
@@ -224,8 +316,23 @@ public class OpenAiChatCompletionRawResponse {
         public void setFunction(RawFunction function) {
             this.function = function;
         }
+
+        public String toJson() {
+            return JsonSupport.toJson(this);
+        }
+
+        @Override
+        public String toString() {
+            return "RawToolCall{" +
+                    "index=" + index +
+                    ", id='" + id + '\'' +
+                    ", type='" + type + '\'' +
+                    ", function=" + function +
+                    '}';
+        }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class RawFunction {
 
         @JsonProperty("name")
@@ -252,6 +359,18 @@ public class OpenAiChatCompletionRawResponse {
         public void setArguments(String arguments) {
             this.arguments = arguments;
         }
+
+        public String toJson() {
+            return JsonSupport.toJson(this);
+        }
+
+        @Override
+        public String toString() {
+            return "RawFunction{" +
+                    "name='" + name + '\'' +
+                    ", arguments='" + arguments + '\'' +
+                    '}';
+        }
     }
 
     /**
@@ -267,6 +386,18 @@ public class OpenAiChatCompletionRawResponse {
 
         @JsonProperty("total_tokens")
         private Integer totalTokens;
+
+        @JsonProperty("completion_tokens_details")
+        private Map<String, Object> completionTokensDetails;
+
+        @JsonProperty("prompt_tokens_details")
+        private Map<String, Object> promptTokensDetails;
+
+        @JsonProperty("prompt_cache_hit_tokens")
+        private Integer promptCacheHitTokens;
+
+        @JsonProperty("prompt_cache_miss_tokens")
+        private Integer promptCacheMissTokens;
 
         public RawUsage() {
         }
@@ -293,6 +424,53 @@ public class OpenAiChatCompletionRawResponse {
 
         public void setTotalTokens(Integer totalTokens) {
             this.totalTokens = totalTokens;
+        }
+
+        public Map<String, Object> getCompletionTokensDetails() {
+            return completionTokensDetails;
+        }
+
+        public void setCompletionTokensDetails(Map<String, Object> completionTokensDetails) {
+            this.completionTokensDetails = completionTokensDetails;
+        }
+
+        public Map<String, Object> getPromptTokensDetails() {
+            return promptTokensDetails;
+        }
+
+        public void setPromptTokensDetails(Map<String, Object> promptTokensDetails) {
+            this.promptTokensDetails = promptTokensDetails;
+        }
+
+        public Integer getPromptCacheHitTokens() {
+            return promptCacheHitTokens;
+        }
+
+        public void setPromptCacheHitTokens(Integer promptCacheHitTokens) {
+            this.promptCacheHitTokens = promptCacheHitTokens;
+        }
+
+        public Integer getPromptCacheMissTokens() {
+            return promptCacheMissTokens;
+        }
+
+        public void setPromptCacheMissTokens(Integer promptCacheMissTokens) {
+            this.promptCacheMissTokens = promptCacheMissTokens;
+        }
+
+        public String toJson() {
+            return JsonSupport.toJson(this);
+        }
+
+        @Override
+        public String toString() {
+            return "RawUsage{" +
+                    "promptTokens=" + promptTokens +
+                    ", completionTokens=" + completionTokens +
+                    ", totalTokens=" + totalTokens +
+                    ", promptCacheHitTokens=" + promptCacheHitTokens +
+                    ", promptCacheMissTokens=" + promptCacheMissTokens +
+                    '}';
         }
     }
 }

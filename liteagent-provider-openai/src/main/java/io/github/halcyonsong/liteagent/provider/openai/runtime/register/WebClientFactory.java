@@ -9,6 +9,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
 
 import java.time.Duration;
+
 /**
  * 基础 WebClient 工厂。
  * <p>
@@ -18,8 +19,8 @@ public class WebClientFactory {
 
     private static final Logger log = LoggerFactory.getLogger(WebClientFactory.class);
 
-    public WebClient create(HttpRuntimeConfig config) {
-        log.debug("Creating WebClient with runtime config. maxInMemorySize={}, connectTimeoutMillis={}, responseTimeoutMillis={}",
+    public WebClient createChatClient(HttpRuntimeConfig config) {
+        log.debug("Creating chat WebClient. maxInMemorySize={}, connectTimeoutMillis={}, responseTimeoutMillis={}",
                 config.getMaxInMemorySize(),
                 config.getConnectTimeoutMillis(),
                 config.getResponseTimeoutMillis());
@@ -27,6 +28,25 @@ public class WebClientFactory {
         HttpClient httpClient = HttpClient.create()
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, config.getConnectTimeoutMillis())
                 .responseTimeout(Duration.ofMillis(config.getResponseTimeoutMillis()));
+
+        return WebClient.builder()
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
+                .codecs(codecs -> codecs.defaultCodecs().maxInMemorySize(config.getMaxInMemorySize()))
+                .build();
+    }
+
+    public WebClient createStreamClient(HttpRuntimeConfig config) {
+        log.debug("Creating stream WebClient. maxInMemorySize={}, connectTimeoutMillis={}, streamResponseTimeoutMillis={}",
+                config.getMaxInMemorySize(),
+                config.getConnectTimeoutMillis(),
+                config.getStreamResponseTimeoutMillis());
+
+        HttpClient httpClient = HttpClient.create()
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, config.getConnectTimeoutMillis());
+
+        if (config.getStreamResponseTimeoutMillis() != null) {
+            httpClient = httpClient.responseTimeout(Duration.ofMillis(config.getStreamResponseTimeoutMillis()));
+        }
 
         return WebClient.builder()
                 .clientConnector(new ReactorClientHttpConnector(httpClient))

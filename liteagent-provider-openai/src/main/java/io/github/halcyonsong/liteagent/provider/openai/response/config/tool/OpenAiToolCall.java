@@ -1,4 +1,6 @@
-package io.github.halcyonsong.liteagent.provider.openai.response.config;
+package io.github.halcyonsong.liteagent.provider.openai.response.config.tool;
+
+import io.github.halcyonsong.liteagent.core.support.JsonSupport;
 
 /**
  * OpenAI-compatible assistant message 中的 tool call 信息。
@@ -31,5 +33,19 @@ public class OpenAiToolCall {
 
     public OpenAiFunctionCall getFunction() {
         return function;
+    }
+
+    public String toJson() {
+        return JsonSupport.toJson(this);
+    }
+
+    @Override
+    public String toString() {
+        return "OpenAiToolCall{" +
+                "index=" + index +
+                ", id='" + id + '\'' +
+                ", type='" + type + '\'' +
+                ", function=" + function +
+                '}';
     }
 }

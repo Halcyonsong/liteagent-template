@@ -3,6 +3,7 @@ package io.github.halcyonsong.liteagent.provider.openai.request.config;
 import io.github.halcyonsong.liteagent.core.model.request.BaseRequest;
 import io.github.halcyonsong.liteagent.core.model.request.ChatOptions;
 import io.github.halcyonsong.liteagent.core.model.request.ChatRequest;
+import io.github.halcyonsong.liteagent.core.support.JsonSupport;
 
 import java.util.Objects;
 
@@ -82,4 +83,20 @@ public class OpenAiChatCompletionRequest {
             return new OpenAiChatCompletionRequest(this);
         }
     }
+
+    public String toJson() {
+        return JsonSupport.toJson(this);
+    }
+
+    @Override
+    public String toString() {
+        return "OpenAiChatCompletionRequest{" +
+                "baseUrl='" + baseRequest.getBaseUrl() + '\'' +
+                ", model='" + baseRequest.getModel() + '\'' +
+                ", messageCount=" + chatRequest.getMessages().size() +
+                ", hasChatOptions=" + (chatOptions != null) +
+                ", hasCompletionOptions=" + (completionOptions != null) +
+                '}';
+    }
+
 }

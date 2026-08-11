@@ -1,5 +1,7 @@
 package io.github.halcyonsong.liteagent.core.model.response;
 
+import io.github.halcyonsong.liteagent.core.support.JsonSupport;
+
 /**
  * 模型调用的 token 用量信息。
  * <p>
@@ -27,5 +29,18 @@ public class Usage {
 
     public Integer getTotalTokens() {
         return totalTokens;
+    }
+
+    public String toJson() {
+        return JsonSupport.toJson(this);
+    }
+
+    @Override
+    public String toString() {
+        return "Usage{" +
+                "promptTokens=" + promptTokens +
+                ", completionTokens=" + completionTokens +
+                ", totalTokens=" + totalTokens +
+                '}';
     }
 }

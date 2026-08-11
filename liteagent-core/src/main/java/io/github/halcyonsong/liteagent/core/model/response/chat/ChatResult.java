@@ -1,4 +1,8 @@
-package io.github.halcyonsong.liteagent.core.model.response;
+package io.github.halcyonsong.liteagent.core.model.response.chat;
+
+import io.github.halcyonsong.liteagent.core.model.response.BaseResponse;
+import io.github.halcyonsong.liteagent.core.model.response.Usage;
+import io.github.halcyonsong.liteagent.core.support.JsonSupport;
 
 import java.util.List;
 import java.util.Objects;
@@ -33,4 +37,19 @@ public class ChatResult {
     public Usage getUsage() {
         return usage;
     }
+
+    public String toJson() {
+        return JsonSupport.toJson(this);
+    }
+
+    @Override
+    public String toString() {
+        return "ChatResult{" +
+                "responseId='" + baseResponse.getId() + '\'' +
+                ", model='" + baseResponse.getModel() + '\'' +
+                ", choiceCount=" + choices.size() +
+                ", usage=" + usage +
+                '}';
+    }
+
 }

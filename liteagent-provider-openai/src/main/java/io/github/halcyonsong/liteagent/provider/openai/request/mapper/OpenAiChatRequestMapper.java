@@ -28,7 +28,6 @@ public class OpenAiChatRequestMapper {
         rawRequest.setMessages(mapMessages(request.getChatRequest().getMessages()));
 
         if (request.getChatOptions() != null) {
-            rawRequest.setStream(request.getChatOptions().getStream());
             rawRequest.setTemperature(request.getChatOptions().getTemperature());
             rawRequest.setMaxTokens(request.getChatOptions().getMaxTokens());
         }

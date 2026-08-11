@@ -48,3 +48,4 @@ build/
 
 ### Local example test config ###
 liteagent-examples/src/test/resources/application-local.yaml
+liteagent-examples/src/main/resources/application-local.yaml

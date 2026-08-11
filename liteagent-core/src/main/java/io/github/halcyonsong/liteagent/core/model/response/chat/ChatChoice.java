@@ -1,6 +1,7 @@
-package io.github.halcyonsong.liteagent.core.model.response;
+package io.github.halcyonsong.liteagent.core.model.response.chat;
 
 import io.github.halcyonsong.liteagent.core.model.enums.FinishReason;
+import io.github.halcyonsong.liteagent.core.support.JsonSupport;
 
 import java.util.Objects;
 
@@ -43,5 +44,18 @@ public class ChatChoice {
 
     public FinishReason getFinishReason() {
         return finishReason;
+    }
+
+    public String toJson() {
+        return JsonSupport.toJson(this);
+    }
+
+    @Override
+    public String toString() {
+        return "ChatChoice{" +
+                "index=" + index +
+                ", finishReason=" + finishReason +
+                ", messageCount=" + chatResponse.getMessages().size() +
+                '}';
     }
 }

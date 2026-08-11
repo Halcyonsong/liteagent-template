@@ -1,5 +1,7 @@
-package io.github.halcyonsong.liteagent.provider.openai.client;
+package io.github.halcyonsong.liteagent.provider.openai.client.factory;
 
+import io.github.halcyonsong.liteagent.provider.openai.client.OpenAiChatClient;
+import io.github.halcyonsong.liteagent.provider.openai.client.OpenAiStreamClient;
 import org.springframework.web.reactive.function.client.WebClient;
 import io.github.halcyonsong.liteagent.provider.openai.runtime.config.HttpRuntimeConfig;
 import io.github.halcyonsong.liteagent.provider.openai.runtime.register.WebClientRegistry;
@@ -21,7 +23,12 @@ public class OpenAiChatClientFactory {
     }
 
     public OpenAiChatClient create(HttpRuntimeConfig runtimeConfig) {
-        WebClient webClient = webClientRegistry.getOrCreate(runtimeConfig);
+        WebClient webClient = webClientRegistry.getOrCreateChatClient(runtimeConfig);
         return new OpenAiChatClient(webClient);
+    }
+
+    public OpenAiStreamClient createStream(HttpRuntimeConfig runtimeConfig) {
+        WebClient webClient = webClientRegistry.getOrCreateStreamClient(runtimeConfig);
+        return new OpenAiStreamClient(webClient);
     }
 }

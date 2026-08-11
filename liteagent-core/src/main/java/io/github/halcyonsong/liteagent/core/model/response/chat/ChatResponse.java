@@ -1,6 +1,7 @@
-package io.github.halcyonsong.liteagent.core.model.response;
+package io.github.halcyonsong.liteagent.core.model.response.chat;
 
 import io.github.halcyonsong.liteagent.core.message.Message;
+import io.github.halcyonsong.liteagent.core.support.JsonSupport;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,5 +29,16 @@ public class ChatResponse {
 
     public List<Message> getMessages() {
         return messages;
+    }
+
+    public String toJson() {
+        return JsonSupport.toJson(this);
+    }
+
+    @Override
+    public String toString() {
+        return "ChatResponse{" +
+                "messageCount=" + messages.size() +
+                '}';
     }
 }

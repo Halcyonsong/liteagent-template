@@ -2,6 +2,7 @@ package io.github.halcyonsong.liteagent.provider.openai.request.raw;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.github.halcyonsong.liteagent.core.support.JsonSupport;
 
 import java.util.List;
 import java.util.Map;
@@ -143,5 +144,20 @@ public class OpenAiChatCompletionRawRequest {
 
     public void setResponseFormat(Map<String, Object> responseFormat) {
         this.responseFormat = responseFormat;
+    }
+
+    public String toJson() {
+        return JsonSupport.toJson(this);
+    }
+
+    @Override
+    public String toString() {
+        return "OpenAiChatCompletionRawRequest{" +
+                "model='" + model + '\'' +
+                ", messageCount=" + (messages == null ? 0 : messages.size()) +
+                ", stream=" + stream +
+                ", temperature=" + temperature +
+                ", maxTokens=" + maxTokens +
+                '}';
     }
 }

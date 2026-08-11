@@ -2,6 +2,7 @@ package io.github.halcyonsong.liteagent.provider.openai.runtime.register;
 
 import io.github.halcyonsong.liteagent.provider.openai.runtime.config.HttpRuntimeConfig;
 import io.github.halcyonsong.liteagent.provider.openai.runtime.config.HttpRuntimeKey;
+import io.github.halcyonsong.liteagent.provider.openai.runtime.config.HttpRuntimeMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -26,19 +27,34 @@ public class WebClientRegistry {
         this.factory = Objects.requireNonNull(factory, "factory must not be null");
     }
 
-    public WebClient getOrCreate(HttpRuntimeConfig config) {
+    public WebClient getOrCreateChatClient(HttpRuntimeConfig config) {
         Objects.requireNonNull(config, "config must not be null");
-        HttpRuntimeKey key = config.toKey();
+        HttpRuntimeKey key = config.toKey(HttpRuntimeMode.CHAT);
 
         WebClient existing = clientCache.get(key);
         if (existing != null) {
-            log.debug("Reusing cached WebClient. cacheSize={}, runtimeKey={}", clientCache.size(), key);
+            log.debug("Reusing cached chat WebClient. cacheSize={}, runtimeKey={}", clientCache.size(), key);
             return existing;
         }
 
-        log.debug("Creating new WebClient. cacheSizeBefore={}, runtimeKey={}", clientCache.size(), key);
+        log.debug("Creating new chat WebClient. cacheSizeBefore={}, runtimeKey={}", clientCache.size(), key);
 
-        return clientCache.computeIfAbsent(key, ignored -> factory.create(config));
+        return clientCache.computeIfAbsent(key, ignored -> factory.createChatClient(config));
+    }
+
+    public WebClient getOrCreateStreamClient(HttpRuntimeConfig config) {
+        Objects.requireNonNull(config, "config must not be null");
+        HttpRuntimeKey key = config.toKey(HttpRuntimeMode.STREAM);
+
+        WebClient existing = clientCache.get(key);
+        if (existing != null) {
+            log.debug("Reusing cached stream WebClient. cacheSize={}, runtimeKey={}", clientCache.size(), key);
+            return existing;
+        }
+
+        log.debug("Creating new stream WebClient. cacheSizeBefore={}, runtimeKey={}", clientCache.size(), key);
+
+        return clientCache.computeIfAbsent(key, ignored -> factory.createStreamClient(config));
     }
 
     public WebClient get(HttpRuntimeKey key) {
@@ -48,12 +64,16 @@ public class WebClientRegistry {
         return client;
     }
 
-    public void remove(HttpRuntimeConfig config) {
+    public void remove(HttpRuntimeConfig config, HttpRuntimeMode mode) {
         Objects.requireNonNull(config, "config must not be null");
-        clientCache.remove(config.toKey());
+        Objects.requireNonNull(mode, "mode must not be null");
+
+        HttpRuntimeKey key = config.toKey(mode);
+        clientCache.remove(key);
+
         log.debug("Removed WebClient from registry. cacheSizeNow={}, runtimeKey={}",
                 clientCache.size(),
-                config.toKey());
+                key);
     }
 
     public void clear() {

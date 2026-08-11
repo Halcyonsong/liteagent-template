@@ -19,6 +19,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <reactor.version>3.7.8</reactor.version>
         <reactor.netty.version>1.2.8</reactor.netty.version>
         <spring-webflux.version>6.2.8</spring-webflux.version>
         <jackson.version>2.19.2</jackson.version>
@@ -32,6 +33,12 @@
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-webflux</artifactId>
                 <version>${spring-webflux.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.projectreactor</groupId>
+                <artifactId>reactor-core</artifactId>
+                <version>${reactor.version}</version>
             </dependency>
 
             <dependency>

@@ -2,7 +2,7 @@
 
 `liteagent-core` 是框架的统一抽象层。
 
-该模块只保留跨供应商相对稳定的基础模型，不应直接承载某个供应商的协议特有字段。
+该模块只保留跨供应商相对稳定的基础模型，不直接承载某个供应商的协议特有字段。
 
 ## 职责
 
@@ -10,7 +10,8 @@
 
 - 定义统一消息接口与消息类型
 - 定义统一请求模型
-- 定义统一响应模型
+- 定义统一普通响应模型
+- 定义统一流式响应模型
 - 定义框架基础异常类型
 
 ## 包结构
@@ -22,6 +23,8 @@ io.github.halcyonsong.liteagent.core
 └─ model
    ├─ request
    └─ response
+      ├─ chat
+      └─ stream
 ```
 
 ## 当前已实现内容
@@ -47,15 +50,23 @@ io.github.halcyonsong.liteagent.core
 - `ChatOptions`
 - `ChatInvocation`
 
-### response
+### response.chat
 
-统一响应模型：
+统一普通响应模型：
 
 - `BaseResponse`
 - `ChatResponse`
 - `ChatChoice`
 - `ChatResult`
 - `Usage`
+
+### response.stream
+
+统一流式响应模型：
+
+- `StreamDelta`
+- `StreamChoice`
+- `StreamChunk`
 
 ### exception
 
@@ -71,6 +82,7 @@ io.github.halcyonsong.liteagent.core
 
 - OpenAI-compatible 的 `reasoning_content`
 - OpenAI-compatible 的 `tool_calls`
+- provider 特有扩展 usage 字段
 - 供应商特有扩展参数
 - 具体 HTTP 实现
 - agent 编排逻辑

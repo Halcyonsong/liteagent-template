@@ -4,13 +4,14 @@
 
 当前 Quick Start 面向：
 
-- 普通非流式对话调用
 - OpenAI-compatible 协议供应商
 - Java 17
+- 普通对话调用
+- 流式对话调用
 
 ## 1. 引入依赖
 
-根据当前模块设计，通常至少需要：
+通常至少需要：
 
 ```xml
 <dependencies>
@@ -30,23 +31,47 @@
 
 ## 2. 创建客户端
 
+### 普通对话客户端
+
 ```java
 import io.github.halcyonsong.liteagent.provider.openai.client.OpenAiChatClient;
-import io.github.halcyonsong.liteagent.provider.openai.client.OpenAiChatClientFactory;
-import io.github.halcyonsong.liteagent.provider.openai.runtime.config.HttpRuntimeConfig;
-import io.github.halcyonsong.liteagent.provider.openai.runtime.register.WebClientFactory;
-import io.github.halcyonsong.liteagent.provider.openai.runtime.register.WebClientRegistry;
+import io.github.halcyonsong.liteagent.provider.openai.client.factory.OpenAiClients;
 
-HttpRuntimeConfig runtimeConfig = HttpRuntimeConfig.builder()
-        .maxInMemorySize(16 * 1024 * 1024)
-        .connectTimeoutMillis(5000)
-        .responseTimeoutMillis(60000L)
-        .build();
+public class ChatClientExample {
 
-WebClientRegistry registry = new WebClientRegistry(new WebClientFactory());
-OpenAiChatClientFactory factory = new OpenAiChatClientFactory(registry);
-OpenAiChatClient client = factory.create(runtimeConfig);
+    public OpenAiChatClient createChatClient() {
+        return OpenAiClients.create(
+                16 * 1024 * 1024,
+                5000,
+                60000L
+        );
+    }
+}
 ```
+
+### 流式对话客户端
+
+```java
+import io.github.halcyonsong.liteagent.provider.openai.client.OpenAiStreamClient;
+import io.github.halcyonsong.liteagent.provider.openai.client.factory.OpenAiClients;
+
+public class StreamClientExample {
+
+    public OpenAiStreamClient createStreamClient() {
+        return OpenAiClients.createStream(
+                16 * 1024 * 1024,
+                5000,
+                null
+        );
+    }
+}
+```
+
+说明：
+
+- 普通客户端第三个参数是 `responseTimeoutMillis`
+- 流式客户端第三个参数是 `streamResponseTimeoutMillis`
+- 流式超时传 `null` 表示不设置流式总响应超时
 
 ## 3. 构造统一调用请求
 
@@ -57,84 +82,175 @@ import io.github.halcyonsong.liteagent.core.model.request.ChatOptions;
 import io.github.halcyonsong.liteagent.core.model.request.ChatRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiBaseRequest;
 
-OpenAiBaseRequest baseRequest = OpenAiBaseRequest.builder()
-        .baseUrl("https://api.siliconflow.cn/v1/chat/completions")
-        .apiKey("your-api-key")
-        .model("deepseek-ai/DeepSeek-R1-0528-Qwen3-8B")
-        .build();
+public class InvocationExample {
 
-ChatRequest chatRequest = ChatRequest.builder()
-        .addMessage(Messages.system("You are a helpful assistant."))
-        .addMessage(Messages.user("你好，请用一句话介绍你自己。"))
-        .build();
+    public ChatInvocation buildInvocation() {
+        OpenAiBaseRequest baseRequest = OpenAiBaseRequest.builder()
+                .baseUrl("https://api.siliconflow.cn")
+                .apiKey("your-api-key")
+                .model("deepseek-ai/DeepSeek-R1-0528-Qwen3-8B")
+                .build();
 
-ChatOptions chatOptions = ChatOptions.builder()
-        .stream(false)
-        .temperature(0.7)
-        .maxTokens(256)
-        .build();
+        ChatRequest chatRequest = ChatRequest.builder()
+                .addMessage(Messages.system("You are a helpful assistant."))
+                .addMessage(Messages.user("你好，请用一句话介绍你自己。"))
+                .build();
 
-ChatInvocation invocation = ChatInvocation.builder()
-        .baseRequest(baseRequest)
-        .chatRequest(chatRequest)
-        .chatOptions(chatOptions)
-        .build();
-```
+        ChatOptions chatOptions = ChatOptions.builder()
+                .temperature(0.7)
+                .maxTokens(256)
+                .build();
 
-## 4. 发起调用并读取统一结果
-
-```java
-import io.github.halcyonsong.liteagent.core.model.response.ChatChoice;
-import io.github.halcyonsong.liteagent.core.model.response.ChatResult;
-import io.github.halcyonsong.liteagent.provider.openai.client.OpenAiChatClient;
-
-public void printChatResult(OpenAiChatClient client, ChatInvocation invocation) {
-    ChatResult result = client.chat(invocation);
-
-    System.out.println("response id = " + result.getBaseResponse().getId());
-    System.out.println("model = " + result.getBaseResponse().getModel());
-
-    for (ChatChoice choice : result.getChoices()) {
-        System.out.println("choice index = " + choice.getIndex());
-        System.out.println("finish reason = " + choice.getFinishReason());
-        choice.getChatResponse().getMessages().forEach(message ->
-                System.out.println("assistant content = " + message.getContent())
-        );
+        return ChatInvocation.builder()
+                .baseRequest(baseRequest)
+                .chatRequest(chatRequest)
+                .chatOptions(chatOptions)
+                .build();
     }
 }
 ```
 
-## 5. 什么时候使用 provider 响应而不是统一结果
+说明：
 
-如果你只关心通用对话内容，优先使用：
+- `baseUrl` 只提供基础地址即可，例如：
+  - `https://api.siliconflow.cn`
+  - `https://api.siliconflow.cn/v1`
+  - `https://api.siliconflow.cn/v1/chat/completions`
+- 框架会自动规范化到 `/v1/chat/completions`
 
-```java
-ChatResult result = client.chat(invocation);
-```
-
-如果你需要读取 OpenAI-compatible 协议中的扩展字段，例如：
-
-- `reasoning_content`
-- `tool_calls`
-
-则应使用 provider 响应对象：
+## 4. 发起普通调用并读取统一结果
 
 ```java
-OpenAiChatCompletionResponse response = client.chatCompletion(invocation);
+import io.github.halcyonsong.liteagent.core.model.request.ChatInvocation;
+import io.github.halcyonsong.liteagent.core.model.response.chat.ChatChoice;
+import io.github.halcyonsong.liteagent.core.model.response.chat.ChatResult;
+import io.github.halcyonsong.liteagent.provider.openai.client.OpenAiChatClient;
+
+public class ChatCallExample {
+
+    public void printChatResult(OpenAiChatClient chatClient, ChatInvocation invocation) {
+        ChatResult result = chatClient.chat(invocation);
+
+        System.out.println("response id = " + result.getBaseResponse().getId());
+        System.out.println("model = " + result.getBaseResponse().getModel());
+
+        for (ChatChoice choice : result.getChoices()) {
+            System.out.println("choice index = " + choice.getIndex());
+            System.out.println("finish reason = " + choice.getFinishReason());
+
+            choice.getChatResponse().getMessages().forEach(message ->
+                    System.out.println("message content = " + message.getContent())
+            );
+        }
+    }
+}
 ```
 
-具体示例见：
+## 5. 发起流式调用并读取统一流式结果
 
-- [OpenAI-compatible Chat](./openai-compatible-chat.md)
+```java
+import io.github.halcyonsong.liteagent.core.model.request.ChatInvocation;
+import io.github.halcyonsong.liteagent.provider.openai.client.OpenAiStreamClient;
 
-## 6. 说明
+public class StreamCallExample {
+
+    public void printStreamResult(OpenAiStreamClient streamClient, ChatInvocation invocation) {
+        streamClient.stream(invocation)
+                .doOnNext(chunk -> {
+                    System.out.println("response id = " + chunk.getBaseResponse().getId());
+                    chunk.getChoices().forEach(choice -> {
+                        if (choice.getDelta() != null) {
+                            System.out.println("delta role = " + choice.getDelta().getRole());
+                            System.out.println("delta content = " + choice.getDelta().getContent());
+                            System.out.println("delta reasoning = " + choice.getDelta().getReasoningContent());
+                        }
+                    });
+                })
+                .blockLast();
+    }
+}
+```
+
+## 6. 什么时候使用 provider 响应而不是统一结果
+
+如果你只关心通用对话内容，优先使用统一结果：
+
+### 普通
+
+```java
+import io.github.halcyonsong.liteagent.core.model.request.ChatInvocation;
+import io.github.halcyonsong.liteagent.core.model.response.chat.ChatResult;
+import io.github.halcyonsong.liteagent.provider.openai.client.OpenAiChatClient;
+
+public class UnifiedChatExample {
+
+    public ChatResult execute(OpenAiChatClient chatClient, ChatInvocation invocation) {
+        return chatClient.chat(invocation);
+    }
+}
+```
+
+### 流式
+
+```java
+import io.github.halcyonsong.liteagent.core.model.request.ChatInvocation;
+import io.github.halcyonsong.liteagent.core.model.response.stream.StreamChunk;
+import io.github.halcyonsong.liteagent.provider.openai.client.OpenAiStreamClient;
+import reactor.core.publisher.Flux;
+
+public class UnifiedStreamExample {
+
+    public Flux<StreamChunk> execute(OpenAiStreamClient streamClient, ChatInvocation invocation) {
+        return streamClient.stream(invocation);
+    }
+}
+```
+
+如果你需要读取 OpenAI-compatible 协议扩展字段，应使用 provider 响应对象：
+
+### 普通 provider 响应
+
+```java
+import io.github.halcyonsong.liteagent.core.model.request.ChatInvocation;
+import io.github.halcyonsong.liteagent.provider.openai.client.OpenAiChatClient;
+import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiChatCompletionResponse;
+
+public class ProviderChatExample {
+
+    public OpenAiChatCompletionResponse execute(OpenAiChatClient chatClient, ChatInvocation invocation) {
+        return chatClient.chatCompletion(invocation);
+    }
+}
+```
+
+### 流式 provider 响应
+
+```java
+import io.github.halcyonsong.liteagent.core.model.request.ChatInvocation;
+import io.github.halcyonsong.liteagent.provider.openai.client.OpenAiStreamClient;
+import io.github.halcyonsong.liteagent.provider.openai.response.config.stream.OpenAiStreamCompletionResponse;
+import reactor.core.publisher.Flux;
+
+public class ProviderStreamExample {
+
+    public Flux<OpenAiStreamCompletionResponse> execute(OpenAiStreamClient streamClient, ChatInvocation invocation) {
+        return streamClient.streamCompletion(invocation);
+    }
+}
+```
+
+## 7. 说明
 
 当前 Quick Start 对应的是项目第一版基础骨架。
 
+当前已支持：
+
+- 普通非流式对话调用
+- 流式对话调用
+- OpenAI-compatible provider 扩展响应字段保留
+
 当前尚未覆盖：
 
-- 流式响应
-- 工具调用完整链路
+- tools 完整闭环
+- 多模态
 - agent 编排层
-
-这些功能建议在基础普通对话链路稳定后再继续扩展。

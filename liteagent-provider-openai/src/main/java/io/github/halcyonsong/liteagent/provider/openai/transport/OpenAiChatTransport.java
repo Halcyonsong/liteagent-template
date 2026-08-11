@@ -13,17 +13,15 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import java.util.Objects;
 
 /**
- * OpenAI-compatible 协议发送器。
- * <p>
- * 仅负责发送 raw request 并接收 raw response，不参与上层模型转换。
+ * OpenAI-compatible 普通对话请求发送器。
  */
-public class OpenAiTransport {
+public class OpenAiChatTransport {
 
-    private static final Logger log = LoggerFactory.getLogger(OpenAiTransport.class);
+    private static final Logger log = LoggerFactory.getLogger(OpenAiChatTransport.class);
 
     private final WebClient webClient;
 
-    public OpenAiTransport(WebClient webClient) {
+    public OpenAiChatTransport(WebClient webClient) {
         this.webClient = Objects.requireNonNull(webClient, "webClient must not be null");
     }
 

@@ -1,6 +1,7 @@
 package io.github.halcyonsong.liteagent.provider.openai.response.config;
 
 import io.github.halcyonsong.liteagent.core.model.response.BaseResponse;
+import io.github.halcyonsong.liteagent.core.support.JsonSupport;
 
 /**
  * OpenAI-compatible 响应的基础元信息实现。
@@ -42,4 +43,17 @@ public class OpenAiBaseResponse implements BaseResponse {
         return model;
     }
 
+    public String toJson() {
+        return JsonSupport.toJson(this);
+    }
+
+    @Override
+    public String toString() {
+        return "OpenAiBaseResponse{" +
+                "id='" + id + '\'' +
+                ", object='" + object + '\'' +
+                ", created=" + created +
+                ", model='" + model + '\'' +
+                '}';
+    }
 }

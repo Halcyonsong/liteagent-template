@@ -33,6 +33,15 @@ public class HttpRuntimeConfig {
      */
     private final Long responseTimeoutMillis;
 
+
+    /**
+     * 流式响应超时时间，单位毫秒。
+     * <p>
+     * 该值控制请求发出后等待流式响应完成的最大时间，
+     * 默认不设置超时时间。
+     */
+    private final Long streamResponseTimeoutMillis;
+
     private HttpRuntimeConfig(Builder builder) {
         this.maxInMemorySize = builder.maxInMemorySize == null
                 ? 16 * 1024 * 1024
@@ -45,6 +54,7 @@ public class HttpRuntimeConfig {
         this.responseTimeoutMillis = builder.responseTimeoutMillis == null
                 ? 60000L
                 : builder.responseTimeoutMillis;
+        this.streamResponseTimeoutMillis = builder.streamResponseTimeoutMillis;
     }
 
     public Integer getMaxInMemorySize() {
@@ -59,12 +69,26 @@ public class HttpRuntimeConfig {
         return responseTimeoutMillis;
     }
 
-    public HttpRuntimeKey toKey() {
+    public Long getStreamResponseTimeoutMillis() {
+        return streamResponseTimeoutMillis;
+    }
+
+    public HttpRuntimeKey toKey(HttpRuntimeMode mode) {
         return new HttpRuntimeKey(
                 maxInMemorySize,
                 connectTimeoutMillis,
-                responseTimeoutMillis
+                responseTimeoutMillis,
+                streamResponseTimeoutMillis,
+                mode
         );
+    }
+
+    public HttpRuntimeKey toChatKey() {
+        return toKey(HttpRuntimeMode.CHAT);
+    }
+
+    public HttpRuntimeKey toStreamKey() {
+        return toKey(HttpRuntimeMode.STREAM);
     }
 
     public static Builder builder() {
@@ -75,6 +99,7 @@ public class HttpRuntimeConfig {
         private Integer maxInMemorySize;
         private Integer connectTimeoutMillis;
         private Long responseTimeoutMillis;
+        private Long streamResponseTimeoutMillis;
 
         public Builder maxInMemorySize(Integer maxInMemorySize) {
             this.maxInMemorySize = maxInMemorySize;
@@ -88,6 +113,11 @@ public class HttpRuntimeConfig {
 
         public Builder responseTimeoutMillis(Long responseTimeoutMillis) {
             this.responseTimeoutMillis = responseTimeoutMillis;
+            return this;
+        }
+
+        public Builder streamResponseTimeoutMillis(Long streamResponseTimeoutMillis) {
+            this.streamResponseTimeoutMillis = streamResponseTimeoutMillis;
             return this;
         }
 
@@ -105,6 +135,9 @@ public class HttpRuntimeConfig {
             }
             if (responseTimeoutMillis != null && responseTimeoutMillis <= 0) {
                 throw new IllegalArgumentException("responseTimeoutMillis must be greater than 0");
+            }
+            if (streamResponseTimeoutMillis != null && streamResponseTimeoutMillis <= 0) {
+                throw new IllegalArgumentException("streamResponseTimeoutMillis must be greater than 0");
             }
         }
     }

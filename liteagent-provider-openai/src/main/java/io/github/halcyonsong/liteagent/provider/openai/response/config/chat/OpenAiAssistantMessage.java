@@ -1,6 +1,8 @@
-package io.github.halcyonsong.liteagent.provider.openai.response.config;
+package io.github.halcyonsong.liteagent.provider.openai.response.config.chat;
 
 import io.github.halcyonsong.liteagent.core.message.type.AssistantMessage;
+import io.github.halcyonsong.liteagent.core.support.JsonSupport;
+import io.github.halcyonsong.liteagent.provider.openai.response.config.tool.OpenAiToolCall;
 
 import java.util.Collections;
 import java.util.List;
@@ -31,5 +33,18 @@ public class OpenAiAssistantMessage extends AssistantMessage {
 
     public List<OpenAiToolCall> getToolCalls() {
         return toolCalls;
+    }
+
+    public String toJson() {
+        return JsonSupport.toJson(this);
+    }
+
+    @Override
+    public String toString() {
+        return "OpenAiAssistantMessage{" +
+                "content='" + getContent() + '\'' +
+                ", reasoningContent='" + reasoningContent + '\'' +
+                ", toolCallCount=" + toolCalls.size() +
+                '}';
     }
 }

@@ -16,21 +16,55 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class OpenAiChatRequestMapperTest {
 
+    private final OpenAiChatRequestMapper mapper = new OpenAiChatRequestMapper();
+
     @Test
-    void to_raw_request_should_map_base_request_and_chat_options() {
+    void shouldMapBasicRequestSuccessfully() {
         OpenAiBaseRequest baseRequest = OpenAiBaseRequest.builder()
-                .baseUrl("https://example.com")
+                .baseUrl("https://api.openai.com")
                 .apiKey("test-key")
-                .model("test-model")
+                .model("gpt-test")
                 .build();
 
         ChatRequest chatRequest = ChatRequest.builder()
-                .addMessage(Messages.system("you are helpful"))
-                .addMessage(Messages.user("hello"))
+                .addMessage(Messages.system("你是一个助手"))
+                .addMessage(Messages.user("你好"))
+                .build();
+
+        OpenAiChatCompletionRequest request = OpenAiChatCompletionRequest.builder()
+                .baseRequest(baseRequest)
+                .chatRequest(chatRequest)
+                .build();
+
+        OpenAiChatCompletionRawRequest rawRequest = mapper.toRawRequest(request);
+
+        assertEquals("gpt-test", rawRequest.getModel());
+        assertEquals(2, rawRequest.getMessages().size());
+
+        Map<String, Object> systemMessage = rawRequest.getMessages().get(0);
+        assertEquals("system", systemMessage.get("role"));
+        assertEquals("你是一个助手", systemMessage.get("content"));
+
+        Map<String, Object> userMessage = rawRequest.getMessages().get(1);
+        assertEquals("user", userMessage.get("role"));
+        assertEquals("你好", userMessage.get("content"));
+
+        assertNull(rawRequest.getStream());
+    }
+
+    @Test
+    void shouldMapChatOptionsSuccessfully() {
+        OpenAiBaseRequest baseRequest = OpenAiBaseRequest.builder()
+                .baseUrl("https://api.openai.com")
+                .apiKey("test-key")
+                .model("gpt-test")
+                .build();
+
+        ChatRequest chatRequest = ChatRequest.builder()
+                .addMessage(Messages.user("你好"))
                 .build();
 
         ChatOptions chatOptions = ChatOptions.builder()
-                .stream(false)
                 .temperature(0.7)
                 .maxTokens(256)
                 .build();
@@ -41,91 +75,66 @@ class OpenAiChatRequestMapperTest {
                 .chatOptions(chatOptions)
                 .build();
 
-        OpenAiChatRequestMapper mapper = new OpenAiChatRequestMapper();
         OpenAiChatCompletionRawRequest rawRequest = mapper.toRawRequest(request);
 
-        assertEquals("test-model", rawRequest.getModel());
-        assertEquals(false, rawRequest.getStream());
         assertEquals(0.7, rawRequest.getTemperature());
         assertEquals(256, rawRequest.getMaxTokens());
-
-        assertEquals(2, rawRequest.getMessages().size());
-        assertEquals("system", rawRequest.getMessages().get(0).get("role"));
-        assertEquals("you are helpful", rawRequest.getMessages().get(0).get("content"));
-        assertEquals("user", rawRequest.getMessages().get(1).get("role"));
-        assertEquals("hello", rawRequest.getMessages().get(1).get("content"));
+        assertNull(rawRequest.getStream());
     }
 
     @Test
-    void to_raw_request_should_map_completion_options() {
-        OpenAiBaseRequest baseRequest = OpenAiBaseRequest.builder()
-                .baseUrl("https://example.com")
-                .apiKey("test-key")
-                .model("test-model")
-                .build();
-
-        ChatRequest chatRequest = ChatRequest.builder()
-                .addMessage(Messages.user("hello"))
-                .build();
-
+    void shouldMapCompletionOptionsSuccessfully() {
         OpenAiCompletionOptions completionOptions = OpenAiCompletionOptions.builder()
-                .topP(0.95)
-                .n(3)
-                .stop(OpenAiCompletionOptions.Stop.of(List.of("END", "STOP")))
-                .presencePenalty(1.1)
-                .frequencyPenalty(0.9)
+                .topP(0.8)
+                .n(2)
+                .presencePenalty(0.5)
+                .frequencyPenalty(0.2)
                 .responseFormat(Map.of("type", "json_object"))
+                .stop(OpenAiCompletionOptions.Stop.of(List.of("END", "STOP")))
                 .build();
 
         OpenAiChatCompletionRequest request = OpenAiChatCompletionRequest.builder()
-                .baseRequest(baseRequest)
-                .chatRequest(chatRequest)
+                .baseRequest(OpenAiBaseRequest.builder()
+                        .baseUrl("https://api.openai.com")
+                        .apiKey("test-key")
+                        .model("gpt-test")
+                        .build())
+                .chatRequest(ChatRequest.builder()
+                        .addMessage(Messages.user("你好"))
+                        .build())
                 .completionOptions(completionOptions)
                 .build();
 
-        OpenAiChatRequestMapper mapper = new OpenAiChatRequestMapper();
         OpenAiChatCompletionRawRequest rawRequest = mapper.toRawRequest(request);
 
-        assertEquals(0.95, rawRequest.getTopP());
-        assertEquals(3, rawRequest.getN());
+        assertEquals(0.8, rawRequest.getTopP());
+        assertEquals(2, rawRequest.getN());
+        assertEquals(0.5, rawRequest.getPresencePenalty());
+        assertEquals(0.2, rawRequest.getFrequencyPenalty());
+        assertEquals("json_object", ((Map<?, ?>) rawRequest.getResponseFormat()).get("type"));
         assertEquals(List.of("END", "STOP"), rawRequest.getStop());
-        assertEquals(1.1, rawRequest.getPresencePenalty());
-        assertEquals(0.9, rawRequest.getFrequencyPenalty());
-        assertEquals("json_object", rawRequest.getResponseFormat().get("type"));
     }
 
     @Test
-    void to_raw_request_should_allow_null_optional_fields() {
-        OpenAiBaseRequest baseRequest = OpenAiBaseRequest.builder()
-                .baseUrl("https://example.com")
-                .apiKey("test-key")
-                .model("test-model")
-                .build();
-
-        ChatRequest chatRequest = ChatRequest.builder()
-                .addMessage(Messages.user("hello"))
+    void shouldMapSingleStopSuccessfully() {
+        OpenAiCompletionOptions completionOptions = OpenAiCompletionOptions.builder()
+                .stop(OpenAiCompletionOptions.Stop.of("END"))
                 .build();
 
         OpenAiChatCompletionRequest request = OpenAiChatCompletionRequest.builder()
-                .baseRequest(baseRequest)
-                .chatRequest(chatRequest)
-                .chatOptions(null)
-                .completionOptions(null)
+                .baseRequest(OpenAiBaseRequest.builder()
+                        .baseUrl("https://api.openai.com")
+                        .apiKey("test-key")
+                        .model("gpt-test")
+                        .build())
+                .chatRequest(ChatRequest.builder()
+                        .addMessage(Messages.user("你好"))
+                        .build())
+                .completionOptions(completionOptions)
                 .build();
 
-        OpenAiChatRequestMapper mapper = new OpenAiChatRequestMapper();
         OpenAiChatCompletionRawRequest rawRequest = mapper.toRawRequest(request);
 
-        assertEquals("test-model", rawRequest.getModel());
-        assertEquals(1, rawRequest.getMessages().size());
-        assertNull(rawRequest.getStream());
-        assertNull(rawRequest.getTemperature());
-        assertNull(rawRequest.getMaxTokens());
-        assertNull(rawRequest.getTopP());
-        assertNull(rawRequest.getN());
-        assertNull(rawRequest.getStop());
-        assertNull(rawRequest.getPresencePenalty());
-        assertNull(rawRequest.getFrequencyPenalty());
-        assertNull(rawRequest.getResponseFormat());
+        assertEquals("END", rawRequest.getStop());
     }
 }

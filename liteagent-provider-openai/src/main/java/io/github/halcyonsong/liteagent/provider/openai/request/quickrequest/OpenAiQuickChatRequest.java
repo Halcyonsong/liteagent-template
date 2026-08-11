@@ -3,6 +3,7 @@ package io.github.halcyonsong.liteagent.provider.openai.request.quickrequest;
 import io.github.halcyonsong.liteagent.core.message.type.constructor.Messages;
 import io.github.halcyonsong.liteagent.core.model.request.ChatInvocation;
 import io.github.halcyonsong.liteagent.core.model.request.ChatRequest;
+import io.github.halcyonsong.liteagent.core.support.JsonSupport;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiBaseRequest;
 
 import java.util.Objects;
@@ -127,4 +128,20 @@ public class OpenAiQuickChatRequest {
             return new OpenAiQuickChatRequest(this);
         }
     }
+
+    public String toJson() {
+        return JsonSupport.toJson(this);
+    }
+
+    @Override
+    public String toString() {
+        return "OpenAiQuickChatRequest{" +
+                "baseUrl='" + baseUrl + '\'' +
+                ", apiKey='" + "****" + '\'' +
+                ", model='" + model + '\'' +
+                ", hasSystemMessage=" + (systemMessage != null && !systemMessage.isBlank()) +
+                ", userMessageLength=" + (userMessage == null ? 0 : userMessage.length()) +
+                '}';
+    }
+
 }

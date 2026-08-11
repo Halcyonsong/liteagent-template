@@ -1,11 +1,11 @@
 package io.github.halcyonsong.liteagent.provider.openai.response.mapper;
 
-import io.github.halcyonsong.liteagent.core.message.type.AssistantMessage;
+import io.github.halcyonsong.liteagent.core.message.Message;
 import io.github.halcyonsong.liteagent.core.model.enums.FinishReason;
-import io.github.halcyonsong.liteagent.core.model.response.ChatChoice;
-import io.github.halcyonsong.liteagent.core.model.response.ChatResult;
-import io.github.halcyonsong.liteagent.provider.openai.response.config.OpenAiAssistantMessage;
-import io.github.halcyonsong.liteagent.provider.openai.response.config.OpenAiChatCompletionResponse;
+import io.github.halcyonsong.liteagent.core.model.response.chat.ChatChoice;
+import io.github.halcyonsong.liteagent.core.model.response.chat.ChatResult;
+import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiAssistantMessage;
+import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiChatCompletionResponse;
 import io.github.halcyonsong.liteagent.provider.openai.response.raw.OpenAiChatCompletionRawResponse;
 import org.junit.jupiter.api.Test;
 
@@ -15,147 +15,142 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class OpenAiChatResponseMapperTest {
 
+    private final OpenAiChatResponseMapper mapper = new OpenAiChatResponseMapper();
+
     @Test
-    void from_raw_should_map_reasoning_and_tool_calls() {
-        OpenAiChatCompletionRawResponse.RawFunction rawFunction =
-                new OpenAiChatCompletionRawResponse.RawFunction();
-        rawFunction.setName("get_weather");
-        rawFunction.setArguments("{\"city\":\"北京\"}");
-
-        OpenAiChatCompletionRawResponse.RawToolCall rawToolCall =
-                new OpenAiChatCompletionRawResponse.RawToolCall();
-        rawToolCall.setIndex(0);
-        rawToolCall.setId("call_1");
-        rawToolCall.setType("function");
-        rawToolCall.setFunction(rawFunction);
-
-        OpenAiChatCompletionRawResponse.RawMessage rawMessage =
-                new OpenAiChatCompletionRawResponse.RawMessage();
-        rawMessage.setRole("assistant");
-        rawMessage.setContent("");
-        rawMessage.setReasoningContent("思考内容");
-        rawMessage.setToolCalls(List.of(rawToolCall));
-
-        OpenAiChatCompletionRawResponse.RawChoice rawChoice =
-                new OpenAiChatCompletionRawResponse.RawChoice();
-        rawChoice.setIndex(0);
-        rawChoice.setMessage(rawMessage);
-        rawChoice.setFinishReason("tool_calls");
-
-        OpenAiChatCompletionRawResponse.RawUsage rawUsage =
-                new OpenAiChatCompletionRawResponse.RawUsage();
-        rawUsage.setPromptTokens(10);
-        rawUsage.setCompletionTokens(20);
-        rawUsage.setTotalTokens(30);
-
+    void shouldMapRawResponseSuccessfully() {
         OpenAiChatCompletionRawResponse rawResponse = new OpenAiChatCompletionRawResponse();
         rawResponse.setId("resp_1");
         rawResponse.setObject("chat.completion");
         rawResponse.setCreated(123456L);
-        rawResponse.setModel("test-model");
+        rawResponse.setModel("gpt-test");
+
+        OpenAiChatCompletionRawResponse.RawMessage rawMessage = new OpenAiChatCompletionRawResponse.RawMessage();
+        rawMessage.setRole("assistant");
+        rawMessage.setContent("你好");
+        rawMessage.setReasoningContent("我正在分析问题");
+
+        OpenAiChatCompletionRawResponse.RawChoice rawChoice = new OpenAiChatCompletionRawResponse.RawChoice();
+        rawChoice.setIndex(0);
+        rawChoice.setMessage(rawMessage);
+        rawChoice.setFinishReason("stop");
+
+        OpenAiChatCompletionRawResponse.RawUsage rawUsage = new OpenAiChatCompletionRawResponse.RawUsage();
+        rawUsage.setPromptTokens(12);
+        rawUsage.setCompletionTokens(8);
+        rawUsage.setTotalTokens(20);
+
         rawResponse.setChoices(List.of(rawChoice));
         rawResponse.setUsage(rawUsage);
 
-        OpenAiChatResponseMapper mapper = new OpenAiChatResponseMapper();
         OpenAiChatCompletionResponse response = mapper.fromRaw(rawResponse);
 
         assertEquals("resp_1", response.getBaseResponse().getId());
         assertEquals("chat.completion", response.getBaseResponse().getObject());
         assertEquals(123456L, response.getBaseResponse().getCreated());
-        assertEquals("test-model", response.getBaseResponse().getModel());
-
-        assertEquals(30, response.getUsage().getTotalTokens());
+        assertEquals("gpt-test", response.getBaseResponse().getModel());
 
         ChatChoice choice = response.getChoices().get(0);
         assertEquals(0, choice.getIndex());
-        assertEquals(FinishReason.TOOL_CALLS, choice.getFinishReason());
+        assertEquals(FinishReason.STOP, choice.getFinishReason());
 
-        assertEquals(1, choice.getChatResponse().getMessages().size());
-        assertTrue(choice.getChatResponse().getMessages().get(0) instanceof OpenAiAssistantMessage);
+        Message message = choice.getChatResponse().getMessages().get(0);
+        assertInstanceOf(OpenAiAssistantMessage.class, message);
 
-        OpenAiAssistantMessage message =
-                (OpenAiAssistantMessage) choice.getChatResponse().getMessages().get(0);
+        OpenAiAssistantMessage assistantMessage = (OpenAiAssistantMessage) message;
+        assertEquals("你好", assistantMessage.getContent());
+        assertEquals("我正在分析问题", assistantMessage.getReasoningContent());
+        assertTrue(assistantMessage.getToolCalls().isEmpty());
 
-        assertEquals("", message.getContent());
-        assertEquals("思考内容", message.getReasoningContent());
-        assertEquals(1, message.getToolCalls().size());
-        assertEquals("call_1", message.getToolCalls().get(0).getId());
-        assertEquals("function", message.getToolCalls().get(0).getType());
-        assertEquals("get_weather", message.getToolCalls().get(0).getFunction().getName());
-        assertEquals("{\"city\":\"北京\"}", message.getToolCalls().get(0).getFunction().getArguments());
+        assertEquals(12, response.getUsage().getPromptTokens());
+        assertEquals(8, response.getUsage().getCompletionTokens());
+        assertEquals(20, response.getUsage().getTotalTokens());
     }
 
     @Test
-    void from_raw_should_map_stop_finish_reason() {
-        OpenAiChatCompletionRawResponse.RawMessage rawMessage =
-                new OpenAiChatCompletionRawResponse.RawMessage();
-        rawMessage.setRole("assistant");
-        rawMessage.setContent("你好");
+    void shouldMapToolCallsSuccessfully() {
+        OpenAiChatCompletionRawResponse.RawFunction rawFunction = new OpenAiChatCompletionRawResponse.RawFunction();
+        rawFunction.setName("get_weather");
+        rawFunction.setArguments("{\"city\":\"北京\"}");
 
-        OpenAiChatCompletionRawResponse.RawChoice rawChoice =
-                new OpenAiChatCompletionRawResponse.RawChoice();
+        OpenAiChatCompletionRawResponse.RawToolCall rawToolCall = new OpenAiChatCompletionRawResponse.RawToolCall();
+        rawToolCall.setIndex(0);
+        rawToolCall.setId("call_1");
+        rawToolCall.setType("function");
+        rawToolCall.setFunction(rawFunction);
+
+        OpenAiChatCompletionRawResponse.RawMessage rawMessage = new OpenAiChatCompletionRawResponse.RawMessage();
+        rawMessage.setRole("assistant");
+        rawMessage.setContent("");
+        rawMessage.setReasoningContent("需要调用工具");
+        rawMessage.setToolCalls(List.of(rawToolCall));
+
+        OpenAiChatCompletionRawResponse.RawChoice rawChoice = new OpenAiChatCompletionRawResponse.RawChoice();
         rawChoice.setIndex(0);
         rawChoice.setMessage(rawMessage);
-        rawChoice.setFinishReason("stop");
+        rawChoice.setFinishReason("tool_calls");
 
         OpenAiChatCompletionRawResponse rawResponse = new OpenAiChatCompletionRawResponse();
-        rawResponse.setId("resp_2");
+        rawResponse.setId("resp_tool");
         rawResponse.setObject("chat.completion");
-        rawResponse.setModel("test-model");
+        rawResponse.setCreated(1L);
+        rawResponse.setModel("gpt-tool-test");
         rawResponse.setChoices(List.of(rawChoice));
 
-        OpenAiChatResponseMapper mapper = new OpenAiChatResponseMapper();
         OpenAiChatCompletionResponse response = mapper.fromRaw(rawResponse);
 
         ChatChoice choice = response.getChoices().get(0);
-        assertEquals(FinishReason.STOP, choice.getFinishReason());
-
-        OpenAiAssistantMessage message =
+        OpenAiAssistantMessage assistantMessage =
                 (OpenAiAssistantMessage) choice.getChatResponse().getMessages().get(0);
-        assertEquals("你好", message.getContent());
-        assertNull(message.getReasoningContent());
-        assertTrue(message.getToolCalls().isEmpty());
+
+        assertEquals(FinishReason.TOOL_CALLS, choice.getFinishReason());
+        assertEquals(1, assistantMessage.getToolCalls().size());
+        assertEquals("call_1", assistantMessage.getToolCalls().get(0).getId());
+        assertEquals("get_weather", assistantMessage.getToolCalls().get(0).getFunction().getName());
     }
 
     @Test
-    void to_chat_result_should_downgrade_provider_message_to_core_message() {
-        OpenAiChatCompletionRawResponse.RawMessage rawMessage =
-                new OpenAiChatCompletionRawResponse.RawMessage();
+    void shouldConvertToChatResultSuccessfully() {
+        OpenAiChatCompletionRawResponse.RawMessage rawMessage = new OpenAiChatCompletionRawResponse.RawMessage();
         rawMessage.setRole("assistant");
-        rawMessage.setContent("最终回答");
-        rawMessage.setReasoningContent("思考过程");
+        rawMessage.setContent("最终答案");
+        rawMessage.setReasoningContent("推理过程");
 
-        OpenAiChatCompletionRawResponse.RawChoice rawChoice =
-                new OpenAiChatCompletionRawResponse.RawChoice();
+        OpenAiChatCompletionRawResponse.RawChoice rawChoice = new OpenAiChatCompletionRawResponse.RawChoice();
         rawChoice.setIndex(0);
         rawChoice.setMessage(rawMessage);
         rawChoice.setFinishReason("stop");
 
         OpenAiChatCompletionRawResponse rawResponse = new OpenAiChatCompletionRawResponse();
-        rawResponse.setId("resp_3");
+        rawResponse.setId("resp_convert");
         rawResponse.setObject("chat.completion");
-        rawResponse.setModel("test-model");
+        rawResponse.setCreated(2L);
+        rawResponse.setModel("gpt-convert-test");
         rawResponse.setChoices(List.of(rawChoice));
 
-        OpenAiChatResponseMapper mapper = new OpenAiChatResponseMapper();
         OpenAiChatCompletionResponse response = mapper.fromRaw(rawResponse);
+        ChatResult chatResult = response.toChatResult();
 
-        ChatResult result = response.toChatResult();
-
-        assertEquals(1, result.getChoices().size());
-        assertTrue(result.getChoices().get(0).getChatResponse().getMessages().get(0) instanceof AssistantMessage);
-        assertFalse(result.getChoices().get(0).getChatResponse().getMessages().get(0) instanceof OpenAiAssistantMessage);
-        assertEquals("最终回答",
-                result.getChoices().get(0).getChatResponse().getMessages().get(0).getContent());
+        assertEquals("resp_convert", chatResult.getBaseResponse().getId());
+        assertEquals("最终答案",
+                chatResult.getChoices().get(0).getChatResponse().getMessages().get(0).getContent());
+        assertFalse(chatResult.getChoices().get(0).getChatResponse().getMessages().get(0) instanceof OpenAiAssistantMessage);
     }
 
     @Test
-    void from_raw_should_fail_when_choices_empty() {
+    void shouldRejectEmptyChoices() {
         OpenAiChatCompletionRawResponse rawResponse = new OpenAiChatCompletionRawResponse();
+        rawResponse.setId("resp_empty");
+        rawResponse.setObject("chat.completion");
+        rawResponse.setCreated(1L);
+        rawResponse.setModel("gpt-test");
         rawResponse.setChoices(List.of());
 
-        OpenAiChatResponseMapper mapper = new OpenAiChatResponseMapper();
+        IllegalStateException exception = assertThrows(
+                IllegalStateException.class,
+                () -> mapper.fromRaw(rawResponse)
+        );
 
-        assertThrows(IllegalStateException.class, () -> mapper.fromRaw(rawResponse));
+        assertTrue(exception.getMessage().contains("choices must not be empty"));
     }
 }

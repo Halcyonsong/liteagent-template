@@ -4,14 +4,19 @@ spring:
   config:
     import: optional:classpath:application-local.yaml
 
+logging:
+  level:
+    root: info
+    io.github.halcyonsong.liteagent.provider.openai: debug
+
 liteagent:
-  examples:
-    openai:
-      enabled: ${LITEAGENT_OPENAI_ENABLED:true}
-      base-url: ${LITEAGENT_OPENAI_BASE_URL:https://api.siliconflow.cn/v1/chat/completions}
-      api-key: ${LITEAGENT_OPENAI_API_KEY:your-api-key}
-      model: ${LITEAGENT_OPENAI_MODEL:your-model}
-      runtime:
-        max-in-memory-size: ${LITEAGENT_OPENAI_MAX_IN_MEMORY_SIZE:16777216}
-        connect-timeout-millis: ${LITEAGENT_OPENAI_CONNECT_TIMEOUT_MILLIS:5000}
-        response-timeout-millis: ${LITEAGENT_OPENAI_RESPONSE_TIMEOUT_MILLIS:60000}
+  openai:
+    enabled: ${LITEAGENT_OPENAI_ENABLED:true}
+    base-url: ${LITEAGENT_OPENAI_BASE_URL:https://api.siliconflow.cn/v1/chat/completions}
+    api-key: ${LITEAGENT_OPENAI_API_KEY:your-api-key}
+    model: ${LITEAGENT_OPENAI_MODEL:your-model}
+    runtime:
+      max-in-memory-size: ${LITEAGENT_OPENAI_MAX_IN_MEMORY_SIZE:16777216}
+      connect-timeout-millis: ${LITEAGENT_OPENAI_CONNECT_TIMEOUT_MILLIS:5000}
+      response-timeout-millis: ${LITEAGENT_OPENAI_RESPONSE_TIMEOUT_MILLIS:60000}
+      stream-response-timeout-millis: ${LITEAGENT_OPENAI_STREAM_RESPONSE_TIMEOUT_MILLIS:null}

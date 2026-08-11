@@ -13,13 +13,19 @@ public class HttpRuntimeKey {
     private final Integer maxInMemorySize;
     private final Integer connectTimeoutMillis;
     private final Long responseTimeoutMillis;
+    private final Long streamResponseTimeoutMillis;
+    private final HttpRuntimeMode mode;
 
     public HttpRuntimeKey(Integer maxInMemorySize,
                           Integer connectTimeoutMillis,
-                          Long responseTimeoutMillis) {
+                          Long responseTimeoutMillis,
+                          Long streamResponseTimeoutMillis,
+                          HttpRuntimeMode mode) {
         this.maxInMemorySize = Objects.requireNonNull(maxInMemorySize, "maxInMemorySize must not be null");
         this.connectTimeoutMillis = Objects.requireNonNull(connectTimeoutMillis, "connectTimeoutMillis must not be null");
-        this.responseTimeoutMillis = Objects.requireNonNull(responseTimeoutMillis, "responseTimeoutMillis must not be null");
+        this.responseTimeoutMillis = responseTimeoutMillis;
+        this.streamResponseTimeoutMillis = streamResponseTimeoutMillis;
+        this.mode = Objects.requireNonNull(mode, "mode must not be null");
     }
 
     public Integer getMaxInMemorySize() {
@@ -34,6 +40,14 @@ public class HttpRuntimeKey {
         return responseTimeoutMillis;
     }
 
+    public Long getStreamResponseTimeoutMillis() {
+        return streamResponseTimeoutMillis;
+    }
+
+    public HttpRuntimeMode getMode() {
+        return mode;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -44,12 +58,20 @@ public class HttpRuntimeKey {
         }
         return Objects.equals(maxInMemorySize, that.maxInMemorySize)
                 && Objects.equals(connectTimeoutMillis, that.connectTimeoutMillis)
-                && Objects.equals(responseTimeoutMillis, that.responseTimeoutMillis);
+                && Objects.equals(responseTimeoutMillis, that.responseTimeoutMillis)
+                && Objects.equals(streamResponseTimeoutMillis, that.streamResponseTimeoutMillis)
+                && mode == that.mode;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(maxInMemorySize, connectTimeoutMillis, responseTimeoutMillis);
+        return Objects.hash(
+                maxInMemorySize,
+                connectTimeoutMillis,
+                responseTimeoutMillis,
+                streamResponseTimeoutMillis,
+                mode
+        );
     }
 
     @Override
@@ -58,6 +80,8 @@ public class HttpRuntimeKey {
                 "maxInMemorySize=" + maxInMemorySize +
                 ", connectTimeoutMillis=" + connectTimeoutMillis +
                 ", responseTimeoutMillis=" + responseTimeoutMillis +
+                ", streamResponseTimeoutMillis=" + streamResponseTimeoutMillis +
+                ", mode=" + mode +
                 '}';
     }
 }
