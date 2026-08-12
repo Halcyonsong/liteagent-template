@@ -7,6 +7,8 @@ import io.github.halcyonsong.liteagent.core.message.type.constructor.Messages;
 import io.github.halcyonsong.liteagent.core.model.request.ChatInvocation;
 import io.github.halcyonsong.liteagent.core.model.request.ChatRequest;
 import io.github.halcyonsong.liteagent.provider.openai.client.OpenAiStreamClient;
+import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
+import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiCompletionOptions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,14 +28,17 @@ class ProviderStreamExampleTest extends OpenAiExampleSupport {
                 .addMessage(Messages.user("你好，你是什么模型？"))
                 .build();
 
-        ChatInvocation invocation = ChatInvocation.builder()
+        OpenAiChatCompletionRequest request = OpenAiChatCompletionRequest.builder()
                 .baseRequest(createBaseRequest())
                 .chatRequest(chatRequest)
-                .chatOptions(null)
+                .completionOptions(OpenAiCompletionOptions.builder()
+                        .temperature(0.7)
+                        .maxTokens(256)
+                        .build())
                 .build();
 
-        client.streamCompletion(invocation)
-                .doOnNext(Printers::printProviderStreamResponse)
+        client.streamCompletion(request)
+                .doOnNext(Printers::printStreamDeltaContentAndReasoning)
                 .blockLast();
     }
 }

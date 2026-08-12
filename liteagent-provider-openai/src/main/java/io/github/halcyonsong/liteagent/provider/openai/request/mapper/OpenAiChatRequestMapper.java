@@ -1,7 +1,9 @@
 package io.github.halcyonsong.liteagent.provider.openai.request.mapper;
 
 import io.github.halcyonsong.liteagent.core.message.Message;
+import io.github.halcyonsong.liteagent.core.model.request.ChatOptions;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
+import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiCompletionOptions;
 import io.github.halcyonsong.liteagent.provider.openai.request.raw.OpenAiChatCompletionRawRequest;
 
 import java.util.ArrayList;
@@ -27,22 +29,15 @@ public class OpenAiChatRequestMapper {
         rawRequest.setModel(request.getBaseRequest().getModel());
         rawRequest.setMessages(mapMessages(request.getChatRequest().getMessages()));
 
-        if (request.getChatOptions() != null) {
-            rawRequest.setTemperature(request.getChatOptions().getTemperature());
-            rawRequest.setMaxTokens(request.getChatOptions().getMaxTokens());
-        }
-
-        if(request.getCompletionOptions() != null) {
-            rawRequest.setTopP(request.getCompletionOptions().getTopP());
-            rawRequest.setN(request.getCompletionOptions().getN());
-            rawRequest.setPresencePenalty(request.getCompletionOptions().getPresencePenalty());
-            rawRequest.setFrequencyPenalty(request.getCompletionOptions().getFrequencyPenalty());
-            rawRequest.setResponseFormat(request.getCompletionOptions().getResponseFormat());
-
-            if (request.getCompletionOptions().getStop() != null) {
-                rawRequest.setStop(request.getCompletionOptions().getStop().toRawValue());
-            }
-        }
+        OpenAiCompletionOptions options = request.getCompletionOptions();
+        rawRequest.setTemperature(options == null ? null : options.getTemperature());
+        rawRequest.setMaxTokens(options == null ? null : options.getMaxTokens());
+        rawRequest.setTopP(options == null ? null : options.getTopP());
+        rawRequest.setN(options == null ? null : options.getN());
+        rawRequest.setPresencePenalty(options == null ? null : options.getPresencePenalty());
+        rawRequest.setFrequencyPenalty(options == null ? null : options.getFrequencyPenalty());
+        rawRequest.setResponseFormat(options == null ? null : options.getResponseFormat());
+        rawRequest.setStop(options == null || options.getStop() == null ? null : options.getStop().toRawValue());
 
         return rawRequest;
     }
@@ -56,5 +51,16 @@ public class OpenAiChatRequestMapper {
             result.add(item);
         }
         return result;
+    }
+
+    public OpenAiCompletionOptions toCompletionOptions(ChatOptions chatOptions) {
+        if (chatOptions == null) {
+            return null;
+        }
+
+        return OpenAiCompletionOptions.builder()
+                .temperature(chatOptions.getTemperature())
+                .maxTokens(chatOptions.getMaxTokens())
+                .build();
     }
 }

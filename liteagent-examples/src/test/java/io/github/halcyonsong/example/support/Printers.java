@@ -127,4 +127,24 @@ public final class Printers {
             System.out.println("total tokens = " + response.getUsage().getTotalTokens());
         }
     }
+
+    public static void printStreamDeltaContentAndReasoning(OpenAiStreamCompletionResponse response) {
+        response.getChoices().forEach(choice -> {
+            if (choice.getDelta() == null) {
+                return;
+            }
+
+            String content = choice.getDelta().getContent();
+            String reasoning = choice.getDelta().getReasoningContent();
+
+            if (reasoning != null && !reasoning.isBlank()) {
+                System.out.print(reasoning);
+            }
+
+            if (content != null && !content.isBlank()) {
+                System.out.print(content);
+            }
+        });
+    }
+
 }

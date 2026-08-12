@@ -1,7 +1,6 @@
 package io.github.halcyonsong.liteagent.provider.openai.request.config;
 
 import io.github.halcyonsong.liteagent.core.model.request.BaseRequest;
-import io.github.halcyonsong.liteagent.core.model.request.ChatOptions;
 import io.github.halcyonsong.liteagent.core.model.request.ChatRequest;
 import io.github.halcyonsong.liteagent.core.support.JsonSupport;
 
@@ -19,7 +18,6 @@ public class OpenAiChatCompletionRequest {
 
     private final BaseRequest baseRequest;
     private final ChatRequest chatRequest;
-    private final ChatOptions chatOptions;
     /**
      * OpenAI-compatible 协议的扩展请求参数。
      * 该部分参数不属于 core 统一抽象范围。
@@ -29,7 +27,6 @@ public class OpenAiChatCompletionRequest {
     private OpenAiChatCompletionRequest(Builder builder) {
         this.baseRequest = Objects.requireNonNull(builder.baseRequest, "baseRequest must not be null");
         this.chatRequest = Objects.requireNonNull(builder.chatRequest, "chatRequest must not be null");
-        this.chatOptions = builder.chatOptions;
         this.completionOptions = builder.completionOptions;
     }
 
@@ -39,10 +36,6 @@ public class OpenAiChatCompletionRequest {
 
     public ChatRequest getChatRequest() {
         return chatRequest;
-    }
-
-    public ChatOptions getChatOptions() {
-        return chatOptions;
     }
 
     public OpenAiCompletionOptions getCompletionOptions() {
@@ -56,7 +49,6 @@ public class OpenAiChatCompletionRequest {
     public static class Builder {
         private BaseRequest baseRequest;
         private ChatRequest chatRequest;
-        private ChatOptions chatOptions;
         private OpenAiCompletionOptions completionOptions;
 
         public Builder baseRequest(BaseRequest baseRequest) {
@@ -66,11 +58,6 @@ public class OpenAiChatCompletionRequest {
 
         public Builder chatRequest(ChatRequest chatRequest) {
             this.chatRequest = chatRequest;
-            return this;
-        }
-
-        public Builder chatOptions(ChatOptions chatOptions) {
-            this.chatOptions = chatOptions;
             return this;
         }
 
@@ -94,7 +81,6 @@ public class OpenAiChatCompletionRequest {
                 "baseUrl='" + baseRequest.getBaseUrl() + '\'' +
                 ", model='" + baseRequest.getModel() + '\'' +
                 ", messageCount=" + chatRequest.getMessages().size() +
-                ", hasChatOptions=" + (chatOptions != null) +
                 ", hasCompletionOptions=" + (completionOptions != null) +
                 '}';
     }

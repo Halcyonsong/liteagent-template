@@ -7,7 +7,7 @@ package io.github.halcyonsong.liteagent.core.model.request;
  * 例如温度参数以及最大生成 token 数。
  * 供应商特有扩展参数不应放入该类。
  */
-public class ChatOptions {
+public class ChatOptions implements BaseOptions {
 
     /**
      * 采样温度，用于控制输出随机性。

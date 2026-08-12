@@ -3,17 +3,17 @@ package io.github.halcyonsong.example.config;
 import io.github.halcyonsong.liteagent.provider.openai.client.OpenAiChatClient;
 import io.github.halcyonsong.liteagent.provider.openai.client.OpenAiStreamClient;
 import io.github.halcyonsong.liteagent.provider.openai.client.factory.OpenAiClients;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@RequiredArgsConstructor
 @EnableConfigurationProperties(OpenAiProperties.class)
 public class OpenAiConfig {
 
-    private final OpenAiProperties openAiProperties;
+    @Autowired
+    private OpenAiProperties openAiProperties;
 
     @Bean
     public OpenAiChatClient openAiChatClient() {

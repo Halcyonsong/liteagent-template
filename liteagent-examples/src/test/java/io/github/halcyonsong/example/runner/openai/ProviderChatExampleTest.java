@@ -7,6 +7,8 @@ import io.github.halcyonsong.liteagent.core.message.type.constructor.Messages;
 import io.github.halcyonsong.liteagent.core.model.request.ChatInvocation;
 import io.github.halcyonsong.liteagent.core.model.request.ChatRequest;
 import io.github.halcyonsong.liteagent.provider.openai.client.OpenAiChatClient;
+import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
+import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiCompletionOptions;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiChatCompletionResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,17 +25,20 @@ class ProviderChatExampleTest extends OpenAiExampleSupport {
         assumeConfigReady();
 
         ChatRequest chatRequest = ChatRequest.builder()
-                .addMessage(Messages.system("You are a helpful assistant."))
+                .addMessage(Messages.system("你是一位精通法律的助手。"))
                 .addMessage(Messages.user("你好，请简单介绍一下你自己。"))
                 .build();
 
-        ChatInvocation invocation = ChatInvocation.builder()
+        OpenAiChatCompletionRequest request = OpenAiChatCompletionRequest.builder()
                 .baseRequest(createBaseRequest())
                 .chatRequest(chatRequest)
-                .chatOptions(null)
+                .completionOptions(OpenAiCompletionOptions.builder()
+                        .temperature(0.7)
+                        .maxTokens(256)
+                        .build())
                 .build();
 
-        OpenAiChatCompletionResponse response = client.chatCompletion(invocation);
+        OpenAiChatCompletionResponse response = client.chatCompletion(request);
         Printers.printProviderResponse(response);
     }
 }

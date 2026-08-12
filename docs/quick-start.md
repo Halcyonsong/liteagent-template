@@ -211,14 +211,36 @@ public class UnifiedStreamExample {
 ### 普通 provider 响应
 
 ```java
-import io.github.halcyonsong.liteagent.core.model.request.ChatInvocation;
+import io.github.halcyonsong.liteagent.core.message.type.constructor.Messages;
+import io.github.halcyonsong.liteagent.core.model.request.ChatRequest;
 import io.github.halcyonsong.liteagent.provider.openai.client.OpenAiChatClient;
+import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiBaseRequest;
+import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
+import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiCompletionOptions;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiChatCompletionResponse;
 
 public class ProviderChatExample {
 
-    public OpenAiChatCompletionResponse execute(OpenAiChatClient chatClient, ChatInvocation invocation) {
-        return chatClient.chatCompletion(invocation);
+    public OpenAiChatCompletionResponse execute(OpenAiChatClient chatClient) {
+        ChatRequest chatRequest = ChatRequest.builder()
+                .addMessage(Messages.system("You are a helpful assistant."))
+                .addMessage(Messages.user("你好，请简单介绍一下你自己。"))
+                .build();
+
+        OpenAiChatCompletionRequest request = OpenAiChatCompletionRequest.builder()
+                .baseRequest(OpenAiBaseRequest.builder()
+                        .baseUrl("https://api.siliconflow.cn")
+                        .apiKey("your-api-key")
+                        .model("deepseek-ai/DeepSeek-R1-0528-Qwen3-8B")
+                        .build())
+                .chatRequest(chatRequest)
+                .completionOptions(OpenAiCompletionOptions.builder()
+                        .temperature(0.7)
+                        .maxTokens(256)
+                        .build())
+                .build();
+
+        return chatClient.chatCompletion(request);
     }
 }
 ```
@@ -226,15 +248,37 @@ public class ProviderChatExample {
 ### 流式 provider 响应
 
 ```java
-import io.github.halcyonsong.liteagent.core.model.request.ChatInvocation;
+import io.github.halcyonsong.liteagent.core.message.type.constructor.Messages;
+import io.github.halcyonsong.liteagent.core.model.request.ChatRequest;
 import io.github.halcyonsong.liteagent.provider.openai.client.OpenAiStreamClient;
+import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiBaseRequest;
+import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
+import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiCompletionOptions;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.stream.OpenAiStreamCompletionResponse;
 import reactor.core.publisher.Flux;
 
 public class ProviderStreamExample {
 
-    public Flux<OpenAiStreamCompletionResponse> execute(OpenAiStreamClient streamClient, ChatInvocation invocation) {
-        return streamClient.streamCompletion(invocation);
+    public Flux<OpenAiStreamCompletionResponse> execute(OpenAiStreamClient streamClient) {
+        ChatRequest chatRequest = ChatRequest.builder()
+                .addMessage(Messages.system("You are a helpful assistant."))
+                .addMessage(Messages.user("你好，你是什么模型？"))
+                .build();
+
+        OpenAiChatCompletionRequest request = OpenAiChatCompletionRequest.builder()
+                .baseRequest(OpenAiBaseRequest.builder()
+                        .baseUrl("https://api.siliconflow.cn")
+                        .apiKey("your-api-key")
+                        .model("deepseek-ai/DeepSeek-R1-0528-Qwen3-8B")
+                        .build())
+                .chatRequest(chatRequest)
+                .completionOptions(OpenAiCompletionOptions.builder()
+                        .temperature(0.7)
+                        .maxTokens(256)
+                        .build())
+                .build();
+
+        return streamClient.streamCompletion(request);
     }
 }
 ```

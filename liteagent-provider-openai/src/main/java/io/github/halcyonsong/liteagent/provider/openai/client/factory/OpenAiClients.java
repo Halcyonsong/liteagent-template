@@ -19,6 +19,10 @@ import io.github.halcyonsong.liteagent.provider.openai.runtime.register.WebClien
  */
 public final class OpenAiClients {
 
+    private static final WebClientFactory WEB_CLIENT_FACTORY = new WebClientFactory();
+    private static final WebClientRegistry WEB_CLIENT_REGISTRY = new WebClientRegistry(WEB_CLIENT_FACTORY);
+    private static final OpenAiChatClientFactory CLIENT_FACTORY = new OpenAiChatClientFactory(WEB_CLIENT_REGISTRY);
+
     private OpenAiClients() {
     }
 
@@ -55,9 +59,7 @@ public final class OpenAiClients {
      * @return 已完成基础装配的 {@link OpenAiChatClient}
      */
     public static OpenAiChatClient create(HttpRuntimeConfig runtimeConfig) {
-        WebClientRegistry registry = new WebClientRegistry(new WebClientFactory());
-        OpenAiChatClientFactory factory = new OpenAiChatClientFactory(registry);
-        return factory.create(runtimeConfig);
+        return CLIENT_FACTORY.create(runtimeConfig);
     }
 
     /**
@@ -118,9 +120,7 @@ public final class OpenAiClients {
      * @return 已完成基础装配的 {@link io.github.halcyonsong.liteagent.provider.openai.client.OpenAiStreamClient}
      */
     public static OpenAiStreamClient createStream(HttpRuntimeConfig runtimeConfig) {
-        WebClientRegistry registry = new WebClientRegistry(new WebClientFactory());
-        OpenAiChatClientFactory factory = new OpenAiChatClientFactory(registry);
-        return factory.createStream(runtimeConfig);
+        return CLIENT_FACTORY.createStream(runtimeConfig);
     }
 
     /**

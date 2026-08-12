@@ -94,7 +94,7 @@ public class OpenAiChatClient implements ChatClient {
         OpenAiChatCompletionRequest request = OpenAiChatCompletionRequest.builder()
                 .baseRequest(invocation.getBaseRequest())
                 .chatRequest(invocation.getChatRequest())
-                .chatOptions(invocation.getChatOptions())
+                .completionOptions(requestMapper.toCompletionOptions(invocation.getChatOptions()))
                 .build();
 
         return chatCompletion(request);

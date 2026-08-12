@@ -89,6 +89,8 @@ public class UnifiedStreamExample {
 
 ```java
 import io.github.halcyonsong.liteagent.provider.openai.client.OpenAiChatClient;
+import io.github.halcyonsong.liteagent.core.message.type.constructor.Messages;
+import io.github.halcyonsong.liteagent.core.model.request.ChatRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiBaseRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiCompletionOptions;
@@ -96,10 +98,15 @@ import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.Open
 
 public class ProviderRequestExample {
 
-    public OpenAiChatCompletionResponse execute(OpenAiChatClient chatClient,
-                                                ChatRequest chatRequest,
-                                                ChatOptions chatOptions) {
+    public OpenAiChatCompletionResponse execute(OpenAiChatClient chatClient) {
+        ChatRequest chatRequest = ChatRequest.builder()
+                .addMessage(Messages.system("You are a helpful assistant."))
+                .addMessage(Messages.user("你好，请用一句话介绍你自己。"))
+                .build();
+
         OpenAiCompletionOptions completionOptions = OpenAiCompletionOptions.builder()
+                .temperature(0.7)
+                .maxTokens(256)
                 .topP(0.9)
                 .n(1)
                 .build();
@@ -111,7 +118,6 @@ public class ProviderRequestExample {
                         .model("deepseek-ai/DeepSeek-R1-0528-Qwen3-8B")
                         .build())
                 .chatRequest(chatRequest)
-                .chatOptions(chatOptions)
                 .completionOptions(completionOptions)
                 .build();
 
@@ -119,6 +125,12 @@ public class ProviderRequestExample {
     }
 }
 ```
+
+说明：
+
+- `ChatInvocation` 仍然使用 core 的 `ChatOptions`
+- `OpenAiChatCompletionRequest` 只使用 `OpenAiCompletionOptions`
+- 当统一调用进入 openai provider 时，框架内部会自动将 `ChatOptions` 转换为 `OpenAiCompletionOptions`
 
 ## 4. 使用 QuickRequest 快速调用
 
@@ -309,5 +321,7 @@ liteagent:
       max-in-memory-size: 16777216
       connect-timeout-millis: 5000
       response-timeout-millis: 60000
-      stream-response-timeout-millis: null
+      # stream-response-timeout-millis:
 ```
+
+不配置 `stream-response-timeout-millis` 表示不设置流式总响应超时。

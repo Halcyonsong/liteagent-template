@@ -1,5 +1,7 @@
 package io.github.halcyonsong.liteagent.provider.openai.request.config;
 
+import io.github.halcyonsong.liteagent.core.model.request.BaseOptions;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -10,7 +12,18 @@ import java.util.Objects;
  * 该对象用于封装不进入 core 通用请求模型、但可被 OpenAI-compatible 协议支持的可选字段，
  * 例如 top_p、n、stop、presence_penalty、frequency_penalty 和 response_format。
  */
-public class OpenAiCompletionOptions {
+public class OpenAiCompletionOptions implements BaseOptions {
+
+    /**
+     * 温度参数，介于 0 和 2.0 之间。
+     * 控制生成结果的随机性和多样性。
+     */
+    private final Double temperature;
+
+    /**
+     * 最大生成 token 数量。
+     */
+    private final Integer maxTokens;
 
     /**
      * 核采样概率，介于 0 和 1 之间。与 temperature 类似，是另一种控制输出随机性的方法。
@@ -46,12 +59,22 @@ public class OpenAiCompletionOptions {
     private final Map<String, Object> responseFormat;
 
     private OpenAiCompletionOptions(Builder builder) {
+        this.temperature = builder.temperature;
+        this.maxTokens = builder.maxTokens;
         this.topP = builder.topP;
         this.n = builder.n;
         this.stop = builder.stop;
         this.presencePenalty = builder.presencePenalty;
         this.frequencyPenalty = builder.frequencyPenalty;
         this.responseFormat = builder.responseFormat;
+    }
+
+    public Double getTemperature() {
+        return temperature;
+    }
+
+    public Integer getMaxTokens() {
+        return maxTokens;
     }
 
     public Double getTopP() {
@@ -83,12 +106,24 @@ public class OpenAiCompletionOptions {
     }
 
     public static class Builder {
+        private Double temperature;
+        private Integer maxTokens;
         private Double topP;
         private Integer n;
         private Stop stop;
         private Double presencePenalty;
         private Double frequencyPenalty;
         private Map<String, Object> responseFormat;
+
+        public Builder temperature(Double temperature) {
+            this.temperature = temperature;
+            return this;
+        }
+
+        public Builder maxTokens(Integer maxTokens) {
+            this.maxTokens = maxTokens;
+            return this;
+        }
 
         public Builder topP(Double topP) {
             this.topP = topP;
