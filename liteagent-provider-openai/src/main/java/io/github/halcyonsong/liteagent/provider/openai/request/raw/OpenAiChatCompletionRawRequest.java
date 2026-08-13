@@ -70,6 +70,9 @@ public class OpenAiChatCompletionRawRequest {
     @JsonProperty("tools")
     private List<Map<String, Object>> tools;
 
+    @JsonProperty("tool_choice")
+    private Object toolChoice;
+
     public OpenAiChatCompletionRawRequest() {
     }
 

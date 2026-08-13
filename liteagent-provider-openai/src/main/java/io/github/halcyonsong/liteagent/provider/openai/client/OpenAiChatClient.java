@@ -3,6 +3,7 @@ package io.github.halcyonsong.liteagent.provider.openai.client;
 import io.github.halcyonsong.liteagent.core.client.ChatClient;
 import io.github.halcyonsong.liteagent.core.model.request.ChatInvocation;
 import io.github.halcyonsong.liteagent.core.model.response.chat.ChatResult;
+import io.github.halcyonsong.liteagent.provider.openai.client.support.OpenAiClientSupport;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.quickrequest.OpenAiQuickChatRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.mapper.OpenAiChatRequestMapper;
@@ -28,6 +29,7 @@ public class OpenAiChatClient implements ChatClient {
     private final OpenAiChatRequestMapper requestMapper;
     private final OpenAiChatResponseMapper responseMapper;
     private final OpenAiChatTransport transport;
+    private final OpenAiClientSupport clientSupport = new OpenAiClientSupport();
 
     public OpenAiChatClient(WebClient webClient) {
         this.requestMapper = new OpenAiChatRequestMapper();
@@ -116,6 +118,7 @@ public class OpenAiChatClient implements ChatClient {
         Objects.requireNonNull(request, "request must not be null");
 
         OpenAiChatCompletionRawRequest rawRequest = requestMapper.toRawRequest(request);
+        clientSupport.applyAdvisors(request, rawRequest);
         rawRequest.setStream(false);
         String endpoint = OpenAiEndpointResolver.resolveChatCompletionsEndpoint(
                 request.getBaseRequest().getBaseUrl()

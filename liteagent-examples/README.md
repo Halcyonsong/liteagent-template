@@ -1,32 +1,30 @@
 # liteagent-examples
 
-`liteagent-examples` 是示例与手工验证模块。
-
-该模块不属于框架核心打包内容，允许适度使用 Spring Boot 配置能力，方便本地调试和 smoke test。
+`liteagent-examples` 是示例和手工验证模块。
+它不属于框架核心打包内容，但可以使用 Spring Boot 配置能力来做本地测试和 smoke test。
 
 ## 职责
 
-当前主要用于：
-
-- 演示 unified chat 调用方式
-- 演示 provider chat 调用方式
-- 演示 unified stream 调用方式
-- 演示 provider stream 调用方式
-- 通过配置文件统一管理测试参数
-- 作为后续功能联调入口
+- 演示普通 chat 调用
+- 演示流式 chat 调用
+- 演示 provider 扩展字段读取
+- 演示 tools 注入
+- 演示 tool_choice 注入
+- 演示本地配置拆分
 
 ## 当前用法
 
-当前示例主要通过 Spring Boot 测试启动，并从配置文件中读取：
+示例通过 `application.yaml` 读取公共配置，再通过副配置文件覆盖本地密钥。
 
-- `baseUrl`
-- `apiKey`
-- `model`
-- runtime 配置
+推荐形式：
 
-## 建议配置方式
+```yaml
+spring:
+  config:
+    import: optional:classpath:application-local.yaml
+```
 
-建议在测试配置中提供以下内容：
+主配置只保留模板字段，副配置放真实值：
 
 ```yaml
 liteagent:
@@ -39,18 +37,10 @@ liteagent:
       max-in-memory-size: 16777216
       connect-timeout-millis: 5000
       response-timeout-millis: 60000
-      stream-response-timeout-millis:
+      stream-response-timeout-millis: 300000
 ```
 
-其中：
-
-- `response-timeout-millis` 用于普通请求
-- `stream-response-timeout-millis` 用于流式请求
-- 流式超时留空表示不设置流式总响应超时
-
-## 当前示例覆盖
-
-建议保留的示例类型包括：
+## 推荐保留的示例类别
 
 ### unified
 
@@ -63,25 +53,28 @@ liteagent:
 - `ProviderChatExampleTest`
 - `ProviderReasoningExampleTest`
 - `ProviderStreamExampleTest`
+- `ProviderToolCallExampleTest`
 
-## 说明
+### tool
 
-该模块的定位不是正式测试主战场。
+- 工具注册验证
+- tool_choice 验证
+- 流程内工具增强验证
 
-更推荐的职责划分是：
+## 示例定位
 
-- `liteagent-core`：单元测试
-- `liteagent-provider-openai`：单元测试 + 协议层验证
-- `liteagent-examples`：示例、手工验证、真实接口 smoke test
+这个模块更像一个“可运行文档”，不是最终业务代码。
 
-## 是否保留
+适合做这些事：
 
-建议保留。
+- 验证接口是否还能正常调用
+- 验证新特性是否按预期工作
+- 作为仓库的调用模板
 
-原因：
+## 建议保留
 
-- 后续新增工具调用时可以继续在这里联调
-- 后续新增多模态或 agent 能力时也可以继续补充示例
-- 对使用者来说，这里相当于 quick start 工程
+建议保留这个模块。
+原因很简单：
 
-随着项目演进，该模块可以逐步补充为更完整的示例集。
+- 后续新增 provider 或工具链时，还是需要一个地方做真实 smoke test
+- 对使用者来说，这里也是最直接的入门样例

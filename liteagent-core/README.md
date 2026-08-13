@@ -1,18 +1,16 @@
 # liteagent-core
 
 `liteagent-core` 是框架的统一抽象层。
-
-该模块只保留跨供应商相对稳定的基础模型，不直接承载某个供应商的协议特有字段。
+这里只保留跨供应商稳定的基础模型，不放 OpenAI-compatible 这类协议私有字段。
 
 ## 职责
 
-当前主要职责包括：
-
-- 定义统一消息接口与消息类型
+- 定义统一消息模型
 - 定义统一请求模型
 - 定义统一普通响应模型
 - 定义统一流式响应模型
-- 定义框架基础异常类型
+- 定义工具注册规范
+- 定义框架基础异常
 
 ## 包结构
 
@@ -20,14 +18,18 @@
 io.github.halcyonsong.liteagent.core
 ├─ exception
 ├─ message
-└─ model
-   ├─ request
-   └─ response
-      ├─ chat
-      └─ stream
+├─ model
+│  ├─ request
+│  └─ response
+│     ├─ chat
+│     └─ stream
+└─ tool
+   ├─ annotation
+   ├─ impl
+   └─ norm
 ```
 
-## 当前已实现内容
+## 已实现内容
 
 ### message
 
@@ -39,7 +41,7 @@ io.github.halcyonsong.liteagent.core
 - `AssistantMessage`
 - `SystemMessage`
 - `ToolMessage`
-- `Messages` 快速构造工具
+- `Messages`
 
 ### request
 
@@ -68,33 +70,91 @@ io.github.halcyonsong.liteagent.core
 - `StreamChoice`
 - `StreamChunk`
 
+### tool
+
+工具注册规范：
+
+- `@ToolComponent`
+- `@ToolMethod`
+- `@ToolParam`
+- `ToolDefinition`
+- `ToolRegistry`
+- `ToolRegistrar`
+- `InMemoryToolRegistry`
+- `ReflectionToolRegistrar`
+- `ToolRegistries`
+
 ### exception
 
-当前异常骨架：
+基础异常：
 
 - `LiteAgentException`
 - `ModelException`
 - `ToolExecutionException`
 
-## 边界说明
+## 设计边界
 
-以下内容暂时不应放入 `core`：
+core 不直接包含这些内容：
 
-- OpenAI-compatible 的 `reasoning_content`
-- OpenAI-compatible 的 `tool_calls`
-- provider 特有扩展 usage 字段
-- 供应商特有扩展参数
+- OpenAI-compatible `reasoning_content`
+- OpenAI-compatible `tool_calls`
+- provider 扩展 `usage`
 - 具体 HTTP 实现
-- agent 编排逻辑
+- 具体工具执行编排
 
-这些内容应保留在 provider 层或后续 agent 层。
+这些内容留在 provider 或更上层的编排层。
 
-## 当前定位
+## 工具注册链路
 
-当前 `core` 的目标不是“大而全”，而是：
+### 注册阶段
 
-- 提供稳定抽象
-- 控制边界清晰
-- 为多个 provider 提供统一基础模型
+```mermaid
+flowchart TD
+    A[工具类 @ToolComponent] --> B[ReflectionToolRegistrar 扫描 @ToolMethod]
+    B --> C[解析 @ToolParam<br/>参数名 / 描述 / required]
+    C --> D[构建 JSON Schema<br/>type / properties / required]
+    D --> E[SimpleToolDefinition]
+    E --> F[InMemoryToolRegistry 存储]
+```
 
-后续若新增其他模型供应商，应优先复用该模块中的统一抽象。
+### 完整调用流程中 core 的位置
+
+```mermaid
+flowchart TD
+    Begin([Begin]) --> A1[调用处构造请求<br/>core: ChatRequest + BaseRequest]
+    A1 --> A2[框架客户端构造<br/>provider: OpenAiChatClient]
+    A2 --> A3[Request Mapper → Raw Request]
+    A3 --> A4[Advisor 增强<br/>core: RequestAdvisor 接口<br/>provider: OpenAiRegistryToolsAdvisor]
+    A4 --> A5[Transport 发送 HTTP]
+    A5 --> A6[接收 Raw Response]
+    A6 --> A7[Response Mapper]
+    A7 --> A8{检测 tool_calls}
+    A8 -->|无 tool_calls| A9[返回响应<br/>core: ChatResult / provider: OpenAiChatCompletionResponse]
+    A9 --> End([End])
+    A8 -.->|有 tool_calls 待实现| B1[执行工具<br/>core: ToolDefinition / ToolRegistry]
+    B1 -.-> B2[追加 tool 角色消息<br/>core: ToolMessage]
+    B2 -.-> A2
+```
+
+说明：
+
+- `core` 标注的节点为 core 模块定义的抽象，provider 层依赖这些抽象
+- `provider` 标注的节点为 OpenAI-compatible 协议的具体实现
+- core 层只定义规范（`ToolDefinition`、`ToolRegistry`、`RequestAdvisor`），不参与具体协议交互
+- 工具执行闭环（虚线部分）将由上层编排层实现，core 提供必要的抽象支撑
+
+## 使用原则
+
+- 单个方法注册时，不要求类必须带 `@ToolComponent`
+- 批量扫描注册时，只扫描带 `@ToolComponent` 的类
+- 方法参数默认通过反射获取名称
+- `@ToolParam.name()` 可覆盖反射结果
+- `@ToolParam.required=false` 时，该参数不会进入 schema 的 required 列表
+
+## 位置说明
+
+core 的目标不是“把所有能力都塞进去”，而是：
+
+- 先定住稳定接口
+- 让 provider 有统一入口
+- 让后续多 provider 扩展时不需要重写基础模型

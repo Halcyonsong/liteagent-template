@@ -1,17 +1,16 @@
 # liteagent-provider-openai
 
-`liteagent-provider-openai` 是 OpenAI-compatible 协议实现模块。
-
-当前已完成普通与流式两条基础对话调用链路，并对请求、响应、运行时配置做了分层处理。
+`liteagent-provider-openai` 是 OpenAI-compatible 协议实现层。
+这里负责把 core 模型映射成 OpenAI-compatible raw 协议，再把 raw 协议映射回 provider 响应和 core 响应。
 
 ## 职责
 
-该模块负责：
-
-- 将 core 统一请求模型映射为 OpenAI-compatible raw request
-- 发送普通或流式 HTTP 请求并接收 raw response
-- 将 raw response 映射为 provider 响应对象
-- 将 provider 响应进一步转换为 core 统一响应对象
+- 将 core request 映射为 raw request
+- 将 raw response 映射为 provider response
+- 将 provider response 再映射为 core response
+- 提供普通 client 和流式 client
+- 提供 runtime 配置和 WebClient 复用
+- 提供 tools / tool_choice 请求增强
 
 ## 包结构
 
@@ -19,17 +18,18 @@
 io.github.halcyonsong.liteagent.provider.openai
 ├─ client
 ├─ request
+│  ├─ advisor
 │  ├─ config
+│  │  └─ tool
 │  ├─ mapper
 │  ├─ quickrequest
 │  └─ raw
 ├─ response
-│  ├─ config
-│  │  ├─ chat
-│  │  ├─ stream
-│  │  └─ tool
 │  ├─ mapper
-│  └─ raw
+│  └─ config
+│     ├─ chat
+│     ├─ stream
+│     └─ tool
 ├─ runtime
 │  ├─ config
 │  └─ register
@@ -37,7 +37,7 @@ io.github.halcyonsong.liteagent.provider.openai
 └─ transport
 ```
 
-## 当前已实现内容
+## 已实现内容
 
 ### request
 
@@ -47,6 +47,8 @@ io.github.halcyonsong.liteagent.provider.openai
 - `OpenAiQuickChatRequest`
 - `OpenAiChatCompletionRawRequest`
 - `OpenAiChatRequestMapper`
+- `OpenAiRegistryToolsAdvisor`
+- `OpenAiToolChoiceAdvisor`
 
 ### response
 
@@ -64,10 +66,6 @@ io.github.halcyonsong.liteagent.provider.openai
 
 - `OpenAiStreamCompletionResponse`
 - `OpenAiStreamResponseMapper`
-
-原始响应：
-
-- `OpenAiChatCompletionRawResponse`
 
 ### runtime
 
@@ -88,82 +86,92 @@ io.github.halcyonsong.liteagent.provider.openai
 - `OpenAiStreamClient`
 - `OpenAiChatStreamTransport`
 
-快捷创建：
+快捷构造：
 
 - `OpenAiChatClientFactory`
 - `OpenAiClients`
 
-## 当前设计说明
+## 当前设计
 
-### 1. request / raw request 分层
+### 1. raw request / wrapper request 分离
 
-provider 请求包装对象不直接等于最终发送 JSON。
+wrapper request 面向开发者，raw request 面向协议发送。
 
-- wrapper request：面向框架调用者
-- raw request：面向协议发送层
+### 2. raw response / wrapper response 分离
 
-### 2. response / raw response 分层
+远端返回先进入 raw response，再映射为 provider response。
 
-远端响应先完整接收到 raw response，再映射为 provider 响应对象。
+### 3. 普通请求与流式请求分离
 
-这样可以同时保留：
+普通和流式由不同 client / transport 处理：
 
-- 统一模型返回能力
-- provider 特有字段读取能力
+- `OpenAiChatClient`
+- `OpenAiStreamClient`
 
-### 3. 普通与流式调用分离
+这样返回类型和调用语义更清楚。
 
-普通与流式请求通过不同客户端和不同 transport 区分：
+### 4. tools / tool_choice 注入发生在发送前
 
-- `OpenAiChatClient`：普通调用
-- `OpenAiStreamClient`：流式调用
+完整的请求-响应-工具调用链路：
 
-这样可以让：
+```mermaid
+flowchart TD
+    Begin([Begin]) --> A1[调用处构造请求<br/>OpenAiChatCompletionRequest.Builder]
+    A1 --> A2[OpenAiChatClient.chatCompletion<br/>OpenAiStreamClient.streamCompletion]
+    A2 --> A3[OpenAiChatRequestMapper.toRawRequest<br/>映射 model / messages / options]
+    A3 --> A4[OpenAiClientSupport.applyAdvisors<br/>遍历 advisors 列表]
+    A4 --> A5["OpenAiRegistryToolsAdvisor.enhance<br/>ToolRegistry → OpenAiToolSpec → raw.tools"]
+    A4 --> A6[OpenAiToolChoiceAdvisor.enhance<br/>OpenAiToolChoice → raw.tool_choice]
+    A5 --> A7[OpenAiChatTransport.send<br/>WebClient POST]
+    A6 --> A7
+    A7 --> A8[OpenAiChatCompletionRawResponse]
+    A8 --> A9[OpenAiChatResponseMapper.fromRaw<br/>→ OpenAiChatCompletionResponse]
+    A9 --> A10{检测 tool_calls}
+    A10 -->|无 tool_calls| A11[返回 Provider Response]
+    A11 --> A12[可选: 映射为 core ChatResult]
+    A12 --> End([End])
+    A10 -.->|有 tool_calls 待实现| B1[ToolExecutor 执行工具]
+    B1 -.-> B2[追加 tool 角色消息<br/>到 ChatRequest.messages]
+    B2 -.-> A2
+```
 
-- 普通返回模型稳定
-- 流式返回模型语义清晰
-- request / response / transport 链路更易维护
+说明：
 
-### 4. provider 特有响应字段保留在 provider 层
+- 实线部分为当前已实现的链路
+- 虚线部分为工具执行闭环，尚未实现
+- `OpenAiChatRequestMapper` 只做基本字段映射，不处理 tools / tool_choice
+- tools 和 tool_choice 完全由 Advisor 机制注入，与对话逻辑解耦
+- Advisor 按 Builder 中 `.advisor()` 调用顺序执行
+- 流式调用（`OpenAiStreamClient`）在同一位置执行 Advisor，仅 transport 和响应类型不同
 
-例如当前已保留：
+### 5. 普通与流式超时分离
 
-- `reasoning_content`
-- `tool_calls`
-- provider 扩展 usage 字段
+运行时配置支持：
 
-这些字段通过 provider 响应对象暴露，而不会直接进入 core 通用模型。
+- 普通请求超时
+- 流式请求超时
 
-### 5. WebClient 运行时配置独立管理
-
-基础运行时参数通过 runtime 模块控制，包括：
-
-- 最大内存缓冲大小
-- 连接超时
-- 普通请求响应超时
-- 流式请求响应超时（可为 `null`，表示不设置流式总响应超时）
-
-## 当前未完成内容
-
-- tools 完整回调链路
-- 更完整的错误码接入
-- 更细粒度 provider 配置能力
-- Spring 自动装配支持
+流式超时可以单独配置，不需要和普通请求绑死。
 
 ## 使用说明
 
-当前推荐的调用入口包括：
-
-普通：
+### 普通调用
 
 - `ChatInvocation -> ChatResult`
 - `OpenAiChatCompletionRequest -> OpenAiChatCompletionResponse`
 - `OpenAiQuickChatRequest -> OpenAiChatCompletionResponse`
 
-流式：
+### 流式调用
 
 - `ChatInvocation -> Flux<StreamChunk>`
 - `OpenAiChatCompletionRequest -> Flux<OpenAiStreamCompletionResponse>`
 - `OpenAiQuickChatRequest -> Flux<OpenAiStreamCompletionResponse>`
 
-更具体的调用示例可见 `liteagent-examples` 模块。
+## 当前限制
+
+当前还没有完成：
+
+- 工具自动执行闭环
+- 更完整的异常细分
+- Spring 自动装配增强
+- 更细粒度的 provider 配置抽象

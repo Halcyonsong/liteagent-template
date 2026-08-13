@@ -9,6 +9,25 @@
 - 普通对话调用
 - 流式对话调用
 
+## 0. 调用流程概览
+
+```mermaid
+flowchart TD
+    Begin([Begin]) --> A1[构造 ChatInvocation<br/>BaseRequest + ChatRequest + ChatOptions]
+    A1 --> A2[创建客户端<br/>OpenAiClients.create / createStream]
+    A2 --> A3[client.chat / client.stream]
+    A3 --> A4[Request Mapper → Raw Request]
+    A4 --> A5[Advisor 增强 - 可选]
+    A5 --> A6[Transport 发送 HTTP]
+    A6 --> A7[Response Mapper]
+    A7 --> A8[返回 ChatResult / Flux StreamChunk]
+    A8 --> End([End])
+```
+
+- 统一调用入口：`ChatInvocation → ChatResult / Flux<StreamChunk>`
+- provider 调用入口：`OpenAiChatCompletionRequest → OpenAiChatCompletionResponse / Flux<OpenAiStreamCompletionResponse>`
+- 快捷调用入口：`OpenAiQuickChatRequest → OpenAiChatCompletionResponse / Flux<OpenAiStreamCompletionResponse>`
+
 ## 1. 引入依赖
 
 通常至少需要：

@@ -1,6 +1,5 @@
 package io.github.halcyonsong.liteagent.core.model.request;
 
-import lombok.Builder;
 import lombok.Getter;
 
 import java.util.Objects;
@@ -12,7 +11,6 @@ import java.util.Objects;
  * 作为 provider 层执行实际模型调用时的统一输入。
  */
 @Getter
-@Builder
 public class ChatInvocation {
 
     private final BaseRequest baseRequest;
