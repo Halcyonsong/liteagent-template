@@ -5,6 +5,7 @@ import io.github.halcyonsong.liteagent.core.model.response.stream.StreamChoice;
 import io.github.halcyonsong.liteagent.core.support.JsonSupport;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.OpenAiBaseResponse;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.OpenAiUsage;
+import lombok.Getter;
 
 import java.util.List;
 import java.util.Objects;
@@ -15,6 +16,7 @@ import java.util.Objects;
  * 该对象表示一次流式返回中的单个 chunk，
  * 顶层保留 provider 响应语义，内部直接复用 core 流式结构。
  */
+@Getter
 public class OpenAiStreamCompletionResponse {
 
     private final OpenAiBaseResponse baseResponse;
@@ -28,18 +30,6 @@ public class OpenAiStreamCompletionResponse {
         Objects.requireNonNull(choices, "choices must not be null");
         this.choices = List.copyOf(choices);
         this.usage = usage;
-    }
-
-    public OpenAiBaseResponse getBaseResponse() {
-        return baseResponse;
-    }
-
-    public List<StreamChoice> getChoices() {
-        return choices;
-    }
-
-    public OpenAiUsage getUsage() {
-        return usage;
     }
 
     public StreamChunk toStreamChunk() {

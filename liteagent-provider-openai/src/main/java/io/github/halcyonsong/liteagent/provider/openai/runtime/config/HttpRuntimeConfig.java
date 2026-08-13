@@ -1,5 +1,7 @@
 package io.github.halcyonsong.liteagent.provider.openai.runtime.config;
 
+import lombok.Getter;
+
 /**
  * 基础 WebClient 运行时配置。
  * <p>
@@ -7,6 +9,7 @@ package io.github.halcyonsong.liteagent.provider.openai.runtime.config;
  * 仅包含与网络传输和响应解码相关的基础参数，
  * 不包含 provider 地址、鉴权信息或单次模型请求参数。
  */
+@Getter
 public class HttpRuntimeConfig {
 
     /**
@@ -55,22 +58,6 @@ public class HttpRuntimeConfig {
                 ? 60000L
                 : builder.responseTimeoutMillis;
         this.streamResponseTimeoutMillis = builder.streamResponseTimeoutMillis;
-    }
-
-    public Integer getMaxInMemorySize() {
-        return maxInMemorySize;
-    }
-
-    public Integer getConnectTimeoutMillis() {
-        return connectTimeoutMillis;
-    }
-
-    public Long getResponseTimeoutMillis() {
-        return responseTimeoutMillis;
-    }
-
-    public Long getStreamResponseTimeoutMillis() {
-        return streamResponseTimeoutMillis;
     }
 
     public HttpRuntimeKey toKey(HttpRuntimeMode mode) {

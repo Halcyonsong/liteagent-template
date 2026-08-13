@@ -1,5 +1,8 @@
 package io.github.halcyonsong.liteagent.core.model.request;
 
+import lombok.Builder;
+import lombok.Getter;
+
 /**
  * 统一的聊天调用可选参数。
  * <p>
@@ -7,6 +10,8 @@ package io.github.halcyonsong.liteagent.core.model.request;
  * 例如温度参数以及最大生成 token 数。
  * 供应商特有扩展参数不应放入该类。
  */
+@Getter
+@Builder
 public class ChatOptions implements BaseOptions {
 
     /**
@@ -19,40 +24,4 @@ public class ChatOptions implements BaseOptions {
      */
     private final Integer maxTokens;
 
-    private ChatOptions(Builder builder) {
-        this.temperature = builder.temperature;
-        this.maxTokens = builder.maxTokens;
-    }
-
-    public Double getTemperature() {
-        return temperature;
-    }
-
-    public Integer getMaxTokens() {
-        return maxTokens;
-    }
-
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    public static class Builder {
-
-        private Double temperature;
-        private Integer maxTokens;
-
-        public Builder temperature(Double temperature) {
-            this.temperature = temperature;
-            return this;
-        }
-
-        public Builder maxTokens(Integer maxTokens) {
-            this.maxTokens = maxTokens;
-            return this;
-        }
-
-        public ChatOptions build() {
-            return new ChatOptions(this);
-        }
-    }
 }

@@ -12,8 +12,7 @@ import io.github.halcyonsong.liteagent.provider.openai.response.mapper.OpenAiCha
 import io.github.halcyonsong.liteagent.provider.openai.response.raw.OpenAiChatCompletionRawResponse;
 import io.github.halcyonsong.liteagent.provider.openai.support.OpenAiEndpointResolver;
 import io.github.halcyonsong.liteagent.provider.openai.transport.OpenAiChatTransport;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.Objects;
@@ -23,9 +22,8 @@ import java.util.Objects;
  * <p>
  * 负责上层请求编排、raw request/raw response 转换以及统一结果输出。
  */
+@Slf4j
 public class OpenAiChatClient implements ChatClient {
-
-    private static final Logger log = LoggerFactory.getLogger(OpenAiChatClient.class);
 
     private final OpenAiChatRequestMapper requestMapper;
     private final OpenAiChatResponseMapper responseMapper;

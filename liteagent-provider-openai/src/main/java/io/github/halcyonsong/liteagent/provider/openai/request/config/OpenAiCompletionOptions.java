@@ -1,6 +1,8 @@
 package io.github.halcyonsong.liteagent.provider.openai.request.config;
 
 import io.github.halcyonsong.liteagent.core.model.request.BaseOptions;
+import lombok.Builder;
+import lombok.Getter;
 
 import java.util.List;
 import java.util.Map;
@@ -12,6 +14,8 @@ import java.util.Objects;
  * 该对象用于封装不进入 core 通用请求模型、但可被 OpenAI-compatible 协议支持的可选字段，
  * 例如 top_p、n、stop、presence_penalty、frequency_penalty 和 response_format。
  */
+@Getter
+@Builder
 public class OpenAiCompletionOptions implements BaseOptions {
 
     /**
@@ -58,118 +62,12 @@ public class OpenAiCompletionOptions implements BaseOptions {
      */
     private final Map<String, Object> responseFormat;
 
-    private OpenAiCompletionOptions(Builder builder) {
-        this.temperature = builder.temperature;
-        this.maxTokens = builder.maxTokens;
-        this.topP = builder.topP;
-        this.n = builder.n;
-        this.stop = builder.stop;
-        this.presencePenalty = builder.presencePenalty;
-        this.frequencyPenalty = builder.frequencyPenalty;
-        this.responseFormat = builder.responseFormat;
-    }
-
-    public Double getTemperature() {
-        return temperature;
-    }
-
-    public Integer getMaxTokens() {
-        return maxTokens;
-    }
-
-    public Double getTopP() {
-        return topP;
-    }
-
-    public Integer getN() {
-        return n;
-    }
-
-    public Stop getStop() {
-        return stop;
-    }
-
-    public Double getPresencePenalty() {
-        return presencePenalty;
-    }
-
-    public Double getFrequencyPenalty() {
-        return frequencyPenalty;
-    }
-
-    public Map<String, Object> getResponseFormat() {
-        return responseFormat;
-    }
-
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    public static class Builder {
-        private Double temperature;
-        private Integer maxTokens;
-        private Double topP;
-        private Integer n;
-        private Stop stop;
-        private Double presencePenalty;
-        private Double frequencyPenalty;
-        private Map<String, Object> responseFormat;
-
-        public Builder temperature(Double temperature) {
-            this.temperature = temperature;
-            return this;
-        }
-
-        public Builder maxTokens(Integer maxTokens) {
-            this.maxTokens = maxTokens;
-            return this;
-        }
-
-        public Builder topP(Double topP) {
-            this.topP = topP;
-            return this;
-        }
-
-        public Builder n(Integer n) {
-            this.n = n;
-            return this;
-        }
-
-        public Builder stop(Stop stop) {
-            this.stop = stop;
-            return this;
-        }
-
-        public Builder stop(List<String> stop) {
-            this.stop = Stop.of(stop);
-            return this;
-        }
-
-        public Builder presencePenalty(Double presencePenalty) {
-            this.presencePenalty = presencePenalty;
-            return this;
-        }
-
-        public Builder frequencyPenalty(Double frequencyPenalty) {
-            this.frequencyPenalty = frequencyPenalty;
-            return this;
-        }
-
-        public Builder responseFormat(Map<String, Object> responseFormat) {
-            this.responseFormat = responseFormat;
-            return this;
-        }
-
-        public OpenAiCompletionOptions build() {
-            return new OpenAiCompletionOptions(this);
-        }
-    }
-
     /**
      * OpenAI-compatible 协议中的 stop 参数包装类型。
      * <p>
      * 该参数可以是单个停止序列字符串，也可以是多个停止序列字符串列表。
      */
+    @Getter
     public static class Stop {
 
         private final String single;
@@ -199,14 +97,6 @@ public class OpenAiCompletionOptions implements BaseOptions {
 
         public boolean isMultiple() {
             return multiple != null;
-        }
-
-        public String getSingle() {
-            return single;
-        }
-
-        public List<String> getMultiple() {
-            return multiple;
         }
 
         /**

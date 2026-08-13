@@ -3,6 +3,8 @@ package io.github.halcyonsong.liteagent.core.model.response.chat;
 import io.github.halcyonsong.liteagent.core.model.response.BaseResponse;
 import io.github.halcyonsong.liteagent.core.model.response.Usage;
 import io.github.halcyonsong.liteagent.core.support.JsonSupport;
+import lombok.Getter;
+import lombok.ToString;
 
 import java.util.List;
 import java.util.Objects;
@@ -13,6 +15,8 @@ import java.util.Objects;
  * 该对象用于向上层暴露与供应商无关的统一响应结构，
  * 包括基础响应信息、候选结果列表以及 token 用量统计。
  */
+@Getter
+@ToString
 public class ChatResult {
 
     private final BaseResponse baseResponse;
@@ -26,30 +30,8 @@ public class ChatResult {
         this.usage = usage;
     }
 
-    public BaseResponse getBaseResponse() {
-        return baseResponse;
-    }
-
-    public List<ChatChoice> getChoices() {
-        return choices;
-    }
-
-    public Usage getUsage() {
-        return usage;
-    }
-
     public String toJson() {
         return JsonSupport.toJson(this);
-    }
-
-    @Override
-    public String toString() {
-        return "ChatResult{" +
-                "responseId='" + baseResponse.getId() + '\'' +
-                ", model='" + baseResponse.getModel() + '\'' +
-                ", choiceCount=" + choices.size() +
-                ", usage=" + usage +
-                '}';
     }
 
 }

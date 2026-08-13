@@ -3,6 +3,9 @@ package io.github.halcyonsong.liteagent.provider.openai.request.raw;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.github.halcyonsong.liteagent.core.support.JsonSupport;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.util.List;
 import java.util.Map;
@@ -13,6 +16,9 @@ import java.util.Map;
  * 该类字段与实际发送到远端接口的 JSON 请求结构一一对应，
  * 用于 provider 层发起 HTTP 调用，不直接作为 core 通用请求模型对外暴露。
  */
+@Setter
+@Getter
+@ToString
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class OpenAiChatCompletionRawRequest {
 
@@ -55,109 +61,20 @@ public class OpenAiChatCompletionRawRequest {
     @JsonProperty("response_format")
     private Map<String, Object> responseFormat;
 
+    /**
+     * 工具定义列表。
+     * <p>
+     * 该字段用于向 OpenAI-compatible 协议声明本次请求可用的工具。
+     * 具体结构后续可再细化，目前先保留为通用 JSON 容器。
+     */
+    @JsonProperty("tools")
+    private List<Map<String, Object>> tools;
+
     public OpenAiChatCompletionRawRequest() {
-    }
-
-    public String getModel() {
-        return model;
-    }
-
-    public void setModel(String model) {
-        this.model = model;
-    }
-
-    public List<Map<String, Object>> getMessages() {
-        return messages;
-    }
-
-    public void setMessages(List<Map<String, Object>> messages) {
-        this.messages = messages;
-    }
-
-    public Boolean getStream() {
-        return stream;
-    }
-
-    public void setStream(Boolean stream) {
-        this.stream = stream;
-    }
-
-    public Double getTemperature() {
-        return temperature;
-    }
-
-    public void setTemperature(Double temperature) {
-        this.temperature = temperature;
-    }
-
-    public Integer getMaxTokens() {
-        return maxTokens;
-    }
-
-    public void setMaxTokens(Integer maxTokens) {
-        this.maxTokens = maxTokens;
-    }
-
-    public Double getTopP() {
-        return topP;
-    }
-
-    public void setTopP(Double topP) {
-        this.topP = topP;
-    }
-
-    public Integer getN() {
-        return n;
-    }
-
-    public void setN(Integer n) {
-        this.n = n;
-    }
-
-    public Object getStop() {
-        return stop;
-    }
-
-    public void setStop(Object stop) {
-        this.stop = stop;
-    }
-
-    public Double getPresencePenalty() {
-        return presencePenalty;
-    }
-
-    public void setPresencePenalty(Double presencePenalty) {
-        this.presencePenalty = presencePenalty;
-    }
-
-    public Double getFrequencyPenalty() {
-        return frequencyPenalty;
-    }
-
-    public void setFrequencyPenalty(Double frequencyPenalty) {
-        this.frequencyPenalty = frequencyPenalty;
-    }
-
-    public Map<String, Object> getResponseFormat() {
-        return responseFormat;
-    }
-
-    public void setResponseFormat(Map<String, Object> responseFormat) {
-        this.responseFormat = responseFormat;
     }
 
     public String toJson() {
         return JsonSupport.toJson(this);
     }
 
-    @Override
-    public String toString() {
-        return "OpenAiChatCompletionRawRequest{" +
-                "model='" + model + '\'' +
-                ", messageCount=" + (messages == null ? 0 : messages.size()) +
-                ", stream=" + stream +
-                ", temperature=" + temperature +
-                ", maxTokens=" + maxTokens +
-                '}';
-    }
 }

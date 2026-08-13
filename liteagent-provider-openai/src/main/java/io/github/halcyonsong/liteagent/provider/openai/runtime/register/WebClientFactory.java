@@ -2,8 +2,7 @@ package io.github.halcyonsong.liteagent.provider.openai.runtime.register;
 
 import io.github.halcyonsong.liteagent.provider.openai.runtime.config.HttpRuntimeConfig;
 import io.netty.channel.ChannelOption;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
@@ -15,9 +14,8 @@ import java.time.Duration;
  * <p>
  * 负责根据运行时配置创建不绑定 provider 地址和鉴权信息的基础 WebClient 实例。
  */
+@Slf4j
 public class WebClientFactory {
-
-    private static final Logger log = LoggerFactory.getLogger(WebClientFactory.class);
 
     public WebClient createChatClient(HttpRuntimeConfig config) {
         log.debug("Creating chat WebClient. maxInMemorySize={}, connectTimeoutMillis={}, responseTimeoutMillis={}",

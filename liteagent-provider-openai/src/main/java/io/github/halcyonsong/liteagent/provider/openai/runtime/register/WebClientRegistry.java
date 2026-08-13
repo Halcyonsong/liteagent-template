@@ -3,8 +3,7 @@ package io.github.halcyonsong.liteagent.provider.openai.runtime.register;
 import io.github.halcyonsong.liteagent.provider.openai.runtime.config.HttpRuntimeConfig;
 import io.github.halcyonsong.liteagent.provider.openai.runtime.config.HttpRuntimeKey;
 import io.github.halcyonsong.liteagent.provider.openai.runtime.config.HttpRuntimeMode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.Map;
@@ -16,9 +15,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>
  * 按运行时配置缓存和复用 WebClient 实例，避免重复构建底层 HTTP 客户端。
  */
+@Slf4j
 public class WebClientRegistry {
-
-    private static final Logger log = LoggerFactory.getLogger(WebClientRegistry.class);
 
     private final WebClientFactory factory;
     private final Map<HttpRuntimeKey, WebClient> clientCache = new ConcurrentHashMap<>();

@@ -3,6 +3,8 @@ package io.github.halcyonsong.liteagent.core.model.response.stream;
 import io.github.halcyonsong.liteagent.core.model.response.BaseResponse;
 import io.github.halcyonsong.liteagent.core.model.response.Usage;
 import io.github.halcyonsong.liteagent.core.support.JsonSupport;
+import lombok.Getter;
+import lombok.ToString;
 
 import java.util.List;
 import java.util.Objects;
@@ -12,6 +14,8 @@ import java.util.Objects;
  * <p>
  * 该对象用于承载一次流式返回片段的基础响应信息、choice 列表以及可选 token 用量。
  */
+@Getter
+@ToString
 public class StreamChunk {
 
     /**
@@ -41,29 +45,8 @@ public class StreamChunk {
         this.usage = usage;
     }
 
-    public BaseResponse getBaseResponse() {
-        return baseResponse;
-    }
-
-    public List<StreamChoice> getChoices() {
-        return choices;
-    }
-
-    public Usage getUsage() {
-        return usage;
-    }
-
     public String toJson() {
         return JsonSupport.toJson(this);
     }
 
-    @Override
-    public String toString() {
-        return "StreamChunk{" +
-                "responseId='" + baseResponse.getId() + '\'' +
-                ", model='" + baseResponse.getModel() + '\'' +
-                ", choiceCount=" + choices.size() +
-                ", usage=" + usage +
-                '}';
-    }
 }

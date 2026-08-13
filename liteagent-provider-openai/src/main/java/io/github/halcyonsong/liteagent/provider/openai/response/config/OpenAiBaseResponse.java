@@ -2,6 +2,9 @@ package io.github.halcyonsong.liteagent.provider.openai.response.config;
 
 import io.github.halcyonsong.liteagent.core.model.response.BaseResponse;
 import io.github.halcyonsong.liteagent.core.support.JsonSupport;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.ToString;
 
 /**
  * OpenAI-compatible 响应的基础元信息实现。
@@ -9,6 +12,9 @@ import io.github.halcyonsong.liteagent.core.support.JsonSupport;
  * 该类实现 core 层 {@link BaseResponse} 接口，
  * 用于承载当前 provider 映射后的基础响应元数据。
  */
+@Getter
+@ToString
+@AllArgsConstructor
 public class OpenAiBaseResponse implements BaseResponse {
 
     private final String id;
@@ -16,44 +22,8 @@ public class OpenAiBaseResponse implements BaseResponse {
     private final Long created;
     private final String model;
 
-    public OpenAiBaseResponse(String id, String object, Long created, String model) {
-        this.id = id;
-        this.object = object;
-        this.created = created;
-        this.model = model;
-    }
-
-    @Override
-    public String getId() {
-        return id;
-    }
-
-    @Override
-    public String getObject() {
-        return object;
-    }
-
-    @Override
-    public Long getCreated() {
-        return created;
-    }
-
-    @Override
-    public String getModel() {
-        return model;
-    }
-
     public String toJson() {
         return JsonSupport.toJson(this);
     }
 
-    @Override
-    public String toString() {
-        return "OpenAiBaseResponse{" +
-                "id='" + id + '\'' +
-                ", object='" + object + '\'' +
-                ", created=" + created +
-                ", model='" + model + '\'' +
-                '}';
-    }
 }

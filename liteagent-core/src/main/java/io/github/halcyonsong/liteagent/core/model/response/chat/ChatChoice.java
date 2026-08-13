@@ -2,6 +2,7 @@ package io.github.halcyonsong.liteagent.core.model.response.chat;
 
 import io.github.halcyonsong.liteagent.core.model.enums.FinishReason;
 import io.github.halcyonsong.liteagent.core.support.JsonSupport;
+import lombok.Getter;
 
 import java.util.Objects;
 
@@ -11,6 +12,7 @@ import java.util.Objects;
  * 该对象对应模型响应中的一条 choice，
  * 包含其在结果列表中的索引、实际聊天响应内容以及结束原因。
  */
+@Getter
 public class ChatChoice {
 
     /**
@@ -32,18 +34,6 @@ public class ChatChoice {
         this.index = index;
         this.chatResponse = Objects.requireNonNull(chatResponse, "chatResponse must not be null");
         this.finishReason = finishReason;
-    }
-
-    public Integer getIndex() {
-        return index;
-    }
-
-    public ChatResponse getChatResponse() {
-        return chatResponse;
-    }
-
-    public FinishReason getFinishReason() {
-        return finishReason;
     }
 
     public String toJson() {

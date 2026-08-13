@@ -2,6 +2,8 @@ package io.github.halcyonsong.liteagent.core.model.response.stream;
 
 import io.github.halcyonsong.liteagent.core.model.enums.FinishReason;
 import io.github.halcyonsong.liteagent.core.support.JsonSupport;
+import lombok.Getter;
+import lombok.ToString;
 
 import java.util.Objects;
 
@@ -11,6 +13,8 @@ import java.util.Objects;
  * 该对象对应一次流式 chunk 中的一条 choice，
  * 包含其索引位置、delta 增量内容以及结束原因。
  */
+@Getter
+@ToString
 public class StreamChoice {
 
     /**
@@ -37,29 +41,8 @@ public class StreamChoice {
         this.finishReason = finishReason;
     }
 
-    public Integer getIndex() {
-        return index;
-    }
-
-    public StreamDelta getDelta() {
-        return delta;
-    }
-
-    public FinishReason getFinishReason() {
-        return finishReason;
-    }
-
     public String toJson() {
         return JsonSupport.toJson(this);
     }
 
-    @Override
-    public String toString() {
-        return "StreamChoice{" +
-                "index=" + index +
-                ", finishReason=" + finishReason +
-                ", hasRole=" + (delta.getRole() != null) +
-                ", contentLength=" + (delta.getContent() == null ? 0 : delta.getContent().length()) +
-                '}';
-    }
 }

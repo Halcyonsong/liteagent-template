@@ -1,6 +1,8 @@
 package io.github.halcyonsong.liteagent.provider.openai.response.config;
 
 import io.github.halcyonsong.liteagent.core.model.response.Usage;
+import lombok.Getter;
+import lombok.ToString;
 
 import java.util.Map;
 
@@ -9,6 +11,8 @@ import java.util.Map;
  * <p>
  * 在 core 统一 usage 之外，额外保留 provider 特有或扩展字段。
  */
+@Getter
+@ToString
 public class OpenAiUsage extends Usage {
 
     private final Map<String, Object> completionTokensDetails;
@@ -30,30 +34,4 @@ public class OpenAiUsage extends Usage {
         this.promptCacheMissTokens = promptCacheMissTokens;
     }
 
-    public Map<String, Object> getCompletionTokensDetails() {
-        return completionTokensDetails;
-    }
-
-    public Map<String, Object> getPromptTokensDetails() {
-        return promptTokensDetails;
-    }
-
-    public Integer getPromptCacheHitTokens() {
-        return promptCacheHitTokens;
-    }
-
-    public Integer getPromptCacheMissTokens() {
-        return promptCacheMissTokens;
-    }
-
-    @Override
-    public String toString() {
-        return "OpenAiUsage{" +
-                "promptTokens=" + getPromptTokens() +
-                ", completionTokens=" + getCompletionTokens() +
-                ", totalTokens=" + getTotalTokens() +
-                ", promptCacheHitTokens=" + promptCacheHitTokens +
-                ", promptCacheMissTokens=" + promptCacheMissTokens +
-                '}';
-    }
 }

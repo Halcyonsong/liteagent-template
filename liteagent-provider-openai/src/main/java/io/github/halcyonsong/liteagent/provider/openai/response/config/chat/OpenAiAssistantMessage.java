@@ -3,6 +3,8 @@ package io.github.halcyonsong.liteagent.provider.openai.response.config.chat;
 import io.github.halcyonsong.liteagent.core.message.type.AssistantMessage;
 import io.github.halcyonsong.liteagent.core.support.JsonSupport;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.tool.OpenAiToolCall;
+import lombok.Getter;
+import lombok.ToString;
 
 import java.util.Collections;
 import java.util.List;
@@ -12,6 +14,8 @@ import java.util.List;
  * <p>
  * 在统一的 assistant content 之外，额外保留 reasoning_content 和 tool_calls。
  */
+@Getter
+@ToString
 public class OpenAiAssistantMessage extends AssistantMessage {
 
     private final String reasoningContent;
@@ -27,24 +31,8 @@ public class OpenAiAssistantMessage extends AssistantMessage {
                 : List.copyOf(toolCalls);
     }
 
-    public String getReasoningContent() {
-        return reasoningContent;
-    }
-
-    public List<OpenAiToolCall> getToolCalls() {
-        return toolCalls;
-    }
-
     public String toJson() {
         return JsonSupport.toJson(this);
     }
 
-    @Override
-    public String toString() {
-        return "OpenAiAssistantMessage{" +
-                "content='" + getContent() + '\'' +
-                ", reasoningContent='" + reasoningContent + '\'' +
-                ", toolCallCount=" + toolCalls.size() +
-                '}';
-    }
 }

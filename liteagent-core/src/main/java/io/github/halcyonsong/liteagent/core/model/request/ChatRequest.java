@@ -1,6 +1,7 @@
 package io.github.halcyonsong.liteagent.core.model.request;
 
 import io.github.halcyonsong.liteagent.core.message.Message;
+import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.Objects;
  * 不包含供应商地址、鉴权、模型名称等基础调用信息，
  * 也不包含供应商特有的协议扩展参数。
  */
+@Getter
 public class ChatRequest {
 
     /**
@@ -22,10 +24,6 @@ public class ChatRequest {
 
     private ChatRequest(Builder builder) {
         this.messages = List.copyOf(builder.messages);
-    }
-
-    public List<Message> getMessages() {
-        return messages;
     }
 
     public static Builder builder() {

@@ -2,6 +2,8 @@ package io.github.halcyonsong.liteagent.core.model.response.chat;
 
 import io.github.halcyonsong.liteagent.core.message.Message;
 import io.github.halcyonsong.liteagent.core.support.JsonSupport;
+import lombok.Getter;
+import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,6 +17,8 @@ import java.util.Objects;
  * 在当前设计中，单个 {@link ChatChoice} 内部持有一个 {@code ChatResponse}，
  * 从而保留“一条候选结果可对应多条消息”的扩展能力。
  */
+@Getter
+@ToString
 public class ChatResponse {
 
     /**
@@ -27,18 +31,8 @@ public class ChatResponse {
         this.messages = Collections.unmodifiableList(new ArrayList<>(messages));
     }
 
-    public List<Message> getMessages() {
-        return messages;
-    }
-
     public String toJson() {
         return JsonSupport.toJson(this);
     }
 
-    @Override
-    public String toString() {
-        return "ChatResponse{" +
-                "messageCount=" + messages.size() +
-                '}';
-    }
 }

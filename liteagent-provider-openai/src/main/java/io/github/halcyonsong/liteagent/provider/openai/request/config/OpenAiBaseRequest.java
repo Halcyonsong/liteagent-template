@@ -1,9 +1,11 @@
 package io.github.halcyonsong.liteagent.provider.openai.request.config;
 
 import io.github.halcyonsong.liteagent.core.model.request.BaseRequest;
+import lombok.Getter;
 
 import java.util.Objects;
 
+@Getter
 public class OpenAiBaseRequest implements BaseRequest {
 
     private final String baseUrl;
@@ -14,21 +16,6 @@ public class OpenAiBaseRequest implements BaseRequest {
         this.baseUrl = Objects.requireNonNull(builder.baseUrl, "baseUrl must not be null");
         this.apiKey = Objects.requireNonNull(builder.apiKey, "apiKey must not be null");
         this.model = Objects.requireNonNull(builder.model, "model must not be null");
-    }
-
-    @Override
-    public String getBaseUrl() {
-        return baseUrl;
-    }
-
-    @Override
-    public String getApiKey() {
-        return apiKey;
-    }
-
-    @Override
-    public String getModel() {
-        return model;
     }
 
     public static Builder builder() {

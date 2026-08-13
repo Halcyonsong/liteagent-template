@@ -5,8 +5,7 @@ import io.github.halcyonsong.liteagent.core.exception.ModelException;
 import io.github.halcyonsong.liteagent.provider.openai.request.raw.OpenAiChatCompletionRawRequest;
 import io.github.halcyonsong.liteagent.provider.openai.response.raw.OpenAiChatCompletionRawResponse;
 import io.github.halcyonsong.liteagent.provider.openai.support.OpenAiJsonSupport;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
@@ -19,9 +18,8 @@ import java.util.Objects;
 /**
  * OpenAI-compatible 流式对话请求发送器。
  */
+@Slf4j
 public class OpenAiChatStreamTransport {
-
-    private static final Logger log = LoggerFactory.getLogger(OpenAiChatStreamTransport.class);
 
     private final WebClient webClient;
     private final ObjectMapper objectMapper;

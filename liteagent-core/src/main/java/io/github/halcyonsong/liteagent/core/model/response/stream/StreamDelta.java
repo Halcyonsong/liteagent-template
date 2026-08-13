@@ -1,6 +1,9 @@
 package io.github.halcyonsong.liteagent.core.model.response.stream;
 
 import io.github.halcyonsong.liteagent.core.support.JsonSupport;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.ToString;
 
 /**
  * 流式响应中的增量消息片段。
@@ -8,6 +11,9 @@ import io.github.halcyonsong.liteagent.core.support.JsonSupport;
  * 该对象对应 OpenAI-compatible 协议中的 delta 结构，
  * 用于承载一次流式 chunk 中新增的角色信息、文本内容等。
  */
+@Getter
+@ToString
+@AllArgsConstructor
 public class StreamDelta {
 
     /**
@@ -30,34 +36,8 @@ public class StreamDelta {
      */
     private final String reasoningContent;
 
-    public StreamDelta(String role, String content, String reasoningContent) {
-        this.role = role;
-        this.content = content;
-        this.reasoningContent = reasoningContent;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public String getReasoningContent() {
-        return reasoningContent;
-    }
-
     public String toJson() {
         return JsonSupport.toJson(this);
     }
 
-    @Override
-    public String toString() {
-        return "StreamDelta{" +
-                "role='" + role + '\'' +
-                ", content='" + content + '\'' +
-                ", reasoningContent='" + reasoningContent + '\'' +
-                '}';
-    }
 }

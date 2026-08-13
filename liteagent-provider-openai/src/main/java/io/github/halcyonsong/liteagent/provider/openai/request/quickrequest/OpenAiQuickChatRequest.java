@@ -5,6 +5,7 @@ import io.github.halcyonsong.liteagent.core.model.request.ChatInvocation;
 import io.github.halcyonsong.liteagent.core.model.request.ChatRequest;
 import io.github.halcyonsong.liteagent.core.support.JsonSupport;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiBaseRequest;
+import lombok.Getter;
 
 import java.util.Objects;
 
@@ -14,6 +15,7 @@ import java.util.Objects;
  * 面向快速测试和最小调用场景，只要求提供 baseUrl、apiKey、model、
  * userMessage 和可选的 systemMessage，内部自动封装为完整的 ChatInvocation。
  */
+@Getter
 public class OpenAiQuickChatRequest {
 
     private final String baseUrl;
@@ -28,26 +30,6 @@ public class OpenAiQuickChatRequest {
         this.model = Objects.requireNonNull(builder.model, "model must not be null");
         this.userMessage = Objects.requireNonNull(builder.userMessage, "userMessage must not be null");
         this.systemMessage = builder.systemMessage;
-    }
-
-    public String getBaseUrl() {
-        return baseUrl;
-    }
-
-    public String getApiKey() {
-        return apiKey;
-    }
-
-    public String getModel() {
-        return model;
-    }
-
-    public String getUserMessage() {
-        return userMessage;
-    }
-
-    public String getSystemMessage() {
-        return systemMessage;
     }
 
     /**

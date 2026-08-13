@@ -8,6 +8,7 @@ import io.github.halcyonsong.liteagent.core.model.response.chat.ChatResult;
 import io.github.halcyonsong.liteagent.core.support.JsonSupport;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.OpenAiBaseResponse;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.OpenAiUsage;
+import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.Objects;
  * 该对象保留 provider 层语义，封装基础响应信息、候选结果列表以及 token 用量，
  * 同时可进一步转换为框架统一的 {@link ChatResult}。
  */
+@Getter
 public class OpenAiChatCompletionResponse {
 
     private final OpenAiBaseResponse baseResponse;
@@ -32,18 +34,6 @@ public class OpenAiChatCompletionResponse {
         Objects.requireNonNull(choices, "choices must not be null");
         this.choices = List.copyOf(choices);
         this.usage = usage;
-    }
-
-    public OpenAiBaseResponse getBaseResponse() {
-        return baseResponse;
-    }
-
-    public List<ChatChoice> getChoices() {
-        return choices;
-    }
-
-    public OpenAiUsage getUsage() {
-        return usage;
     }
 
     public ChatResult toChatResult() {

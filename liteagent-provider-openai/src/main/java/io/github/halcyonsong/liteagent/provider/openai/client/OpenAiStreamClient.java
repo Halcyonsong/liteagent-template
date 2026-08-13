@@ -11,8 +11,7 @@ import io.github.halcyonsong.liteagent.provider.openai.response.config.stream.Op
 import io.github.halcyonsong.liteagent.provider.openai.response.mapper.OpenAiStreamResponseMapper;
 import io.github.halcyonsong.liteagent.provider.openai.support.OpenAiEndpointResolver;
 import io.github.halcyonsong.liteagent.provider.openai.transport.OpenAiChatStreamTransport;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 
@@ -23,9 +22,8 @@ import java.util.Objects;
  * <p>
  * 负责上层流式请求编排、raw request/raw response 转换以及统一流式结果输出。
  */
+@Slf4j
 public class OpenAiStreamClient implements StreamClient {
-
-    private static final Logger log = LoggerFactory.getLogger(OpenAiStreamClient.class);
 
     private final OpenAiChatRequestMapper requestMapper;
     private final OpenAiStreamResponseMapper responseMapper;
