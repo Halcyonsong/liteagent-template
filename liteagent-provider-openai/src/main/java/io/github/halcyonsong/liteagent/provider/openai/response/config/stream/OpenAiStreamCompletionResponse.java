@@ -17,7 +17,7 @@ import java.util.Objects;
  * 顶层保留 provider 响应语义，内部直接复用 core 流式结构。
  */
 @Getter
-public class OpenAiStreamCompletionResponse {
+public class OpenAiStreamCompletionResponse{
 
     private final OpenAiBaseResponse baseResponse;
     private final List<StreamChoice> choices;

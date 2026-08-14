@@ -3,7 +3,6 @@ package io.github.halcyonsong.liteagent.provider.openai.response.mapper;
 import io.github.halcyonsong.liteagent.core.message.Message;
 import io.github.halcyonsong.liteagent.core.model.enums.FinishReason;
 import io.github.halcyonsong.liteagent.core.model.response.chat.ChatChoice;
-import io.github.halcyonsong.liteagent.core.model.response.chat.ChatResult;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiAssistantMessage;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiChatCompletionResponse;
 import io.github.halcyonsong.liteagent.provider.openai.response.raw.OpenAiChatCompletionRawResponse;
@@ -107,34 +106,6 @@ class OpenAiChatResponseMapperTest {
         assertEquals(1, assistantMessage.getToolCalls().size());
         assertEquals("call_1", assistantMessage.getToolCalls().get(0).getId());
         assertEquals("get_weather", assistantMessage.getToolCalls().get(0).getFunction().getName());
-    }
-
-    @Test
-    void shouldConvertToChatResultSuccessfully() {
-        OpenAiChatCompletionRawResponse.RawMessage rawMessage = new OpenAiChatCompletionRawResponse.RawMessage();
-        rawMessage.setRole("assistant");
-        rawMessage.setContent("最终答案");
-        rawMessage.setReasoningContent("推理过程");
-
-        OpenAiChatCompletionRawResponse.RawChoice rawChoice = new OpenAiChatCompletionRawResponse.RawChoice();
-        rawChoice.setIndex(0);
-        rawChoice.setMessage(rawMessage);
-        rawChoice.setFinishReason("stop");
-
-        OpenAiChatCompletionRawResponse rawResponse = new OpenAiChatCompletionRawResponse();
-        rawResponse.setId("resp_convert");
-        rawResponse.setObject("chat.completion");
-        rawResponse.setCreated(2L);
-        rawResponse.setModel("gpt-convert-test");
-        rawResponse.setChoices(List.of(rawChoice));
-
-        OpenAiChatCompletionResponse response = mapper.fromRaw(rawResponse);
-        ChatResult chatResult = response.toChatResult();
-
-        assertEquals("resp_convert", chatResult.getBaseResponse().getId());
-        assertEquals("最终答案",
-                chatResult.getChoices().get(0).getChatResponse().getMessages().get(0).getContent());
-        assertFalse(chatResult.getChoices().get(0).getChatResponse().getMessages().get(0) instanceof OpenAiAssistantMessage);
     }
 
     @Test

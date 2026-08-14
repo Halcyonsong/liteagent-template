@@ -1,7 +1,7 @@
 package io.github.halcyonsong.liteagent.provider.openai.client;
 
 import io.github.halcyonsong.liteagent.core.client.StreamClient;
-import io.github.halcyonsong.liteagent.core.model.request.ChatInvocation;
+import io.github.halcyonsong.liteagent.core.model.request.norm.Invocation;
 import io.github.halcyonsong.liteagent.core.model.response.stream.StreamChunk;
 import io.github.halcyonsong.liteagent.provider.openai.client.support.OpenAiClientSupport;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
@@ -21,7 +21,7 @@ import java.util.Objects;
 /**
  * OpenAI-compatible 流式对话客户端。
  * <p>
- * 负责上层流式请求编排、raw request/raw response 转换以及统一流式结果输出。
+ * 负责 provider 流式请求编排、raw request/raw response 转换以及统一流式结果输出。
  */
 @Slf4j
 public class OpenAiStreamClient implements StreamClient {
@@ -47,28 +47,16 @@ public class OpenAiStreamClient implements StreamClient {
 
     /**
      * 使用统一调用对象发起流式对话请求，并返回框架统一流式结果。
-     * <p>
-     * 该方法面向希望使用 core 层统一流式抽象的调用方，
-     * 返回 {@link io.github.halcyonsong.liteagent.core.model.response.stream.StreamChunk} 的响应流。
-     *
-     * @param invocation 统一聊天调用对象
-     * @return 框架统一流式结果
      */
     @Override
-    public Flux<StreamChunk> stream(ChatInvocation invocation) {
-        log.debug("Stream invoked by ChatInvocation. messageCount={}, hasChatOptions={}",
-                invocation.getChatRequest().getMessages().size(),
-                invocation.getChatOptions() != null);
+    public Flux<StreamChunk> stream(Invocation invocation) {
+        log.debug("Stream invoked by Invocation. messageCount={}",
+                invocation.getChatRequest().getMessages().size());
         return streamCompletion(invocation).map(OpenAiStreamCompletionResponse::toStreamChunk);
     }
 
     /**
      * 使用 provider 请求对象发起流式对话请求，并返回 provider 流式响应包装流。
-     * <p>
-     * 该方法适合需要保留 OpenAI-compatible 协议流式语义的调用方。
-     *
-     * @param request OpenAI-compatible provider 请求对象
-     * @return provider 层流式响应包装流
      */
     public Flux<OpenAiStreamCompletionResponse> stream(OpenAiChatCompletionRequest request) {
         log.debug("Stream invoked by OpenAiChatCompletionRequest. model={}",
@@ -78,23 +66,18 @@ public class OpenAiStreamClient implements StreamClient {
 
     /**
      * 使用统一调用对象发起流式 completion 请求，并返回 provider 流式响应包装流。
-     * <p>
-     * 该方法会先将统一调用对象转换为 provider 请求对象，
-     * 再执行流式 completion 请求。
-     *
-     * @param invocation 统一聊天调用对象
-     * @return provider 层流式 completion 响应流
      */
-    public Flux<OpenAiStreamCompletionResponse> streamCompletion(ChatInvocation invocation) {
-        log.debug("Building OpenAI streaming request from ChatInvocation. model={}, messageCount={}, hasChatOptions={}",
+    public Flux<OpenAiStreamCompletionResponse> streamCompletion(Invocation invocation) {
+        Objects.requireNonNull(invocation, "invocation must not be null");
+
+        log.debug("Building OpenAI streaming request from Invocation. model={}, messageCount={}",
                 invocation.getBaseRequest().getModel(),
-                invocation.getChatRequest().getMessages().size(),
-                invocation.getChatOptions() != null);
+                invocation.getChatRequest().getMessages().size());
 
         OpenAiChatCompletionRequest request = OpenAiChatCompletionRequest.builder()
                 .baseRequest(invocation.getBaseRequest())
                 .chatRequest(invocation.getChatRequest())
-                .completionOptions(requestMapper.toCompletionOptions(invocation.getChatOptions()))
+                .completionOptions(null)
                 .build();
 
         return streamCompletion(request);
@@ -102,23 +85,12 @@ public class OpenAiStreamClient implements StreamClient {
 
     /**
      * 使用 provider 请求对象执行流式 completion 请求。
-     * <p>
-     * 该方法负责：
-     * <ul>
-     *   <li>将 provider 请求映射为 raw request</li>
-     *   <li>设置 stream=true</li>
-     *   <li>规范化请求地址</li>
-     *   <li>发送流式 HTTP 请求并映射响应</li>
-     * </ul>
-     *
-     * @param request OpenAI-compatible provider 请求对象
-     * @return provider 层流式 completion 响应流
      */
     public Flux<OpenAiStreamCompletionResponse> streamCompletion(OpenAiChatCompletionRequest request) {
         Objects.requireNonNull(request, "request must not be null");
 
         OpenAiChatCompletionRawRequest rawRequest = requestMapper.toRawRequest(request);
-        clientSupport.applyAdvisors(request, rawRequest);
+        clientSupport.applyRequestAdvisors(request, rawRequest);
         rawRequest.setStream(true);
 
         String endpoint = OpenAiEndpointResolver.resolveChatCompletionsEndpoint(
@@ -133,7 +105,11 @@ public class OpenAiStreamClient implements StreamClient {
                 rawRequest.getStream());
 
         return transport.send(endpoint, apiKey, rawRequest)
-                .map(responseMapper::fromRaw)
+                .map(rawResponse -> {
+                    OpenAiStreamCompletionResponse streamResponse = responseMapper.fromRaw(rawResponse);
+                    clientSupport.applyStreamResponseAdvisors(request, rawResponse, streamResponse);
+                    return streamResponse;
+                })
                 .doOnNext(response -> log.debug(
                         "Mapped OpenAI-compatible streaming response. responseId={}, choiceCount={}, model={}",
                         response.getBaseResponse().getId(),
@@ -144,30 +120,21 @@ public class OpenAiStreamClient implements StreamClient {
 
     /**
      * 使用快速请求对象发起流式对话请求，并返回框架统一流式结果。
-     * <p>
-     * 适合快速测试和最小流式调用场景。
-     *
-     * @param request 快速聊天请求对象
-     * @return 框架统一流式结果
      */
     public Flux<StreamChunk> stream(OpenAiQuickChatRequest request) {
         log.debug("Stream invoked by OpenAiQuickChatRequest. model={}, hasSystemMessage={}",
                 request.getModel(),
                 request.getSystemMessage() != null && !request.getSystemMessage().isBlank());
-        return stream(request.toInvocation());
+        return stream(request.toRequest()).map(OpenAiStreamCompletionResponse::toStreamChunk);
     }
 
     /**
      * 使用快速请求对象发起流式对话请求，并返回 provider 流式响应包装流。
-     *
-     * @param request 快速聊天请求对象
-     * @return provider 层流式 completion 响应流
      */
     public Flux<OpenAiStreamCompletionResponse> streamCompletion(OpenAiQuickChatRequest request) {
         log.debug("StreamCompletion invoked by OpenAiQuickChatRequest. model={}, userMessageLength={}",
                 request.getModel(),
                 request.getUserMessage() == null ? 0 : request.getUserMessage().length());
-        return streamCompletion(request.toInvocation());
+        return streamCompletion(request.toRequest());
     }
-
 }

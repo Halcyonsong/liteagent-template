@@ -1,7 +1,7 @@
 package io.github.halcyonsong.liteagent.core.client;
 
-import io.github.halcyonsong.liteagent.core.model.request.ChatInvocation;
-import io.github.halcyonsong.liteagent.core.model.response.chat.ChatResult;
+import io.github.halcyonsong.liteagent.core.model.request.norm.Invocation;
+import io.github.halcyonsong.liteagent.core.model.response.Result;
 
 /**
  * 框架统一普通对话客户端接口。
@@ -11,10 +11,10 @@ import io.github.halcyonsong.liteagent.core.model.response.chat.ChatResult;
 public interface ChatClient {
 
     /**
-     * 发起一次普通对话调用，并返回框架统一聊天结果。
+     * 发起一次普通对话调用，并返回统一结果抽象。
      *
-     * @param invocation 统一聊天调用对象
-     * @return 框架统一聊天结果
+     * @param invocation 统一调用对象
+     * @return 统一结果抽象
      */
-    ChatResult chat(ChatInvocation invocation);
+    Result chat(Invocation invocation);
 }

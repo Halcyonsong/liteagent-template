@@ -1,6 +1,7 @@
 package io.github.halcyonsong.liteagent.core.model.request;
 
 import io.github.halcyonsong.liteagent.core.message.type.constructor.Messages;
+import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

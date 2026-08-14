@@ -1,6 +1,6 @@
 package io.github.halcyonsong.liteagent.provider.openai.request.advisor;
 
-import io.github.halcyonsong.liteagent.core.model.request.RequestAdvisor;
+import io.github.halcyonsong.liteagent.core.model.request.norm.RequestAdvisor;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.tool.OpenAiToolChoice;
 import io.github.halcyonsong.liteagent.provider.openai.request.raw.OpenAiChatCompletionRawRequest;

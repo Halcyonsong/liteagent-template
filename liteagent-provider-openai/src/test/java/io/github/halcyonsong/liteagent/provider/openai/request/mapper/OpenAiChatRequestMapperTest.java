@@ -1,8 +1,7 @@
 package io.github.halcyonsong.liteagent.provider.openai.request.mapper;
 
 import io.github.halcyonsong.liteagent.core.message.type.constructor.Messages;
-import io.github.halcyonsong.liteagent.core.model.request.ChatOptions;
-import io.github.halcyonsong.liteagent.core.model.request.ChatRequest;
+import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiBaseRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiCompletionOptions;
@@ -58,32 +57,6 @@ class OpenAiChatRequestMapperTest {
         assertNull(rawRequest.getResponseFormat());
         assertNull(rawRequest.getStop());
         assertNull(rawRequest.getStream());
-    }
-
-    @Test
-    void shouldConvertChatOptionsToCompletionOptionsSuccessfully() {
-        ChatOptions chatOptions = ChatOptions.builder()
-                .temperature(0.7)
-                .maxTokens(256)
-                .build();
-
-        OpenAiCompletionOptions completionOptions = mapper.toCompletionOptions(chatOptions);
-
-        assertNotNull(completionOptions);
-        assertEquals(0.7, completionOptions.getTemperature());
-        assertEquals(256, completionOptions.getMaxTokens());
-        assertNull(completionOptions.getTopP());
-        assertNull(completionOptions.getN());
-        assertNull(completionOptions.getStop());
-        assertNull(completionOptions.getPresencePenalty());
-        assertNull(completionOptions.getFrequencyPenalty());
-        assertNull(completionOptions.getResponseFormat());
-    }
-
-    @Test
-    void shouldReturnNullWhenConvertingNullChatOptions() {
-        OpenAiCompletionOptions completionOptions = mapper.toCompletionOptions(null);
-        assertNull(completionOptions);
     }
 
     @Test

@@ -2,7 +2,6 @@ package io.github.halcyonsong.example.support;
 
 import io.github.halcyonsong.liteagent.core.message.Message;
 import io.github.halcyonsong.liteagent.core.model.response.chat.ChatChoice;
-import io.github.halcyonsong.liteagent.core.model.response.chat.ChatResult;
 import io.github.halcyonsong.liteagent.core.model.response.stream.StreamChoice;
 import io.github.halcyonsong.liteagent.core.model.response.stream.StreamChunk;
 import io.github.halcyonsong.liteagent.core.model.response.stream.StreamDelta;
@@ -14,29 +13,6 @@ import io.github.halcyonsong.liteagent.provider.openai.response.config.tool.Open
 public final class Printers {
 
     private Printers() {
-    }
-
-    public static void printChatResult(ChatResult result) {
-        System.out.println("========== ChatResult ==========");
-        System.out.println("response id = " + result.getBaseResponse().getId());
-        System.out.println("object = " + result.getBaseResponse().getObject());
-        System.out.println("model = " + result.getBaseResponse().getModel());
-
-        for (ChatChoice choice : result.getChoices()) {
-            System.out.println("choice index = " + choice.getIndex());
-            System.out.println("finish reason = " + choice.getFinishReason());
-
-            for (Message message : choice.getChatResponse().getMessages()) {
-                System.out.println("message role = " + message.getRole());
-                System.out.println("message content = " + message.getContent());
-            }
-        }
-
-        if (result.getUsage() != null) {
-            System.out.println("prompt tokens = " + result.getUsage().getPromptTokens());
-            System.out.println("completion tokens = " + result.getUsage().getCompletionTokens());
-            System.out.println("total tokens = " + result.getUsage().getTotalTokens());
-        }
     }
 
     public static void printProviderResponse(OpenAiChatCompletionResponse response) {
@@ -146,5 +122,4 @@ public final class Printers {
             }
         });
     }
-
 }

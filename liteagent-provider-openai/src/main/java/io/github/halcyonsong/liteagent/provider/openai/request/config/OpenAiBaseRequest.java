@@ -1,6 +1,6 @@
 package io.github.halcyonsong.liteagent.provider.openai.request.config;
 
-import io.github.halcyonsong.liteagent.core.model.request.BaseRequest;
+import io.github.halcyonsong.liteagent.core.model.request.norm.BaseRequest;
 import lombok.Getter;
 
 import java.util.Objects;

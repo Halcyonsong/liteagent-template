@@ -1,7 +1,7 @@
 package io.github.halcyonsong.liteagent.provider.openai.request.advisor;
 
 import io.github.halcyonsong.liteagent.core.message.type.constructor.Messages;
-import io.github.halcyonsong.liteagent.core.model.request.ChatRequest;
+import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiBaseRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiCompletionOptions;

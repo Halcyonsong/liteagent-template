@@ -1,10 +1,10 @@
 package io.github.halcyonsong.liteagent.provider.openai.request.quickrequest;
 
 import io.github.halcyonsong.liteagent.core.message.type.constructor.Messages;
-import io.github.halcyonsong.liteagent.core.model.request.ChatInvocation;
-import io.github.halcyonsong.liteagent.core.model.request.ChatRequest;
+import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
 import io.github.halcyonsong.liteagent.core.support.JsonSupport;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiBaseRequest;
+import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import lombok.Getter;
 
 import java.util.Objects;
@@ -13,7 +13,7 @@ import java.util.Objects;
  * OpenAI-compatible 快速聊天请求构造对象。
  * <p>
  * 面向快速测试和最小调用场景，只要求提供 baseUrl、apiKey、model、
- * userMessage 和可选的 systemMessage，内部自动封装为完整的 ChatInvocation。
+ * userMessage 和可选的 systemMessage，内部自动封装为完整的 provider 请求对象。
  */
 @Getter
 public class OpenAiQuickChatRequest {
@@ -58,15 +58,15 @@ public class OpenAiQuickChatRequest {
     }
 
     /**
-     * 转换为完整的统一调用对象。
+     * 转换为完整的 OpenAI-compatible provider 请求对象。
      * <p>
-     * 当前快速构造场景不包含 ChatOptions，默认使用 null。
+     * 当前快速构造场景不包含 completionOptions，默认使用 null。
      */
-    public ChatInvocation toInvocation() {
-        return ChatInvocation.builder()
+    public OpenAiChatCompletionRequest toRequest() {
+        return OpenAiChatCompletionRequest.builder()
                 .baseRequest(toBaseRequest())
                 .chatRequest(toChatRequest())
-                .chatOptions(null)
+                .completionOptions(null)
                 .build();
     }
 
@@ -125,5 +125,4 @@ public class OpenAiQuickChatRequest {
                 ", userMessageLength=" + (userMessage == null ? 0 : userMessage.length()) +
                 '}';
     }
-
 }

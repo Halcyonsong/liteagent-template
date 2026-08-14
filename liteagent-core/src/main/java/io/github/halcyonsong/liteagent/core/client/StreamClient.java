@@ -1,6 +1,6 @@
 package io.github.halcyonsong.liteagent.core.client;
 
-import io.github.halcyonsong.liteagent.core.model.request.ChatInvocation;
+import io.github.halcyonsong.liteagent.core.model.request.norm.Invocation;
 import io.github.halcyonsong.liteagent.core.model.response.stream.StreamChunk;
 import reactor.core.publisher.Flux;
 
@@ -12,10 +12,10 @@ import reactor.core.publisher.Flux;
 public interface StreamClient {
 
     /**
-     * 发起一次流式对话调用，并返回框架统一流式结果。
+     * 发起一次流式对话调用，并返回统一流式结果。
      *
-     * @param invocation 统一聊天调用对象
-     * @return 框架统一流式结果流
+     * @param invocation 统一调用对象
+     * @return 统一流式结果流
      */
-    Flux<StreamChunk> stream(ChatInvocation invocation);
+    Flux<StreamChunk> stream(Invocation invocation);
 }

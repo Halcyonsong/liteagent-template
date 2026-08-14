@@ -12,6 +12,8 @@
         <module>liteagent-core</module>
         <module>liteagent-examples</module>
         <module>liteagent-provider-openai</module>
+        <module>liteagent-agent</module>
+        <module>liteagent-provider-openai-agent</module>
     </modules>
 
     <properties>

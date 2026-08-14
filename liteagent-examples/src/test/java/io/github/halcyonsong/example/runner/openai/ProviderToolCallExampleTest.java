@@ -3,7 +3,7 @@ package io.github.halcyonsong.example.runner.openai;
 import io.github.halcyonsong.example.config.OpenAiConfig;
 import io.github.halcyonsong.example.support.OpenAiExampleSupport;
 import io.github.halcyonsong.liteagent.core.message.type.constructor.Messages;
-import io.github.halcyonsong.liteagent.core.model.request.ChatRequest;
+import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
 import io.github.halcyonsong.liteagent.core.tool.impl.InMemoryToolRegistry;
 import io.github.halcyonsong.liteagent.core.tool.impl.ReflectionToolRegistrar;
 import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistrar;
@@ -53,8 +53,8 @@ class ProviderToolCallExampleTest extends OpenAiExampleSupport {
                         .temperature(0.0)
                         .maxTokens(256)
                         .build())
-                .advisor(new OpenAiRegistryToolsAdvisor(registry))
-                .advisor(new OpenAiToolChoiceAdvisor(OpenAiToolChoice.function("get_weather")))
+                .requestAdvisor(new OpenAiRegistryToolsAdvisor(registry))
+                .requestAdvisor(new OpenAiToolChoiceAdvisor(OpenAiToolChoice.function("get_weather")))
                 .build();
 
         OpenAiChatCompletionResponse response = client.chatCompletion(request);

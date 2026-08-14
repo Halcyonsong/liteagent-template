@@ -1,7 +1,6 @@
 package io.github.halcyonsong.liteagent.provider.openai.request.mapper;
 
 import io.github.halcyonsong.liteagent.core.message.Message;
-import io.github.halcyonsong.liteagent.core.model.request.ChatOptions;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiCompletionOptions;
 import io.github.halcyonsong.liteagent.provider.openai.request.raw.OpenAiChatCompletionRawRequest;
@@ -53,14 +52,4 @@ public class OpenAiChatRequestMapper {
         return result;
     }
 
-    public OpenAiCompletionOptions toCompletionOptions(ChatOptions chatOptions) {
-        if (chatOptions == null) {
-            return null;
-        }
-
-        return OpenAiCompletionOptions.builder()
-                .temperature(chatOptions.getTemperature())
-                .maxTokens(chatOptions.getMaxTokens())
-                .build();
-    }
 }

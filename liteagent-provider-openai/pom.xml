@@ -22,13 +22,12 @@
         <dependency>
             <groupId>io.github.halcyonsong</groupId>
             <artifactId>liteagent-core</artifactId>
-            <version>${revision}</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webflux</artifactId>
-            <version>${spring-webflux.version}</version>
         </dependency>
 
         <dependency>

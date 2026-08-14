@@ -1,28 +1,24 @@
 # liteagent-template
 
 `liteagent-template` 是一个面向 AI Agent / LLM 调用场景的轻量级 Java 框架骨架。
-当前重点不是做完整的 Agent 编排，而是先把稳定、清晰、可扩展的模型调用基础层搭起来。
+当前目标是先把 provider 调用层、工具注入层和最小 agent 编排层拆清楚，再逐步补全工具闭环与多轮执行。
 
 ## 当前状态
 
 已经完成的内容：
 
-- core 统一消息模型、请求模型、响应模型
-- provider 分层的 request / raw request / response / raw response 结构
-- OpenAI-compatible 普通对话调用
-- OpenAI-compatible 流式对话调用
-- OpenAI-compatible 扩展字段保留：`reasoning_content`、`tool_calls`、扩展 `usage`
-- 基础运行时配置与 WebClient 复用
-- 普通请求与流式请求分离的调用链
-- 工具注册注解与注册器骨架
-- provider 侧的 tools / tool_choice 请求增强器
-- examples 模块的 Spring Boot 本地验证
+- `liteagent-core`：统一消息模型、请求抽象、结果抽象、工具注册规范
+- `liteagent-provider-openai`：OpenAI-compatible 普通对话、流式对话、请求增强、运行时配置
+- `liteagent-agent`：通用执行器、步骤模型、上下文、hook 骨架
+- `liteagent-provider-openai-agent`：OpenAI 最小同步编排骨架
+- `liteagent-examples`：基于 Spring Boot 配置的本地验证示例
 
-暂未完全展开的内容：
+还未完成的内容：
 
 - 工具自动执行闭环
 - 多轮 agent 编排
-- 更完整的错误码体系
+- 响应增强器
+- 流式 agent 编排
 - Spring 自动装配增强
 - 更多 provider 适配
 
@@ -31,170 +27,87 @@
 ```text
 liteagent-template
 ├─ liteagent-core
+├─ liteagent-agent
 ├─ liteagent-provider-openai
+├─ liteagent-provider-openai-agent
 └─ liteagent-examples
 ```
 
-## 调用链路
+## 两条主线
 
-普通请求与工具调用链路的完整流程：
+### 1. provider 直调主线
 
 ```mermaid
 flowchart TD
-    Begin([Begin]) --> A1[调用处构造请求<br/>ChatRequest + BaseRequest]
-    A1 --> A2[框架客户端构造<br/>OpenAiChatClient / OpenAiStreamClient]
-    A2 --> A3[Request Mapper<br/>OpenAiChatRequestMapper.toRawRequest]
-    A3 --> A4[Advisor 增强<br/>OpenAiClientSupport.applyAdvisors]
-    A4 --> A5[Transport 发送 HTTP<br/>OpenAiChatTransport.send]
-    A5 --> A6[接收 Raw Response]
-    A6 --> A7[Response Mapper<br/>OpenAiChatResponseMapper.fromRaw]
-    A7 --> A8{检测 tool_calls}
-    A8 -->|无 tool_calls| A9[返回响应结果]
-    A9 --> End([End])
-    A8 -.->|有 tool_calls 待实现| B1[执行工具 ToolExecutor]
-    B1 -.-> B2[追加 tool 角色消息<br/>到对话历史]
-    B2 -.-> A2
+    A1[调用处构造 ChatRequest + OpenAiBaseRequest] --> A2[组装 OpenAiChatCompletionRequest]
+    A2 --> A3[OpenAiChatClient / OpenAiStreamClient]
+    A3 --> A4[Request Mapper]
+    A4 --> A5[Advisor 增强]
+    A5 --> A6[Transport 发送]
+    A6 --> A7[Response Mapper]
+    A7 --> A8[返回 provider response]
+```
+
+### 2. agent 编排主线
+
+```mermaid
+flowchart TD
+    B1[Invocation] --> B2[Agent]
+    B2 --> B3[AgentExecutor]
+    B3 --> B4[BEGIN]
+    B4 --> B5[MAP_REQUEST]
+    B5 --> B6[ENHANCE_REQUEST]
+    B6 --> B7[SEND_CHAT_REQUEST]
+    B7 --> B8[MAP_CHAT_RESPONSE]
+    B8 --> B9[ANALYZE_RESPONSE]
+    B9 --> B10[BUILD_RESULT]
+    B10 --> B11[END]
 ```
 
 说明：
 
-- 实线部分为当前已实现的链路
-- 虚线部分为工具执行闭环，尚未实现
-- Advisor 增强阶段会遍历 `OpenAiChatCompletionRequest.advisors` 列表，依次执行 `enhance()`
-- `OpenAiRegistryToolsAdvisor` 负责将 `ToolRegistry` 中的工具注入 `raw request.tools`
-- `OpenAiToolChoiceAdvisor` 负责注入 `raw request.tool_choice`
+- `liteagent-provider-openai` 负责单轮 provider 能力
+- `liteagent-provider-openai-agent` 负责把 OpenAI 单轮能力装配为可编排步骤链
+- 当前 `openai-agent` 只支持最小同步 chat 编排，不含工具自动执行回环
 
 ## 模块职责
 
 ### liteagent-core
 
-只放稳定的抽象和通用模型，不放供应商私有字段。
+只放稳定抽象和通用模型，不放供应商私有字段。
 
-主要内容：
+### liteagent-agent
 
-- `message`：消息抽象和消息构造器
-- `model.request`：统一请求模型
-- `model.response.chat`：统一普通响应模型
-- `model.response.stream`：统一流式响应模型
-- `tool`：工具注册规范与注解
-- `exception`：框架基础异常
+只放编排抽象，不放 provider 协议实现。
 
 ### liteagent-provider-openai
 
-OpenAI-compatible 协议实现层。
+负责 OpenAI-compatible 协议的请求映射、响应映射、HTTP 调用和请求增强。
 
-主要内容：
+### liteagent-provider-openai-agent
 
-- request / raw request / mapper
-- response / raw response / mapper
-- 普通 client / 流式 client
-- transport
-- runtime 配置与注册表
-- tools / tool_choice 请求增强
+负责把 OpenAI provider 的 mapper、advisor、transport、response mapper 组装为步骤执行链。
 
 ### liteagent-examples
 
-示例和本地验证模块。
-
-主要用途：
-
-- Spring Boot 配置读取
-- 普通调用验证
-- 流式调用验证
-- 工具调用验证
-- provider 特性验证
-
-## 当前设计原则
-
-### 1. core 与 provider 分离
-
-core 只保留跨供应商共用的结构。
-
-例如：
-
-- `ChatRequest` 只放消息和通用选项
-- `ChatOptions` 只放通用控制项
-- `reasoning_content`、`tool_calls`、provider 扩展 `usage` 留在 provider 层
-
-### 2. raw 与 wrapper 分层
-
-请求和响应都分两层：
-
-- wrapper：面向框架开发者
-- raw：面向协议发送和接收
-
-### 3. 普通与流式分离
-
-普通请求和流式请求使用不同 client / transport：
-
-- `OpenAiChatClient`
-- `OpenAiStreamClient`
-
-这样返回类型更稳定，链路也更容易维护。
-
-### 4. 工具注册采用注解 + 注册器
-
-当前工具注册链路是：
-
-```mermaid
-flowchart LR
-    A[带 @ToolComponent 的类] --> B[扫描 @ToolMethod]
-    B --> C[解析参数 schema]
-    C --> D[InMemoryToolRegistry]
-    D --> E[OpenAiRegistryToolsAdvisor]
-    E --> F[raw request.tools]
-    G[可选 @ToolChoice] --> H[OpenAiToolChoiceAdvisor]
-    H --> I[raw request.tool_choice]
-```
-
-意思是：
-
-- `InMemoryToolRegistry` 只是注册容器
-- `OpenAiRegistryToolsAdvisor` 才是真正把 tools 注入请求的一步
-- `OpenAiToolChoiceAdvisor` 负责工具选择策略注入
-- 工具执行闭环和下一轮自动请求还没有做
-
-## 快速开始
-
-### 1. 构建项目
-
-```bash
-mvn clean test
-```
-
-### 2. 配置 examples
-
-`liteagent-examples` 使用 `application.yaml` 作为主配置，并通过副配置文件覆盖本地密钥。
-
-推荐结构：
-
-```yaml
-spring:
-  config:
-    import: optional:classpath:application-local.yaml
-```
-
-### 3. 运行示例测试
-
-在 `liteagent-examples` 中执行测试即可验证：
-
-- 普通 chat
-- provider chat
-- 普通 stream
-- provider stream
-- tools 注入
-- tool_choice 注入
+负责本地 smoke test 和用法示例。
+当前主要覆盖 provider 直调，不把它当成框架正式 API 的一部分。
 
 ## 文档
 
 - [Quick Start](./docs/quick-start.md)
 - [OpenAI-compatible Chat](./docs/openai-compatible-chat.md)
+- [liteagent-core](./liteagent-core/README.md)
+- [liteagent-agent](./liteagent-agent/README.md)
+- [liteagent-provider-openai](./liteagent-provider-openai/README.md)
+- [liteagent-provider-openai-agent](./liteagent-provider-openai-agent/README.md)
+- [liteagent-examples](./liteagent-examples/README.md)
 
-## 后续顺序
+## 建议后续顺序
 
-建议后面按这个顺序继续：
-
-1. 完善工具调用闭环
-2. 再补 agent 编排
-3. 再补 Spring 自动配置
-4. 再扩展更多 provider
+1. 完善工具自动执行闭环
+2. 补多轮 agent 编排
+3. 接入响应增强器
+4. 补流式 agent 编排
+5. 再做 Spring 自动配置
+6. 再扩展更多 provider

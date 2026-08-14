@@ -1,9 +1,9 @@
 package io.github.halcyonsong.liteagent.provider.openai.request.quickrequest;
 
 import io.github.halcyonsong.liteagent.core.message.enums.MessageRole;
-import io.github.halcyonsong.liteagent.core.model.request.ChatInvocation;
-import io.github.halcyonsong.liteagent.core.model.request.ChatRequest;
+import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiBaseRequest;
+import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -64,7 +64,7 @@ class OpenAiQuickChatRequestTest {
     }
 
     @Test
-    void to_invocation_should_build_expected_object() {
+    void to_request_should_build_expected_object() {
         OpenAiQuickChatRequest request = OpenAiQuickChatRequest.builder()
                 .baseUrl("https://example.com")
                 .apiKey("test-key")
@@ -73,14 +73,14 @@ class OpenAiQuickChatRequestTest {
                 .systemMessage("you are helpful")
                 .build();
 
-        ChatInvocation invocation = request.toInvocation();
+        OpenAiChatCompletionRequest providerRequest = request.toRequest();
 
-        assertNotNull(invocation.getBaseRequest());
-        assertNotNull(invocation.getChatRequest());
-        assertNull(invocation.getChatOptions());
-        assertEquals("https://example.com", invocation.getBaseRequest().getBaseUrl());
-        assertEquals("test-model", invocation.getBaseRequest().getModel());
-        assertEquals(2, invocation.getChatRequest().getMessages().size());
+        assertNotNull(providerRequest.getBaseRequest());
+        assertNotNull(providerRequest.getChatRequest());
+        assertNull(providerRequest.getCompletionOptions());
+        assertEquals("https://example.com", providerRequest.getBaseRequest().getBaseUrl());
+        assertEquals("test-model", providerRequest.getBaseRequest().getModel());
+        assertEquals(2, providerRequest.getChatRequest().getMessages().size());
     }
 
     @Test

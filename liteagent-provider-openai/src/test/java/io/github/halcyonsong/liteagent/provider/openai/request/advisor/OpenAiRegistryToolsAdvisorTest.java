@@ -1,5 +1,6 @@
 package io.github.halcyonsong.liteagent.provider.openai.request.advisor;
 
+import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
 import io.github.halcyonsong.liteagent.core.tool.impl.InMemoryToolRegistry;
 import io.github.halcyonsong.liteagent.core.tool.impl.SimpleToolDefinition;
 import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistry;
@@ -40,7 +41,7 @@ class OpenAiRegistryToolsAdvisorTest {
                         .apiKey("test-key")
                         .model("gpt-test")
                         .build())
-                .chatRequest(io.github.halcyonsong.liteagent.core.model.request.ChatRequest.builder()
+                .chatRequest(ChatRequest.builder()
                         .addMessage(io.github.halcyonsong.liteagent.core.message.type.constructor.Messages.user("hello"))
                         .build())
                 .completionOptions(OpenAiCompletionOptions.builder().build())
