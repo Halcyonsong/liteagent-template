@@ -55,11 +55,8 @@ public class StreamAgentContext<T> {
     /**
      * 本次流式编排内部使用的工作态消息历史。
      * <p>
-     * 该列表会在轮次间持续追加，
-     * 下一轮请求构造时应基于它重新生成 ChatRequest。
-     * <p>
-     * 它和最终沉淀到记忆窗口的会话历史不是同一概念；
-     * 其中可包含工具调用说明、工具结果和中间工作消息。
+     * 该列表只在 INIT_WORKING_MESSAGES 步骤中从初始请求复制一次，
+     * 后续轮次只追加新的 assistant、tool 或其他工作消息。
      */
     private final List<Message> workingMessages = new ArrayList<>();
 
@@ -90,7 +87,6 @@ public class StreamAgentContext<T> {
     private StreamAgentContext(String executionId, Invocation invocation) {
         this.executionId = executionId;
         this.invocation = invocation;
-        this.workingMessages.addAll(invocation.getChatRequest().getMessages());
     }
 
     public static <T> StreamAgentContext<T> create(Invocation invocation) {
@@ -105,6 +101,10 @@ public class StreamAgentContext<T> {
             throw new IllegalArgumentException("invocation must not be null");
         }
         return new StreamAgentContext<>(executionId, invocation);
+    }
+
+    public void clearWorkingMessages() {
+        this.workingMessages.clear();
     }
 
     /**

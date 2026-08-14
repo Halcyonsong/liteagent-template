@@ -151,8 +151,7 @@ public final class StreamAgentExecutor<T> {
     /**
      * 在当前轮输出的每个元素到达后，检查是否需要展开下一轮。
      * <p>
-     * 实际上只有当前轮已经完成时，才会真正触发下一轮或结束逻辑。
-     * 该方法只消费当前轮状态，不直接解析 provider chunk 的内部结构。
+     * 实际上只有当前轮已经完成时，才会真正触发后续同步决策逻辑。
      */
     private Flux<T> buildNext(StreamAgentContext<T> context) {
         StreamRoundState roundState = context.currentRound();
@@ -162,22 +161,30 @@ public final class StreamAgentExecutor<T> {
 
         roundState.setRoundComplete(false);
 
-        if (!roundState.isNextRound()) {
+        StreamStepKey nextAction = invokeSyncStep(StreamStepKey.DECIDE_NEXT_ACTION, context);
+
+        if (nextAction == StreamStepKey.BUILD_RESULT) {
             invokeSyncStep(StreamStepKey.BUILD_RESULT, context);
             return Flux.empty();
         }
 
-        if (context.getIteration() >= context.getMaxIterations()) {
-            context.setTerminationReason(AgentTerminationReason.MAX_ITERATIONS_REACHED);
-            invokeSyncStep(StreamStepKey.BUILD_RESULT, context);
+        if (nextAction == StreamStepKey.EXECUTE_TOOL) {
+            if (context.getIteration() >= context.getMaxIterations()) {
+                context.setTerminationReason(AgentTerminationReason.MAX_ITERATIONS_REACHED);
+                invokeSyncStep(StreamStepKey.BUILD_RESULT, context);
+                return Flux.empty();
+            }
+
+            context.incrementIteration();
+            invokeSyncStep(StreamStepKey.EXECUTE_TOOL, context);
+            return buildRound(context);
+        }
+
+        if (nextAction == StreamStepKey.END) {
             return Flux.empty();
         }
 
-        roundState.setNextRound(false);
-        context.incrementIteration();
-        invokeSyncStep(StreamStepKey.EXECUTE_TOOL, context);
-
-        return buildRound(context);
+        throw new IllegalStateException("Unsupported next action after stream round: " + nextAction);
     }
 
     private StreamStepKey invokeSyncStep(StreamStepKey key, StreamAgentContext<T> context) {

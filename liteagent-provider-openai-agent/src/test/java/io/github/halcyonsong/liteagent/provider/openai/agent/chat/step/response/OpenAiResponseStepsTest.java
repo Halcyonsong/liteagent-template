@@ -35,7 +35,7 @@ class OpenAiResponseStepsTest {
 
         ChatStepKey next = step.invoke(context);
 
-        assertEquals(ChatStepKey.ANALYZE_RESPONSE, next);
+        assertEquals(ChatStepKey.ENHANCE_RESPONSE, next);
         OpenAiChatCompletionResponse response = context.getAttribute(
                 OpenAiChatAgentAttributes.PROVIDER_RESPONSE,
                 OpenAiChatCompletionResponse.class

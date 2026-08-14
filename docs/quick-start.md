@@ -7,7 +7,8 @@
 - OpenAI-compatible 协议供应商
 - Java 17
 - provider 直调
-- 最小 chatAgent 编排入口
+- chatAgent 同步编排入口
+- streamAgent 流式编排入口
 
 ## 0. 调用流程概览
 
@@ -27,22 +28,40 @@ flowchart TD
     A9 --> End([End])
 ```
 
-### chatAgent 编排
+### chatAgent 编排（同步）
 
 ```mermaid
 flowchart TD
     Begin2([Begin]) --> B1[构造 Invocation]
-    B1 --> B2[OpenAiAgents.create]
-    B2 --> B3[OpenAiAgent.execute]
-    B3 --> B4[AgentExecutor]
+    B1 --> B2[OpenAiChatAgents.create]
+    B2 --> B3[OpenAiChatAgent.execute]
+    B3 --> B4[ChatAgentExecutor]
     B4 --> B5[BEGIN]
     B5 --> B6[MAP_REQUEST]
     B6 --> B7[ENHANCE_REQUEST]
-    B7 --> B8[SEND_CHAT_REQUEST]
-    B8 --> B9[MAP_CHAT_RESPONSE]
-    B9 --> B10[ANALYZE_RESPONSE]
-    B10 --> B11[BUILD_RESULT]
-    B11 --> End2([End])
+    B7 --> B8[SEND_REQUEST]
+    B8 --> B9[MAP_RESPONSE]
+    B9 --> B10[ENHANCE_RESPONSE]
+    B10 --> B11[ANALYZE_RESPONSE]
+    B11 --> B12[BUILD_RESULT]
+    B12 --> End2([End])
+```
+
+### streamAgent 编排（流式）
+
+```mermaid
+flowchart TD
+    Begin3([Begin]) --> C1[构造 Invocation]
+    C1 --> C2[OpenAiStreamAgents.create]
+    C2 --> C3[OpenAiStreamAgent.execute]
+    C3 --> C4[StreamAgentExecutor]
+    C4 --> C5[同步准备]
+    C5 --> C6[BEGIN → INIT_WORKING_MESSAGES → MAP_REQUEST → ENHANCE_REQUEST → SEND_REQUEST]
+    C6 --> C7[流式管道]
+    C7 --> C8[ENHANCE_CHUNK → ACCUMULATE_CHUNK → ANALYZE_CHUNK → STREAM_END]
+    C8 --> C9[expand 轮次调度]
+    C9 --> C10[DECIDE_NEXT_ACTION → BUILD_RESULT → END]
+    C10 --> End3([End])
 ```
 
 ## 1. 引入依赖
@@ -65,7 +84,7 @@ flowchart TD
 </dependencies>
 ```
 
-### chatAgent 编排
+### chatAgent 编排（同步）
 
 ```xml
 <dependencies>
@@ -77,7 +96,7 @@ flowchart TD
 
     <dependency>
         <groupId>io.github.halcyonsong</groupId>
-        <artifactId>liteagent-chatAgent</artifactId>
+        <artifactId>liteagent-agent</artifactId>
         <version>0.3.0-SNAPSHOT</version>
     </dependency>
 
@@ -89,11 +108,15 @@ flowchart TD
 
     <dependency>
         <groupId>io.github.halcyonsong</groupId>
-        <artifactId>liteagent-provider-openai-chatAgent</artifactId>
+        <artifactId>liteagent-provider-openai-agent</artifactId>
         <version>0.3.0-SNAPSHOT</version>
     </dependency>
 </dependencies>
 ```
+
+### streamAgent 编排（流式）
+
+依赖与 chatAgent 编排相同，`liteagent-provider-openai-agent` 已包含同步和流式两套实现。
 
 ## 2. 创建 provider 客户端
 
@@ -259,18 +282,18 @@ public class QuickRequestExample {
 }
 ```
 
-## 7. 最小 chatAgent 编排入口
+## 7. 最小 chatAgent 编排入口（同步）
 
 ```java
-import io.github.halcyonsong.liteagent.provider.openai.chatAgent.OpenAiAgent;
-import io.github.halcyonsong.liteagent.provider.openai.chatAgent.factory.OpenAiAgents;
+import io.github.halcyonsong.liteagent.provider.openai.agent.chat.OpenAiChatAgent;
+import io.github.halcyonsong.liteagent.provider.openai.agent.chat.factory.OpenAiChatAgents;
 import io.github.halcyonsong.liteagent.provider.openai.runtime.config.HttpRuntimeConfig;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiChatCompletionResponse;
 
-public class AgentCallExample {
+public class ChatAgentCallExample {
 
     public OpenAiChatCompletionResponse execute(OpenAiChatCompletionRequest request) {
-        OpenAiAgent chatAgent = OpenAiAgents.create(
+        OpenAiChatAgent chatAgent = OpenAiChatAgents.create(
                 HttpRuntimeConfig.builder()
                         .maxInMemorySize(16 * 1024 * 1024)
                         .connectTimeoutMillis(5000)
@@ -283,13 +306,46 @@ public class AgentCallExample {
 }
 ```
 
+## 8. 最小 streamAgent 编排入口（流式）
+
+```java
+import io.github.halcyonsong.liteagent.provider.openai.agent.stream.OpenAiStreamAgent;
+import io.github.halcyonsong.liteagent.provider.openai.agent.stream.factory.OpenAiStreamAgents;
+import io.github.halcyonsong.liteagent.provider.openai.runtime.config.HttpRuntimeConfig;
+
+public class StreamAgentCallExample {
+
+    public void execute(OpenAiChatCompletionRequest request) {
+        OpenAiStreamAgent streamAgent = OpenAiStreamAgents.create(
+                HttpRuntimeConfig.builder()
+                        .maxInMemorySize(16 * 1024 * 1024)
+                        .connectTimeoutMillis(5000)
+                        .streamResponseTimeoutMillis(null)
+                        .build()
+        );
+
+        streamAgent.execute(request)
+                .doOnNext(response -> response.getChoices().forEach(choice -> {
+                    if (choice.getDelta() != null) {
+                        String content = choice.getDelta().getContent();
+                        if (content != null) {
+                            System.out.print(content);
+                        }
+                    }
+                }))
+                .blockLast();
+    }
+}
+```
+
 说明：
 
-- 当前 `OpenAiChatAgent` 只是把单轮 provider 能力拆进步骤执行器
-- 当前还没有工具自动执行回环
-- 当前还没有流式 chatAgent 编排
+- `OpenAiChatAgent` 把单轮同步 provider 能力拆进步骤执行器
+- `OpenAiStreamAgent` 把流式 provider 能力拆进步骤执行器，支持 Flux 统一编排
+- 当前两个 agent 都还没有工具自动执行回环
+- streamAgent 的 `streamResponseTimeoutMillis` 传 `null` 表示不设置超时
 
-## 8. 当前范围
+## 9. 当前范围
 
 当前已经支持：
 
@@ -298,10 +354,11 @@ public class AgentCallExample {
 - OpenAI-compatible provider 扩展响应字段保留
 - tools / tool_choice 请求增强
 - OpenAI 最小同步 chatAgent 编排入口
+- OpenAI 最小流式 streamAgent 编排入口
 
 当前尚未覆盖：
 
 - tools 自动执行闭环
-- 多轮 chatAgent 编排
+- 多轮 agent 编排
 - response enhancer
-- stream 聚合后的 chatAgent 流式编排
+- stream 聚合后的 delta 合并

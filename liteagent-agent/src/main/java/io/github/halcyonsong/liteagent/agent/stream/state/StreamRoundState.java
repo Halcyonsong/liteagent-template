@@ -30,11 +30,6 @@ public class StreamRoundState {
     private boolean roundComplete;
 
     /**
-     * 当前轮完成后是否需要继续下一轮。
-     */
-    private boolean nextRound;
-
-    /**
      * provider-specific 的本轮增量聚合器。
      * <p>
      * 该对象通常用于在 chunk 到达过程中累积 content、reasoning、

@@ -53,31 +53,6 @@ public final class Printers {
         }
     }
 
-    public static void printStreamChunk(StreamChunk chunk) {
-        System.out.println("========== StreamChunk ==========");
-        System.out.println("response id = " + chunk.getBaseResponse().getId());
-        System.out.println("object = " + chunk.getBaseResponse().getObject());
-        System.out.println("model = " + chunk.getBaseResponse().getModel());
-
-        for (StreamChoice choice : chunk.getChoices()) {
-            System.out.println("choice index = " + choice.getIndex());
-            System.out.println("finish reason = " + choice.getFinishReason());
-
-            StreamDelta delta = choice.getDelta();
-            if (delta != null) {
-                System.out.println("delta role = " + delta.getRole());
-                System.out.println("delta content = " + delta.getContent());
-                System.out.println("delta reasoning content = " + delta.getReasoningContent());
-            }
-        }
-
-        if (chunk.getUsage() != null) {
-            System.out.println("prompt tokens = " + chunk.getUsage().getPromptTokens());
-            System.out.println("completion tokens = " + chunk.getUsage().getCompletionTokens());
-            System.out.println("total tokens = " + chunk.getUsage().getTotalTokens());
-        }
-    }
-
     public static void printProviderStreamResponse(OpenAiStreamCompletionResponse response) {
         System.out.println("========== OpenAiStreamCompletionResponse ==========");
         System.out.println("response id = " + response.getBaseResponse().getId());

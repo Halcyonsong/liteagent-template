@@ -10,22 +10,24 @@
 - 演示 provider 扩展字段读取
 - 演示 tools 注入
 - 演示 tool_choice 注入
+- 演示 chatAgent 同步编排
+- 演示 streamAgent 流式编排
 - 演示本地配置拆分
 
 ## 当前范围
 
-当前 examples 主要覆盖 `liteagent-provider-openai` 的 provider 直调链路。
+当前 examples 覆盖 `liteagent-provider-openai` 的 provider 直调链路和 `liteagent-provider-openai-agent` 的编排入口。
 
-也就是说，这里的测试重点仍然是：
+也就是说，这里的测试覆盖：
 
-- `OpenAiChatClient`
-- `OpenAiStreamClient`
+- `OpenAiChatClient` / `OpenAiStreamClient`（provider 直调）
+- `OpenAiChatAgent` / `OpenAiStreamAgent`（agent 编排）
 - `OpenAiQuickChatRequest`
 - tools / tool_choice 请求增强
 
-`liteagent-provider-openai-chatAgent` 的最小编排入口已经在主仓库模块中存在，但 examples 还没有专门追加 chatAgent smoke test。
-
 ## 当前主线流程
+
+### provider 直调
 
 ```mermaid
 flowchart TD
@@ -36,6 +38,17 @@ flowchart TD
     A5 --> A6[transport 发送]
     A6 --> A7[provider response 映射]
     A7 --> A8[打印 provider response / stream chunk]
+```
+
+### agent 编排
+
+```mermaid
+flowchart TD
+    B1[构造 OpenAiChatCompletionRequest] --> B2[OpenAiChatAgents / OpenAiStreamAgents.create]
+    B2 --> B3[OpenAiChatAgent / OpenAiStreamAgent.execute]
+    B3 --> B4[ChatAgentExecutor / StreamAgentExecutor]
+    B4 --> B5[步骤链调度]
+    B5 --> B6[返回 provider response / stream chunks]
 ```
 
 ## 配置方式
@@ -70,7 +83,7 @@ liteagent:
 
 ## 推荐保留的示例类别
 
-### provider
+### provider 直调
 
 - `ProviderChatExampleTest`
 - `ProviderReasoningExampleTest`
@@ -78,9 +91,14 @@ liteagent:
 - `ProviderToolCallExampleTest`
 - `QuickRequestChatExampleTest`
 
+### agent 编排
+
+- `ChatAgentExampleTest`
+- `StreamAgentExampleTest`
+
 ## 示例定位
 
-这个模块更像一个“可运行文档”，不是最终业务代码。
+这个模块更像一个"可运行文档"，不是最终业务代码。
 
 适合做这些事：
 
