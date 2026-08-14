@@ -2,7 +2,7 @@ package io.github.halcyonsong.liteagent.provider.openai.client;
 
 import io.github.halcyonsong.liteagent.core.client.ChatClient;
 import io.github.halcyonsong.liteagent.core.model.request.norm.Invocation;
-import io.github.halcyonsong.liteagent.core.model.response.Result;
+import io.github.halcyonsong.liteagent.core.model.response.chat.Result;
 import io.github.halcyonsong.liteagent.provider.openai.client.support.OpenAiClientSupport;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.quickrequest.OpenAiQuickChatRequest;

@@ -1,7 +1,7 @@
 package io.github.halcyonsong.liteagent.agent.chat.executor;
 
 import io.github.halcyonsong.liteagent.agent.chat.context.ChatAgentContext;
-import io.github.halcyonsong.liteagent.agent.common.hook.StepHook;
+import io.github.halcyonsong.liteagent.agent.chat.hook.StepHook;
 import io.github.halcyonsong.liteagent.agent.chat.step.ChatStep;
 import io.github.halcyonsong.liteagent.agent.chat.step.ChatStepKey;
 import io.github.halcyonsong.liteagent.core.message.type.constructor.Messages;

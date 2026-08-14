@@ -9,7 +9,7 @@ import io.github.halcyonsong.liteagent.core.message.type.constructor.Messages;
 import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
 import io.github.halcyonsong.liteagent.core.model.request.norm.BaseRequest;
 import io.github.halcyonsong.liteagent.core.model.request.norm.Invocation;
-import io.github.halcyonsong.liteagent.core.model.response.Result;
+import io.github.halcyonsong.liteagent.core.model.response.chat.Result;
 import org.junit.jupiter.api.Test;
 
 import java.util.EnumMap;

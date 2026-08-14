@@ -1,6 +1,5 @@
 package io.github.halcyonsong.liteagent.provider.openai.response.config.stream;
 
-import io.github.halcyonsong.liteagent.core.model.response.stream.StreamChunk;
 import io.github.halcyonsong.liteagent.core.model.response.stream.StreamChoice;
 import io.github.halcyonsong.liteagent.core.support.JsonSupport;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.OpenAiBaseResponse;
@@ -30,10 +29,6 @@ public class OpenAiStreamCompletionResponse{
         Objects.requireNonNull(choices, "choices must not be null");
         this.choices = List.copyOf(choices);
         this.usage = usage;
-    }
-
-    public StreamChunk toStreamChunk() {
-        return new StreamChunk(baseResponse, choices, usage);
     }
 
     public String toJson() {

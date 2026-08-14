@@ -17,7 +17,7 @@
     </modules>
 
     <properties>
-        <revision>0.3.0-SNAPSHOT</revision>
+        <revision>0.5.0-SNAPSHOT</revision>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <maven.compiler.parameters>true</maven.compiler.parameters>

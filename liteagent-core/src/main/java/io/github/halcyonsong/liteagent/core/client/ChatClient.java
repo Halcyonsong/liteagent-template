@@ -1,7 +1,7 @@
 package io.github.halcyonsong.liteagent.core.client;
 
 import io.github.halcyonsong.liteagent.core.model.request.norm.Invocation;
-import io.github.halcyonsong.liteagent.core.model.response.Result;
+import io.github.halcyonsong.liteagent.core.model.response.chat.Result;
 
 /**
  * 框架统一普通对话客户端接口。

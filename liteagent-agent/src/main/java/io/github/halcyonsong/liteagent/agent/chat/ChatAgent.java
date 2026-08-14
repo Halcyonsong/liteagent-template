@@ -3,7 +3,7 @@ package io.github.halcyonsong.liteagent.agent.chat;
 import io.github.halcyonsong.liteagent.agent.chat.context.ChatAgentContext;
 import io.github.halcyonsong.liteagent.agent.chat.executor.ChatAgentExecutor;
 import io.github.halcyonsong.liteagent.core.model.request.norm.Invocation;
-import io.github.halcyonsong.liteagent.core.model.response.Result;
+import io.github.halcyonsong.liteagent.core.model.response.chat.Result;
 
 import java.util.Objects;
 

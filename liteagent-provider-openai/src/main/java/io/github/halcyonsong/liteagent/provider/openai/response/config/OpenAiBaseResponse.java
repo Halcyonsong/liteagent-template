@@ -1,6 +1,6 @@
 package io.github.halcyonsong.liteagent.provider.openai.response.config;
 
-import io.github.halcyonsong.liteagent.core.model.response.BaseResponse;
+import io.github.halcyonsong.liteagent.core.model.response.norm.BaseResponse;
 import io.github.halcyonsong.liteagent.core.support.JsonSupport;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

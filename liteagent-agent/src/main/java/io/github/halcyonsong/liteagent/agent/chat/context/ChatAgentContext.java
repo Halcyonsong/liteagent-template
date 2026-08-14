@@ -1,8 +1,8 @@
 package io.github.halcyonsong.liteagent.agent.chat.context;
 
-import io.github.halcyonsong.liteagent.agent.common.state.AgentTerminationReason;
+import io.github.halcyonsong.liteagent.agent.state.AgentTerminationReason;
 import io.github.halcyonsong.liteagent.core.model.request.norm.Invocation;
-import io.github.halcyonsong.liteagent.core.model.response.Result;
+import io.github.halcyonsong.liteagent.core.model.response.chat.Result;
 import lombok.Getter;
 import lombok.Setter;
 

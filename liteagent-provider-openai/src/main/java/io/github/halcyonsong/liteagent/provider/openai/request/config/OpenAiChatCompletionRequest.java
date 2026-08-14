@@ -3,7 +3,7 @@ package io.github.halcyonsong.liteagent.provider.openai.request.config;
 import io.github.halcyonsong.liteagent.core.model.request.norm.BaseRequest;
 import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
 import io.github.halcyonsong.liteagent.core.model.request.norm.Invocation;
-import io.github.halcyonsong.liteagent.core.model.response.ResponseAdvisor;
+import io.github.halcyonsong.liteagent.core.model.response.norm.ResponseAdvisor;
 import io.github.halcyonsong.liteagent.core.support.JsonSupport;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.github.halcyonsong.liteagent.core.model.request.norm.RequestAdvisor;

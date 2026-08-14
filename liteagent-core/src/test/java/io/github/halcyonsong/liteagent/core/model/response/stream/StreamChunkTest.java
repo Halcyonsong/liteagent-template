@@ -3,8 +3,8 @@ package io.github.halcyonsong.liteagent.core.model.response.stream;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.halcyonsong.liteagent.core.model.enums.FinishReason;
-import io.github.halcyonsong.liteagent.core.model.response.BaseResponse;
-import io.github.halcyonsong.liteagent.core.model.response.Usage;
+import io.github.halcyonsong.liteagent.core.model.response.norm.BaseResponse;
+import io.github.halcyonsong.liteagent.core.model.response.norm.Usage;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

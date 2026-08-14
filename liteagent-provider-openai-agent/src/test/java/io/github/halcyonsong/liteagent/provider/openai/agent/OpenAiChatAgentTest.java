@@ -10,6 +10,7 @@ import io.github.halcyonsong.liteagent.core.model.enums.FinishReason;
 import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
 import io.github.halcyonsong.liteagent.core.model.response.chat.ChatChoice;
 import io.github.halcyonsong.liteagent.core.model.response.chat.ChatResponse;
+import io.github.halcyonsong.liteagent.provider.openai.agent.chat.OpenAiChatAgent;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiBaseRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.OpenAiBaseResponse;
