@@ -1,15 +1,15 @@
 package io.github.halcyonsong.liteagent.provider.openai.agent.step.response;
 
-import io.github.halcyonsong.liteagent.agent.context.AgentContext;
-import io.github.halcyonsong.liteagent.agent.state.AgentTerminationReason;
-import io.github.halcyonsong.liteagent.agent.step.AgentStepKey;
+import io.github.halcyonsong.liteagent.agent.chat.context.ChatAgentContext;
+import io.github.halcyonsong.liteagent.agent.common.state.AgentTerminationReason;
+import io.github.halcyonsong.liteagent.agent.chat.step.ChatStepKey;
 import io.github.halcyonsong.liteagent.core.message.type.AssistantMessage;
 import io.github.halcyonsong.liteagent.core.message.type.constructor.Messages;
 import io.github.halcyonsong.liteagent.core.model.enums.FinishReason;
 import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
 import io.github.halcyonsong.liteagent.core.model.response.chat.ChatChoice;
 import io.github.halcyonsong.liteagent.core.model.response.chat.ChatResponse;
-import io.github.halcyonsong.liteagent.provider.openai.agent.constant.OpenAiAgentAttributes;
+import io.github.halcyonsong.liteagent.provider.openai.agent.constant.OpenAiChatAgentAttributes;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiBaseRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.OpenAiBaseResponse;
@@ -27,17 +27,17 @@ class OpenAiResponseStepsTest {
 
     @Test
     void map_chat_response_should_store_provider_response() {
-        AgentContext context = AgentContext.create(createRequest());
+        ChatAgentContext context = ChatAgentContext.create(createRequest());
         OpenAiChatCompletionRawResponse rawResponse = createRawResponse();
 
-        context.setAttribute(OpenAiAgentAttributes.RAW_RESPONSE, rawResponse);
-        OpenAiMapChatResponseStep step = new OpenAiMapChatResponseStep(new OpenAiChatResponseMapper());
+        context.setAttribute(OpenAiChatAgentAttributes.RAW_RESPONSE, rawResponse);
+        OpenAiChatMapResponseStep step = new OpenAiChatMapResponseStep(new OpenAiChatResponseMapper());
 
-        AgentStepKey next = step.invoke(context);
+        ChatStepKey next = step.invoke(context);
 
-        assertEquals(AgentStepKey.ANALYZE_RESPONSE, next);
+        assertEquals(ChatStepKey.ANALYZE_RESPONSE, next);
         OpenAiChatCompletionResponse response = context.getAttribute(
-                OpenAiAgentAttributes.PROVIDER_RESPONSE,
+                OpenAiChatAgentAttributes.PROVIDER_RESPONSE,
                 OpenAiChatCompletionResponse.class
         );
         assertNotNull(response);
@@ -48,44 +48,44 @@ class OpenAiResponseStepsTest {
 
     @Test
     void analyze_response_should_end_when_response_missing() {
-        AgentContext context = AgentContext.create(createRequest());
-        OpenAiAnalyzeResponseStep step = new OpenAiAnalyzeResponseStep();
+        ChatAgentContext context = ChatAgentContext.create(createRequest());
+        OpenAiChatAnalyzeResponseStep step = new OpenAiChatAnalyzeResponseStep();
 
-        AgentStepKey next = step.invoke(context);
+        ChatStepKey next = step.invoke(context);
 
-        assertEquals(AgentStepKey.END, next);
+        assertEquals(ChatStepKey.END, next);
         assertEquals(AgentTerminationReason.MODEL_ERROR, context.getTerminationReason());
     }
 
     @Test
     void analyze_response_should_continue_when_response_exists() {
-        AgentContext context = AgentContext.create(createRequest());
-        context.setAttribute(OpenAiAgentAttributes.PROVIDER_RESPONSE, createProviderResponse());
-        OpenAiAnalyzeResponseStep step = new OpenAiAnalyzeResponseStep();
+        ChatAgentContext context = ChatAgentContext.create(createRequest());
+        context.setAttribute(OpenAiChatAgentAttributes.PROVIDER_RESPONSE, createProviderResponse());
+        OpenAiChatAnalyzeResponseStep step = new OpenAiChatAnalyzeResponseStep();
 
-        AgentStepKey next = step.invoke(context);
+        ChatStepKey next = step.invoke(context);
 
-        assertEquals(AgentStepKey.BUILD_RESULT, next);
+        assertEquals(ChatStepKey.BUILD_RESULT, next);
     }
 
     @Test
     void build_result_should_write_result_and_mark_completed() {
-        AgentContext context = AgentContext.create(createRequest());
+        ChatAgentContext context = ChatAgentContext.create(createRequest());
         OpenAiChatCompletionResponse response = createProviderResponse();
-        context.setAttribute(OpenAiAgentAttributes.PROVIDER_RESPONSE, response);
-        OpenAiBuildResultStep step = new OpenAiBuildResultStep();
+        context.setAttribute(OpenAiChatAgentAttributes.PROVIDER_RESPONSE, response);
+        OpenAiChatBuildResultStep step = new OpenAiChatBuildResultStep();
 
-        AgentStepKey next = step.invoke(context);
+        ChatStepKey next = step.invoke(context);
 
-        assertEquals(AgentStepKey.END, next);
+        assertEquals(ChatStepKey.END, next);
         assertSame(response, context.getResult());
         assertEquals(AgentTerminationReason.COMPLETED, context.getTerminationReason());
     }
 
     @Test
     void build_result_should_fail_when_provider_response_missing() {
-        AgentContext context = AgentContext.create(createRequest());
-        OpenAiBuildResultStep step = new OpenAiBuildResultStep();
+        ChatAgentContext context = ChatAgentContext.create(createRequest());
+        OpenAiChatBuildResultStep step = new OpenAiChatBuildResultStep();
 
         assertThrows(IllegalStateException.class, () -> step.invoke(context));
     }

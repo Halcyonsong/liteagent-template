@@ -7,7 +7,7 @@
 - OpenAI-compatible 协议供应商
 - Java 17
 - provider 直调
-- 最小 agent 编排入口
+- 最小 chatAgent 编排入口
 
 ## 0. 调用流程概览
 
@@ -27,7 +27,7 @@ flowchart TD
     A9 --> End([End])
 ```
 
-### agent 编排
+### chatAgent 编排
 
 ```mermaid
 flowchart TD
@@ -65,7 +65,7 @@ flowchart TD
 </dependencies>
 ```
 
-### agent 编排
+### chatAgent 编排
 
 ```xml
 <dependencies>
@@ -77,7 +77,7 @@ flowchart TD
 
     <dependency>
         <groupId>io.github.halcyonsong</groupId>
-        <artifactId>liteagent-agent</artifactId>
+        <artifactId>liteagent-chatAgent</artifactId>
         <version>0.3.0-SNAPSHOT</version>
     </dependency>
 
@@ -89,7 +89,7 @@ flowchart TD
 
     <dependency>
         <groupId>io.github.halcyonsong</groupId>
-        <artifactId>liteagent-provider-openai-agent</artifactId>
+        <artifactId>liteagent-provider-openai-chatAgent</artifactId>
         <version>0.3.0-SNAPSHOT</version>
     </dependency>
 </dependencies>
@@ -259,18 +259,18 @@ public class QuickRequestExample {
 }
 ```
 
-## 7. 最小 agent 编排入口
+## 7. 最小 chatAgent 编排入口
 
 ```java
-import io.github.halcyonsong.liteagent.provider.openai.agent.OpenAiAgent;
-import io.github.halcyonsong.liteagent.provider.openai.agent.factory.OpenAiAgents;
+import io.github.halcyonsong.liteagent.provider.openai.chatAgent.OpenAiAgent;
+import io.github.halcyonsong.liteagent.provider.openai.chatAgent.factory.OpenAiAgents;
 import io.github.halcyonsong.liteagent.provider.openai.runtime.config.HttpRuntimeConfig;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiChatCompletionResponse;
 
 public class AgentCallExample {
 
     public OpenAiChatCompletionResponse execute(OpenAiChatCompletionRequest request) {
-        OpenAiAgent agent = OpenAiAgents.create(
+        OpenAiAgent chatAgent = OpenAiAgents.create(
                 HttpRuntimeConfig.builder()
                         .maxInMemorySize(16 * 1024 * 1024)
                         .connectTimeoutMillis(5000)
@@ -278,16 +278,16 @@ public class AgentCallExample {
                         .build()
         );
 
-        return agent.execute(request);
+        return chatAgent.execute(request);
     }
 }
 ```
 
 说明：
 
-- 当前 `OpenAiAgent` 只是把单轮 provider 能力拆进步骤执行器
+- 当前 `OpenAiChatAgent` 只是把单轮 provider 能力拆进步骤执行器
 - 当前还没有工具自动执行回环
-- 当前还没有流式 agent 编排
+- 当前还没有流式 chatAgent 编排
 
 ## 8. 当前范围
 
@@ -297,11 +297,11 @@ public class AgentCallExample {
 - 流式 provider 对话调用
 - OpenAI-compatible provider 扩展响应字段保留
 - tools / tool_choice 请求增强
-- OpenAI 最小同步 agent 编排入口
+- OpenAI 最小同步 chatAgent 编排入口
 
 当前尚未覆盖：
 
 - tools 自动执行闭环
-- 多轮 agent 编排
+- 多轮 chatAgent 编排
 - response enhancer
-- stream 聚合后的 agent 流式编排
+- stream 聚合后的 chatAgent 流式编排

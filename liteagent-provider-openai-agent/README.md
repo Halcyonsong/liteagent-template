@@ -1,19 +1,19 @@
-# liteagent-provider-openai-agent
+# liteagent-provider-openai-chatAgent
 
-`liteagent-provider-openai-agent` 是 OpenAI provider 的编排接入层。
+`liteagent-provider-openai-chatAgent` 是 OpenAI provider 的编排接入层。
 它把 `liteagent-provider-openai` 已有的 request mapper、advisor、transport、response mapper 装配成可执行步骤链。
 
 ## 职责
 
-- 提供 OpenAI agent 门面
-- 提供 OpenAI agent 执行器工厂
-- 提供 OpenAI agent 自动装配入口
+- 提供 OpenAI chatAgent 门面
+- 提供 OpenAI chatAgent 执行器工厂
+- 提供 OpenAI chatAgent 自动装配入口
 - 提供 OpenAI provider 的最小同步步骤链
 
 ## 包结构
 
 ```text
-io.github.halcyonsong.liteagent.provider.openai.agent
+io.github.halcyonsong.liteagent.provider.openai.chatAgent
 ├─ constant
 ├─ factory
 └─ step
@@ -39,16 +39,16 @@ flowchart TD
 
 ## 已实现内容
 
-- `OpenAiAgent`
-- `OpenAiAgents`
-- `OpenAiAgentExecutorFactory`
-- `OpenAiBeginStep`
-- `OpenAiMapRequestStep`
-- `OpenAiEnhanceRequestStep`
-- `OpenAiSendChatRequestStep`
-- `OpenAiMapChatResponseStep`
-- `OpenAiAnalyzeResponseStep`
-- `OpenAiBuildResultStep`
+- `OpenAiChatAgent`
+- `OpenAiChatAgents`
+- `OpenAiChatAgentExecutorFactory`
+- `OpenAiChatBeginStep`
+- `OpenAiChatMapRequestStep`
+- `OpenAiChatEnhanceRequestStep`
+- `OpenAiChatSendRequestStep`
+- `OpenAiChatMapResponseStep`
+- `OpenAiChatAnalyzeResponseStep`
+- `OpenAiChatBuildResultStep`
 
 ## 当前范围
 
@@ -58,7 +58,7 @@ flowchart TD
 
 - 工具自动执行闭环
 - 多轮调用回环
-- 流式 agent 编排
+- 流式 chatAgent 编排
 - 响应增强器
 
-所以当前它更接近“最小可编排骨架”，而不是完整 agent runtime。
+所以当前它更接近“最小可编排骨架”，而不是完整 chatAgent runtime。

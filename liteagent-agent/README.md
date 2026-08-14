@@ -1,11 +1,11 @@
-# liteagent-agent
+# liteagent-chatAgent
 
-`liteagent-agent` 是框架的通用编排层。
+`liteagent-chatAgent` 是框架的通用编排层。
 它不关心具体 provider 协议，只负责把一次调用拆成步骤并顺序调度。
 
 ## 职责
 
-- 定义 agent 执行入口
+- 定义 chatAgent 执行入口
 - 定义步骤接口与步骤 key
 - 定义单次执行上下文
 - 定义步骤 hook
@@ -14,7 +14,7 @@
 ## 包结构
 
 ```text
-io.github.halcyonsong.liteagent.agent
+io.github.halcyonsong.liteagent.chatAgent
 ├─ context
 ├─ executor
 ├─ hook
@@ -40,17 +40,17 @@ flowchart TD
 
 ## 已实现内容
 
-- `Agent`
-- `AgentContext`
-- `AgentExecutor`
-- `AgentStep`
-- `AgentStepKey`
+- `ChatAgent`
+- `ChatAgentContext`
+- `ChatAgentExecutor`
+- `ChatStep`
+- `ChatStepKey`
 - `StepHook`
 - `AgentTerminationReason`
 
 ## AgentContext 设计
 
-`AgentContext` 的生命周期只存在于一次执行内部，主要保存：
+`ChatAgentContext` 的生命周期只存在于一次执行内部，主要保存：
 
 - `executionId`：本次执行唯一标识
 - `invocation`：本次统一输入
@@ -68,4 +68,4 @@ flowchart TD
 - 工具执行实现
 - provider 响应映射
 
-这些内容由上层 provider 模块或 provider-agent 模块负责。
+这些内容由上层 provider 模块或 provider-chatAgent 模块负责。

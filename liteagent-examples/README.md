@@ -23,7 +23,7 @@
 - `OpenAiQuickChatRequest`
 - tools / tool_choice 请求增强
 
-`liteagent-provider-openai-agent` 的最小编排入口已经在主仓库模块中存在，但 examples 还没有专门追加 agent smoke test。
+`liteagent-provider-openai-chatAgent` 的最小编排入口已经在主仓库模块中存在，但 examples 还没有专门追加 chatAgent smoke test。
 
 ## 当前主线流程
 

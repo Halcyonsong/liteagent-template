@@ -1,6 +1,6 @@
 # OpenAI-compatible Chat
 
-本文说明 `liteagent-provider-openai` 与 `liteagent-provider-openai-agent` 当前已经支持的调用方式，以及工具注册链路如何接入请求。
+本文说明 `liteagent-provider-openai` 与 `liteagent-provider-openai-chatAgent` 当前已经支持的调用方式，以及工具注册链路如何接入请求。
 
 ## 0. provider 主线流程
 
@@ -24,7 +24,7 @@ flowchart TD
 - 普通与流式共享 request mapper 与 advisor 增强阶段
 - 主要差异在 transport 与 response mapper
 
-## 1. agent 编排主线
+## 1. chatAgent 编排主线
 
 ```mermaid
 flowchart TD
@@ -42,7 +42,7 @@ flowchart TD
 
 说明：
 
-- 当前 `liteagent-provider-openai-agent` 只支持同步 chat 编排
+- 当前 `liteagent-provider-openai-chatAgent` 只支持同步 chat 编排
 - `ANALYZE_RESPONSE` 之后还没有接入 `EXECUTE_TOOL`
 - 后续工具回环会从 `ANALYZE_RESPONSE` 分叉到 `EXECUTE_TOOL -> MAP_REQUEST`
 
@@ -87,17 +87,17 @@ public class ProviderRequestExample {
 }
 ```
 
-## 3. 普通 agent 编排调用
+## 3. 普通 chatAgent 编排调用
 
 ```java
-import io.github.halcyonsong.liteagent.provider.openai.agent.OpenAiAgent;
-import io.github.halcyonsong.liteagent.provider.openai.agent.factory.OpenAiAgents;
+import io.github.halcyonsong.liteagent.provider.openai.chatAgent.OpenAiAgent;
+import io.github.halcyonsong.liteagent.provider.openai.chatAgent.factory.OpenAiAgents;
 import io.github.halcyonsong.liteagent.provider.openai.runtime.config.HttpRuntimeConfig;
 
 public class ProviderAgentExample {
 
     public OpenAiChatCompletionResponse execute(OpenAiChatCompletionRequest request) {
-        OpenAiAgent agent = OpenAiAgents.create(
+        OpenAiAgent chatAgent = OpenAiAgents.create(
                 HttpRuntimeConfig.builder()
                         .maxInMemorySize(16 * 1024 * 1024)
                         .connectTimeoutMillis(5000)
@@ -105,7 +105,7 @@ public class ProviderAgentExample {
                         .build()
         );
 
-        return agent.execute(request);
+        return chatAgent.execute(request);
     }
 }
 ```
@@ -191,11 +191,11 @@ liteagent:
 - 流式 provider chat
 - provider 扩展字段保留
 - 工具注册和请求增强
-- OpenAI 最小同步 agent 编排骨架
+- OpenAI 最小同步 chatAgent 编排骨架
 
 还没有完成的部分：
 
 - 工具执行闭环
-- 多轮 agent 编排
+- 多轮 chatAgent 编排
 - 响应增强器
-- 流式 agent 编排
+- 流式 chatAgent 编排
