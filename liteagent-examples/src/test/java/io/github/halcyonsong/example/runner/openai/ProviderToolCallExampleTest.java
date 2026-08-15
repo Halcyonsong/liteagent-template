@@ -17,7 +17,6 @@ import io.github.halcyonsong.liteagent.provider.openai.request.advisor.OpenAiToo
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiCompletionOptions;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.tool.OpenAiToolChoice;
-import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiAssistantMessage;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiChatCompletionResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

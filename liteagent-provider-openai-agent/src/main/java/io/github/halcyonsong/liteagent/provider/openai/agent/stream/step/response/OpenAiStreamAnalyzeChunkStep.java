@@ -36,6 +36,8 @@ public class OpenAiStreamAnalyzeChunkStep implements StreamStep<Flux<OpenAiStrea
                     }
 
                     chunk.getChoices().forEach(choice -> {
+                        // 这里依赖 stream mapper 保留 finishReason 的 null 语义；
+                        // 中间 chunk 的 null 不能被映射成 UNKNOWN，否则会误判为本轮完成。
                         if (choice.getFinishReason() != null) {
                             roundState.setRoundComplete(true);
                             roundState.setFinalResponse(accumulator.toFinalResponse());

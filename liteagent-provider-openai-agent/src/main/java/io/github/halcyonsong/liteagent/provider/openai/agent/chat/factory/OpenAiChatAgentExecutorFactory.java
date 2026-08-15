@@ -4,14 +4,15 @@ import io.github.halcyonsong.liteagent.agent.chat.executor.ChatAgentExecutor;
 import io.github.halcyonsong.liteagent.agent.chat.hook.StepHook;
 import io.github.halcyonsong.liteagent.agent.chat.step.ChatStep;
 import io.github.halcyonsong.liteagent.agent.chat.step.ChatStepKey;
-import io.github.halcyonsong.liteagent.provider.openai.agent.chat.step.response.OpenAiChatEnhanceResponseStep;
-import io.github.halcyonsong.liteagent.provider.openai.agent.chat.step.response.OpenAiChatMapResponseStep;
+import io.github.halcyonsong.liteagent.provider.openai.agent.chat.step.request.OpenAiChatBeginStep;
+import io.github.halcyonsong.liteagent.provider.openai.agent.chat.step.request.OpenAiChatEnhanceRequestStep;
+import io.github.halcyonsong.liteagent.provider.openai.agent.chat.step.request.OpenAiChatInitWorkingMessagesStep;
+import io.github.halcyonsong.liteagent.provider.openai.agent.chat.step.request.OpenAiChatMapRequestStep;
 import io.github.halcyonsong.liteagent.provider.openai.agent.chat.step.request.OpenAiChatSendRequestStep;
 import io.github.halcyonsong.liteagent.provider.openai.agent.chat.step.response.OpenAiChatAnalyzeResponseStep;
-import io.github.halcyonsong.liteagent.provider.openai.agent.chat.step.request.OpenAiChatBeginStep;
 import io.github.halcyonsong.liteagent.provider.openai.agent.chat.step.response.OpenAiChatBuildResultStep;
-import io.github.halcyonsong.liteagent.provider.openai.agent.chat.step.request.OpenAiChatEnhanceRequestStep;
-import io.github.halcyonsong.liteagent.provider.openai.agent.chat.step.request.OpenAiChatMapRequestStep;
+import io.github.halcyonsong.liteagent.provider.openai.agent.chat.step.response.OpenAiChatEnhanceResponseStep;
+import io.github.halcyonsong.liteagent.provider.openai.agent.chat.step.response.OpenAiChatMapResponseStep;
 import io.github.halcyonsong.liteagent.provider.openai.client.support.OpenAiClientSupport;
 import io.github.halcyonsong.liteagent.provider.openai.request.mapper.OpenAiChatRequestMapper;
 import io.github.halcyonsong.liteagent.provider.openai.response.mapper.OpenAiChatResponseMapper;
@@ -63,6 +64,7 @@ public class OpenAiChatAgentExecutorFactory {
         Map<ChatStepKey, ChatStep> steps = new EnumMap<>(ChatStepKey.class);
 
         steps.put(ChatStepKey.BEGIN, new OpenAiChatBeginStep());
+        steps.put(ChatStepKey.INIT_WORKING_MESSAGES, new OpenAiChatInitWorkingMessagesStep());
         steps.put(ChatStepKey.MAP_REQUEST, new OpenAiChatMapRequestStep(requestMapper));
         steps.put(ChatStepKey.ENHANCE_REQUEST, new OpenAiChatEnhanceRequestStep(clientSupport));
         steps.put(ChatStepKey.SEND_REQUEST, new OpenAiChatSendRequestStep(chatTransport));

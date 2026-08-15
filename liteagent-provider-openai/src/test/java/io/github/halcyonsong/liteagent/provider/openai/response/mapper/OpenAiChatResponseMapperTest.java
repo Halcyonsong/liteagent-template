@@ -3,7 +3,6 @@ package io.github.halcyonsong.liteagent.provider.openai.response.mapper;
 import io.github.halcyonsong.liteagent.core.message.Message;
 import io.github.halcyonsong.liteagent.core.model.enums.FinishReason;
 import io.github.halcyonsong.liteagent.core.model.response.chat.ChatChoice;
-import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiAssistantMessage;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiChatCompletionResponse;
 import io.github.halcyonsong.liteagent.provider.openai.response.raw.OpenAiChatCompletionRawResponse;
 import org.junit.jupiter.api.Test;

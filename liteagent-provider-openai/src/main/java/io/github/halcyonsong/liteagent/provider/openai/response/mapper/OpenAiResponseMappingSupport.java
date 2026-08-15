@@ -1,10 +1,10 @@
 package io.github.halcyonsong.liteagent.provider.openai.response.mapper;
 
 import io.github.halcyonsong.liteagent.core.model.enums.FinishReason;
+import io.github.halcyonsong.liteagent.core.model.tool.FunctionCall;
+import io.github.halcyonsong.liteagent.core.model.tool.ToolCall;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.OpenAiBaseResponse;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.OpenAiUsage;
-import io.github.halcyonsong.liteagent.provider.openai.response.config.tool.OpenAiFunctionCall;
-import io.github.halcyonsong.liteagent.provider.openai.response.config.tool.OpenAiToolCall;
 import io.github.halcyonsong.liteagent.provider.openai.response.raw.OpenAiChatCompletionRawResponse;
 
 import java.util.ArrayList;
@@ -50,14 +50,14 @@ public class OpenAiResponseMappingSupport {
         };
     }
 
-    protected List<OpenAiToolCall> mapToolCalls(List<OpenAiChatCompletionRawResponse.RawToolCall> rawToolCalls) {
+    protected List<ToolCall> mapToolCalls(List<OpenAiChatCompletionRawResponse.RawToolCall> rawToolCalls) {
         if (rawToolCalls == null || rawToolCalls.isEmpty()) {
             return Collections.emptyList();
         }
 
-        List<OpenAiToolCall> result = new ArrayList<>();
+        List<ToolCall> result = new ArrayList<>();
         for (OpenAiChatCompletionRawResponse.RawToolCall rawToolCall : rawToolCalls) {
-            result.add(new OpenAiToolCall(
+            result.add(new ToolCall(
                     rawToolCall.getIndex(),
                     rawToolCall.getId(),
                     rawToolCall.getType(),
@@ -67,13 +67,14 @@ public class OpenAiResponseMappingSupport {
         return result;
     }
 
-    protected OpenAiFunctionCall mapFunction(OpenAiChatCompletionRawResponse.RawFunction rawFunction) {
+    protected FunctionCall mapFunction(OpenAiChatCompletionRawResponse.RawFunction rawFunction) {
         if (rawFunction == null) {
             return null;
         }
-        return new OpenAiFunctionCall(
+        return new FunctionCall(
                 rawFunction.getName(),
                 rawFunction.getArguments()
         );
     }
+
 }

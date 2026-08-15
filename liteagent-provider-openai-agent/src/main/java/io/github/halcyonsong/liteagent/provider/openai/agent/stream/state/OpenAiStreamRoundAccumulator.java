@@ -21,12 +21,12 @@ import java.util.List;
  * <p>
  * 后续可继续增强 content、reasoning、tool_calls 的细粒度聚合。
  */
+@Getter
 public class OpenAiStreamRoundAccumulator {
 
     private OpenAiBaseResponse baseResponse;
     private OpenAiUsage usage;
     private final List<StreamChoice> choices = new ArrayList<>();
-    @Getter
     private FinishReason finishReason;
 
     public void accumulate(OpenAiStreamCompletionResponse chunk) {

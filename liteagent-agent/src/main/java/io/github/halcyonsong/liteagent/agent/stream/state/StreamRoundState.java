@@ -27,7 +27,7 @@ public class StreamRoundState {
     /**
      * 当前轮是否已经完成。
      */
-    private boolean roundComplete;
+    private volatile boolean roundComplete;
 
     /**
      * provider-specific 的本轮增量聚合器。

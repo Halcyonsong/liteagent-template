@@ -211,7 +211,6 @@ public class RequestExample {
 import io.github.halcyonsong.liteagent.core.message.Message;
 import io.github.halcyonsong.liteagent.core.model.response.chat.ChatChoice;
 import io.github.halcyonsong.liteagent.provider.openai.client.OpenAiChatClient;
-import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiAssistantMessage;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiChatCompletionResponse;
 
 public class ChatCallExample {

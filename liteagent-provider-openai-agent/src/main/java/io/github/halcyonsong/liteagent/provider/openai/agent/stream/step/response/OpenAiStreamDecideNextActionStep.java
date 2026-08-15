@@ -7,11 +7,14 @@ import io.github.halcyonsong.liteagent.agent.stream.step.StreamSyncStep;
 /**
  * OpenAI 流式轮次结束后的下一步决策节点。
  * <p>
- * 当前最小实现不引入具体工具调用逻辑，
- * 默认进入 BUILD_RESULT。
+ * 当前最小实现默认进入 BUILD_RESULT。
  * <p>
- * 后续可在此节点中基于当前轮 finalResponse、toolCalls、finishReason
- * 等信息决定走 BUILD_RESULT 还是 EXECUTE_TOOL。
+ * 后续可在此节点中基于当前轮 finalResponse 中聚合后的：
+ * 1. assistant content
+ * 2. reasoningContent
+ * 3. toolCalls
+ * 4. finishReason
+ * 决定进入 BUILD_RESULT 还是 EXECUTE_TOOL。
  */
 public class OpenAiStreamDecideNextActionStep implements StreamSyncStep {
 

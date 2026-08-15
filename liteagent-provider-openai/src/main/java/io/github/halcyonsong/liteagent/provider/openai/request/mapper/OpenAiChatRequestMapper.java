@@ -1,6 +1,10 @@
 package io.github.halcyonsong.liteagent.provider.openai.request.mapper;
 
 import io.github.halcyonsong.liteagent.core.message.Message;
+import io.github.halcyonsong.liteagent.core.message.type.AssistantResponseMessage;
+import io.github.halcyonsong.liteagent.core.message.type.ToolMessage;
+import io.github.halcyonsong.liteagent.core.model.tool.FunctionCall;
+import io.github.halcyonsong.liteagent.core.model.tool.ToolCall;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiCompletionOptions;
 import io.github.halcyonsong.liteagent.provider.openai.request.raw.OpenAiChatCompletionRawRequest;
@@ -12,17 +16,9 @@ import java.util.Map;
 
 /**
  * OpenAI-compatible 请求映射器。
- * <p>
- * 该映射器负责将 provider 层请求包装对象转换为可直接发送的 raw request。
  */
 public class OpenAiChatRequestMapper {
 
-    /**
-     * 将 OpenAI provider 请求包装对象映射为原始请求体。
-     *
-     * @param request provider 请求包装对象
-     * @return 可直接序列化并发送的原始请求体
-     */
     public OpenAiChatCompletionRawRequest toRawRequest(OpenAiChatCompletionRequest request) {
         OpenAiChatCompletionRawRequest rawRequest = new OpenAiChatCompletionRawRequest();
         rawRequest.setModel(request.getBaseRequest().getModel());
@@ -47,9 +43,41 @@ public class OpenAiChatRequestMapper {
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("role", message.getRole().name().toLowerCase());
             item.put("content", message.getContent());
+
+            if (message instanceof AssistantResponseMessage assistantMessage
+                    && !assistantMessage.getToolCalls().isEmpty()) {
+                item.put("tool_calls", mapToolCalls(assistantMessage.getToolCalls()));
+            }
+
+            if (message instanceof ToolMessage toolMessage) {
+                item.put("tool_call_id", toolMessage.getToolCallId());
+            }
+
             result.add(item);
         }
         return result;
     }
 
+    private List<Map<String, Object>> mapToolCalls(List<ToolCall> toolCalls) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (ToolCall toolCall : toolCalls) {
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("id", toolCall.getId());
+            item.put("type", toolCall.getType());
+            if (toolCall.getIndex() != null) {
+                item.put("index", toolCall.getIndex());
+            }
+
+            FunctionCall function = toolCall.getFunction();
+            if (function != null) {
+                Map<String, Object> functionMap = new LinkedHashMap<>();
+                functionMap.put("name", function.getName());
+                functionMap.put("arguments", function.getArguments());
+                item.put("function", functionMap);
+            }
+
+            result.add(item);
+        }
+        return result;
+    }
 }

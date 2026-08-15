@@ -11,7 +11,12 @@ import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.request
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.request.OpenAiStreamInitWorkingMessagesStep;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.request.OpenAiStreamMapRequestStep;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.request.OpenAiStreamSendRequestStep;
-import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.response.*;
+import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.response.OpenAiStreamAccumulateChunkStep;
+import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.response.OpenAiStreamAnalyzeChunkStep;
+import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.response.OpenAiStreamBuildResultStep;
+import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.response.OpenAiStreamDecideNextActionStep;
+import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.response.OpenAiStreamEnhanceChunkStep;
+import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.response.OpenAiStreamExecuteToolStep;
 import io.github.halcyonsong.liteagent.provider.openai.client.support.OpenAiClientSupport;
 import io.github.halcyonsong.liteagent.provider.openai.request.mapper.OpenAiChatRequestMapper;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.stream.OpenAiStreamCompletionResponse;
@@ -72,5 +77,10 @@ public class OpenAiStreamAgentExecutorFactory {
 
     public StreamAgent<OpenAiStreamCompletionResponse> createAgent() {
         return new StreamAgent<>(create());
+    }
+
+    public StreamAgent<OpenAiStreamCompletionResponse> createAgent(List<StreamStepHook> hooks,
+                                                                   int maxStepCount) {
+        return new StreamAgent<>(create(hooks, maxStepCount));
     }
 }

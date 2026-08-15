@@ -1,12 +1,16 @@
 package io.github.halcyonsong.liteagent.agent.chat.context;
 
 import io.github.halcyonsong.liteagent.agent.state.AgentTerminationReason;
+import io.github.halcyonsong.liteagent.core.message.Message;
 import io.github.halcyonsong.liteagent.core.model.request.norm.Invocation;
 import io.github.halcyonsong.liteagent.core.model.response.chat.Result;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -16,10 +20,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * 该对象的生命周期限定在一次 execute 调用内部，
  * 不是全局共享状态，也不会跨请求复用。
  * <p>
- * 它主要承载三类数据：
+ * 它主要承载四类数据：
  * 1. 本次调用输入 invocation
- * 2. 执行控制状态：iteration、maxIterations、terminationReason
- * 3. 跨步骤共享的扩展数据 attributes
+ * 2. 工作态消息历史 workingMessages，用于轮次间继续发给模型
+ * 3. 执行控制状态：iteration、maxIterations、terminationReason
+ * 4. 跨步骤共享的扩展数据 attributes
  * <p>
  * provider-specific 的中间产物不直接定义为固定字段，
  * 而是优先通过 attributes 扩展槽存储。
@@ -33,18 +38,29 @@ public class ChatAgentContext {
      * 主要用于后续日志串联、trace、checkpoint 或故障排查。
      */
     private final String executionId;
+
     /**
      * 本次调用的统一输入对象。
      * <p>
      * 该字段在一次执行过程中保持不变，步骤应基于它构造 provider 请求。
      */
     private final Invocation invocation;
+
+    /**
+     * 本次 chat 编排内部使用的工作态消息历史。
+     * <p>
+     * 该列表一般在初始化步骤中从初始请求复制一次，
+     * 后续轮次只追加新的 assistant、tool 或其他工作消息。
+     */
+    private final List<Message> workingMessages = new ArrayList<>();
+
     /**
      * 跨步骤共享的扩展数据槽。
      * <p>
      * 适合存放 provider 中间态、调试标记、hook 临时数据等不宜进入通用字段的内容。
      */
     private final Map<String, Object> attributes = new ConcurrentHashMap<>();
+
     /**
      * 本次调用的最终结果。
      * <p>
@@ -52,18 +68,21 @@ public class ChatAgentContext {
      */
     @Setter
     private Result result;
+
     /**
      * 当前已进入的模型调用轮次。
      * <p>
      * 主要用于工具调用回环控制和防止无限循环。
      */
     private int iteration;
+
     /**
      * 允许的最大模型调用轮次。
      * <p>
      * 当自动工具执行接入后，可用于限制回环次数。
      */
     private int maxIterations = 10;
+
     /**
      * 本次执行的结束原因。
      * <p>
@@ -89,6 +108,28 @@ public class ChatAgentContext {
             throw new IllegalArgumentException("invocation must not be null");
         }
         return new ChatAgentContext(executionId, invocation);
+    }
+
+    /**
+     * 清空当前工作态消息历史。
+     */
+    public void clearWorkingMessages() {
+        this.workingMessages.clear();
+    }
+
+    /**
+     * 向工作态消息历史追加一条消息。
+     */
+    public void appendWorkingMessage(Message message) {
+        this.workingMessages.add(Objects.requireNonNull(message, "message must not be null"));
+    }
+
+    /**
+     * 向工作态消息历史追加多条消息。
+     */
+    public void appendWorkingMessages(List<? extends Message> messages) {
+        Objects.requireNonNull(messages, "messages must not be null");
+        this.workingMessages.addAll(messages);
     }
 
     /**

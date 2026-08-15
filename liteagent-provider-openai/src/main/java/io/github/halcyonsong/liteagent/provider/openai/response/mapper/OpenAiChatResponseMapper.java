@@ -1,13 +1,12 @@
 package io.github.halcyonsong.liteagent.provider.openai.response.mapper;
 
-import io.github.halcyonsong.liteagent.core.message.type.AssistantMessage;
+import io.github.halcyonsong.liteagent.core.message.type.AssistantResponseMessage;
 import io.github.halcyonsong.liteagent.core.model.response.chat.ChatChoice;
 import io.github.halcyonsong.liteagent.core.model.response.chat.ChatResponse;
+import io.github.halcyonsong.liteagent.core.model.tool.ToolCall;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.OpenAiBaseResponse;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.OpenAiUsage;
-import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiAssistantMessage;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiChatCompletionResponse;
-import io.github.halcyonsong.liteagent.provider.openai.response.config.tool.OpenAiToolCall;
 import io.github.halcyonsong.liteagent.provider.openai.response.raw.OpenAiChatCompletionRawResponse;
 
 import java.util.ArrayList;
@@ -48,15 +47,15 @@ public class OpenAiChatResponseMapper extends OpenAiResponseMappingSupport {
         );
     }
 
-    private AssistantMessage mapAssistantMessage(OpenAiChatCompletionRawResponse.RawMessage rawMessage) {
+    private AssistantResponseMessage mapAssistantMessage(OpenAiChatCompletionRawResponse.RawMessage rawMessage) {
         if (rawMessage == null) {
-            return new OpenAiAssistantMessage("", null, Collections.emptyList());
+            return new AssistantResponseMessage("", null, Collections.emptyList());
         }
 
         String content = rawMessage.getContent() == null ? "" : rawMessage.getContent();
-        List<OpenAiToolCall> toolCalls = mapToolCalls(rawMessage.getToolCalls());
+        List<ToolCall> toolCalls = mapToolCalls(rawMessage.getToolCalls());
 
-        return new OpenAiAssistantMessage(
+        return new AssistantResponseMessage(
                 content,
                 rawMessage.getReasoningContent(),
                 toolCalls
