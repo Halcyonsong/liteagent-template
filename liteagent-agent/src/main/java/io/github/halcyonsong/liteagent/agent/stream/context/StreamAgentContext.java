@@ -4,6 +4,7 @@ import io.github.halcyonsong.liteagent.agent.state.AgentTerminationReason;
 import io.github.halcyonsong.liteagent.agent.stream.state.StreamRoundState;
 import io.github.halcyonsong.liteagent.core.message.Message;
 import io.github.halcyonsong.liteagent.core.model.request.norm.Invocation;
+import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistry;
 import lombok.Getter;
 import lombok.Setter;
 import reactor.core.publisher.Flux;
@@ -40,6 +41,15 @@ public class StreamAgentContext<T> {
      * 本次调用的统一输入对象。
      */
     private final Invocation invocation;
+
+    /**
+     * 当前编排可用的工具注册表。
+     * <p>
+     * 只在第 0 轮初始化阶段从工具 advisor 中提取一次，
+     * 后续轮次直接复用。
+     */
+    @Setter
+    private ToolRegistry toolRegistry;
 
     /**
      * 跨步骤共享的扩展数据槽。

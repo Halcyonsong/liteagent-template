@@ -6,6 +6,7 @@ import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChat
 import io.github.halcyonsong.liteagent.provider.openai.request.raw.OpenAiChatCompletionRawRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.tool.OpenAiToolSpec;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.tool.OpenAiToolSpecResolver;
+import lombok.Getter;
 
 import java.util.List;
 import java.util.Objects;
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
 /**
  * 基于工具注册表的 tools 请求增强器。
  */
+@Getter
 public class OpenAiRegistryToolsAdvisor implements RequestAdvisor<OpenAiChatCompletionRequest, OpenAiChatCompletionRawRequest> {
 
     private final ToolRegistry registry;

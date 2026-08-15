@@ -4,12 +4,11 @@ import io.github.halcyonsong.liteagent.agent.stream.context.StreamAgentContext;
 import io.github.halcyonsong.liteagent.agent.stream.step.StreamApplyResult;
 import io.github.halcyonsong.liteagent.agent.stream.step.StreamStep;
 import io.github.halcyonsong.liteagent.agent.stream.step.StreamStepKey;
-import io.github.halcyonsong.liteagent.provider.openai.agent.stream.constant.OpenAiStreamAgentAttributes;
+import io.github.halcyonsong.liteagent.provider.openai.agent.support.OpenAiAgentRequestSupport;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.raw.OpenAiChatCompletionRawRequest;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.stream.OpenAiStreamCompletionResponse;
 import io.github.halcyonsong.liteagent.provider.openai.response.mapper.OpenAiStreamResponseMapper;
-import io.github.halcyonsong.liteagent.provider.openai.support.OpenAiEndpointResolver;
 import io.github.halcyonsong.liteagent.provider.openai.transport.OpenAiChatStreamTransport;
 import reactor.core.publisher.Flux;
 
@@ -39,18 +38,12 @@ public class OpenAiStreamSendRequestStep implements StreamStep<Flux<OpenAiStream
         }
 
         OpenAiChatCompletionRequest providerRequest =
-                context.getAttribute(OpenAiStreamAgentAttributes.PROVIDER_REQUEST, OpenAiChatCompletionRequest.class);
+                OpenAiAgentRequestSupport.requireProviderRequest(context);
         OpenAiChatCompletionRawRequest rawRequest =
-                context.getAttribute(OpenAiStreamAgentAttributes.RAW_REQUEST, OpenAiChatCompletionRawRequest.class);
+                OpenAiAgentRequestSupport.requireRawRequest(context);
 
-        if (providerRequest == null || rawRequest == null) {
-            throw new IllegalStateException("Missing provider request or raw request in stream context");
-        }
-
-        String endpoint = OpenAiEndpointResolver.resolveChatCompletionsEndpoint(
-                providerRequest.getBaseRequest().getBaseUrl()
-        );
-        String apiKey = providerRequest.getBaseRequest().getApiKey();
+        String endpoint = OpenAiAgentRequestSupport.resolveEndpoint(providerRequest);
+        String apiKey = OpenAiAgentRequestSupport.resolveApiKey(providerRequest);
 
         Flux<OpenAiStreamCompletionResponse> stream = transport.send(endpoint, apiKey, rawRequest)
                 .map(responseMapper::fromRaw);

@@ -1,11 +1,11 @@
 package io.github.halcyonsong.liteagent.core.tool.impl;
 
-import io.github.halcyonsong.liteagent.core.tool.norm.ToolDefinition;
-import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistrar;
-import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistry;
 import io.github.halcyonsong.liteagent.core.tool.annotation.ToolComponent;
 import io.github.halcyonsong.liteagent.core.tool.annotation.ToolMethod;
 import io.github.halcyonsong.liteagent.core.tool.annotation.ToolParam;
+import io.github.halcyonsong.liteagent.core.tool.norm.ExecutableToolDefinition;
+import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistrar;
+import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistry;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -44,16 +44,36 @@ public class ReflectionToolRegistrar implements ToolRegistrar {
         Objects.requireNonNull(method, "method must not be null");
         Objects.requireNonNull(registry, "registry must not be null");
 
-        ToolMethod toolMethod = method.getAnnotation(ToolMethod.class);
-        if (toolMethod == null) {
+        if (!method.isAnnotationPresent(ToolMethod.class)) {
             throw new IllegalArgumentException("method is not annotated with @ToolMethod: " + method.getName());
         }
 
-        ToolDefinition definition = buildDefinition(method, toolMethod);
+        if (!method.getDeclaringClass().isAssignableFrom(toolObject.getClass())) {
+            throw new IllegalArgumentException(
+                    "method does not belong to toolObject type: " + method.getName()
+            );
+        }
+
+        ToolMethod toolMethod = method.getAnnotation(ToolMethod.class);
+        ExecutableToolDefinition definition = buildDefinition(toolObject, method, toolMethod);
         registry.register(definition);
     }
 
-    private ToolDefinition buildDefinition(Method method, ToolMethod toolMethod) {
+    private ExecutableToolDefinition buildDefinition(Object toolObject,
+                                                     Method method,
+                                                     ToolMethod toolMethod) {
+        Map<String, Object> parameters = buildParameters(method);
+
+        return new ReflectiveToolDefinition(
+                toolMethod.name(),
+                toolMethod.description(),
+                parameters,
+                toolObject,
+                method
+        );
+    }
+
+    private Map<String, Object> buildParameters(Method method) {
         Map<String, Object> parameters = new LinkedHashMap<>();
         Map<String, Object> properties = new LinkedHashMap<>();
         List<String> required = new ArrayList<>();
@@ -81,11 +101,7 @@ public class ReflectionToolRegistrar implements ToolRegistrar {
             parameters.put("required", required);
         }
 
-        return SimpleToolDefinition.builder()
-                .name(toolMethod.name())
-                .description(toolMethod.description())
-                .parameters(parameters)
-                .build();
+        return parameters;
     }
 
     private String resolveParameterName(Parameter parameter) {
@@ -111,6 +127,11 @@ public class ReflectionToolRegistrar implements ToolRegistrar {
         return toolParam.description() == null ? "" : toolParam.description();
     }
 
+    private boolean resolveParameterRequired(Parameter parameter) {
+        ToolParam toolParam = parameter.getAnnotation(ToolParam.class);
+        return toolParam == null || toolParam.required();
+    }
+
     private String resolveJsonType(Class<?> type) {
         if (type == String.class) {
             return "string";
@@ -127,10 +148,5 @@ public class ReflectionToolRegistrar implements ToolRegistrar {
             return "boolean";
         }
         return "string";
-    }
-
-    private boolean resolveParameterRequired(Parameter parameter) {
-        ToolParam toolParam = parameter.getAnnotation(ToolParam.class);
-        return toolParam == null || toolParam.required();
     }
 }

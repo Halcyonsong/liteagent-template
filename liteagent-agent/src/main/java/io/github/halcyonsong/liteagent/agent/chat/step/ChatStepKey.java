@@ -6,6 +6,7 @@ package io.github.halcyonsong.liteagent.agent.chat.step;
 public enum ChatStepKey {
     BEGIN,                  // 起始步骤
     INIT_WORKING_MESSAGES,  // 初始化工作态消息历史
+    INIT_TOOL_REGISTRY,     // 初始化工具注册表
     MAP_REQUEST,            // 将统一输入映射为 provider 请求
     ENHANCE_REQUEST,        // 对请求应用 advisor / 增强逻辑
     SEND_REQUEST,           // 发送普通对话请求

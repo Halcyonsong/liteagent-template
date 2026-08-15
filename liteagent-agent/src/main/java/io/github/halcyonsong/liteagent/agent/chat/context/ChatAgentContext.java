@@ -4,6 +4,7 @@ import io.github.halcyonsong.liteagent.agent.state.AgentTerminationReason;
 import io.github.halcyonsong.liteagent.core.message.Message;
 import io.github.halcyonsong.liteagent.core.model.request.norm.Invocation;
 import io.github.halcyonsong.liteagent.core.model.response.chat.Result;
+import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistry;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -45,6 +46,15 @@ public class ChatAgentContext {
      * 该字段在一次执行过程中保持不变，步骤应基于它构造 provider 请求。
      */
     private final Invocation invocation;
+
+    /**
+     * 当前编排可用的工具注册表。
+     * <p>
+     * 只在第 0 轮初始化阶段从工具 advisor 中提取一次，
+     * 后续轮次直接复用。
+     */
+    @Setter
+    private ToolRegistry toolRegistry;
 
     /**
      * 本次 chat 编排内部使用的工作态消息历史。

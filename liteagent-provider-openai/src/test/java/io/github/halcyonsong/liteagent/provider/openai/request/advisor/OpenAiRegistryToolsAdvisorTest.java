@@ -2,7 +2,6 @@ package io.github.halcyonsong.liteagent.provider.openai.request.advisor;
 
 import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
 import io.github.halcyonsong.liteagent.core.tool.impl.InMemoryToolRegistry;
-import io.github.halcyonsong.liteagent.core.tool.impl.SimpleToolDefinition;
 import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistry;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiCompletionOptions;

@@ -3,7 +3,7 @@ package io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.reques
 import io.github.halcyonsong.liteagent.agent.stream.context.StreamAgentContext;
 import io.github.halcyonsong.liteagent.agent.stream.step.StreamStepKey;
 import io.github.halcyonsong.liteagent.agent.stream.step.StreamSyncStep;
-import io.github.halcyonsong.liteagent.provider.openai.agent.stream.constant.OpenAiStreamAgentAttributes;
+import io.github.halcyonsong.liteagent.provider.openai.agent.support.OpenAiAgentRequestSupport;
 import io.github.halcyonsong.liteagent.provider.openai.client.support.OpenAiClientSupport;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.raw.OpenAiChatCompletionRawRequest;
@@ -24,13 +24,9 @@ public class OpenAiStreamEnhanceRequestStep implements StreamSyncStep {
     @Override
     public StreamStepKey invoke(StreamAgentContext<?> context) {
         OpenAiChatCompletionRequest providerRequest =
-                context.getAttribute(OpenAiStreamAgentAttributes.PROVIDER_REQUEST, OpenAiChatCompletionRequest.class);
+                OpenAiAgentRequestSupport.requireProviderRequest(context);
         OpenAiChatCompletionRawRequest rawRequest =
-                context.getAttribute(OpenAiStreamAgentAttributes.RAW_REQUEST, OpenAiChatCompletionRawRequest.class);
-
-        if (providerRequest == null || rawRequest == null) {
-            throw new IllegalStateException("Missing provider request or raw request in stream context");
-        }
+                OpenAiAgentRequestSupport.requireRawRequest(context);
 
         clientSupport.applyRequestAdvisors(providerRequest, rawRequest);
         rawRequest.setStream(true);

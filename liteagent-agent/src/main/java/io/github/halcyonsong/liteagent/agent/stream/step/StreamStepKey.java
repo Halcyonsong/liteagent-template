@@ -6,6 +6,7 @@ package io.github.halcyonsong.liteagent.agent.stream.step;
 public enum StreamStepKey {
     BEGIN,                  // 起始步骤
     INIT_WORKING_MESSAGES,  // 初始化工作态消息
+    INIT_TOOL_REGISTRY,     // 初始化工具注册表
     MAP_REQUEST,            // 将工作态消息映射为 provider 请求
     ENHANCE_REQUEST,        // 对请求应用 advisor / 增强逻辑
     SEND_REQUEST,           // 发起流式请求并创建源流

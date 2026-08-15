@@ -8,6 +8,7 @@ import io.github.halcyonsong.liteagent.agent.stream.step.StreamStepKey;
 import io.github.halcyonsong.liteagent.agent.stream.step.StreamSyncStep;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.request.OpenAiStreamBeginStep;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.request.OpenAiStreamEnhanceRequestStep;
+import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.request.OpenAiStreamInitToolRegistryStep;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.request.OpenAiStreamInitWorkingMessagesStep;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.request.OpenAiStreamMapRequestStep;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.request.OpenAiStreamSendRequestStep;
@@ -29,9 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-/**
- * OpenAI-compatible 流式执行器装配工厂。
- */
 public class OpenAiStreamAgentExecutorFactory {
 
     private final OpenAiChatRequestMapper requestMapper;
@@ -58,6 +56,7 @@ public class OpenAiStreamAgentExecutorFactory {
         Map<StreamStepKey, StreamSyncStep> syncSteps = new EnumMap<>(StreamStepKey.class);
         syncSteps.put(StreamStepKey.BEGIN, new OpenAiStreamBeginStep());
         syncSteps.put(StreamStepKey.INIT_WORKING_MESSAGES, new OpenAiStreamInitWorkingMessagesStep());
+        syncSteps.put(StreamStepKey.INIT_TOOL_REGISTRY, new OpenAiStreamInitToolRegistryStep());
         syncSteps.put(StreamStepKey.MAP_REQUEST, new OpenAiStreamMapRequestStep(requestMapper));
         syncSteps.put(StreamStepKey.ENHANCE_REQUEST, new OpenAiStreamEnhanceRequestStep(clientSupport));
         syncSteps.put(StreamStepKey.DECIDE_NEXT_ACTION, new OpenAiStreamDecideNextActionStep());

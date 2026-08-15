@@ -1,7 +1,6 @@
 package io.github.halcyonsong.liteagent.provider.openai.request.config.tool;
 
 import io.github.halcyonsong.liteagent.core.tool.impl.InMemoryToolRegistry;
-import io.github.halcyonsong.liteagent.core.tool.impl.SimpleToolDefinition;
 import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistry;
 import org.junit.jupiter.api.Test;
 
