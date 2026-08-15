@@ -1,10 +1,11 @@
 package io.github.halcyonsong.liteagent.agent.stream.state;
 
+import io.github.halcyonsong.liteagent.core.message.Message;
+import io.github.halcyonsong.liteagent.core.message.type.ToolMessage;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 单轮流式请求的运行时状态。
@@ -28,6 +29,16 @@ public class StreamRoundState {
      * 当前轮是否已经完成。
      */
     private volatile boolean roundComplete;
+
+    /**
+     * 当前轮待写入 workingMessages 的 assistant 消息。
+     */
+    private final List<Message> pendingAssistantMessages = new ArrayList<>();
+
+    /**
+     * 当前轮待写入 workingMessages 的 tool 消息。
+     */
+    private final List<ToolMessage> pendingToolMessages = new ArrayList<>();
 
     /**
      * provider-specific 的本轮增量聚合器。
@@ -72,6 +83,37 @@ public class StreamRoundState {
         } else {
             attributes.put(key, value);
         }
+    }
+
+    public void appendPendingAssistantMessage(Message message) {
+        pendingAssistantMessages.add(
+                Objects.requireNonNull(message, "message must not be null")
+        );
+    }
+
+    public void appendPendingAssistantMessages(
+            List<? extends Message> messages
+    ) {
+        Objects.requireNonNull(messages, "messages must not be null");
+        pendingAssistantMessages.addAll(messages);
+    }
+
+    public void appendPendingToolMessage(ToolMessage message) {
+        pendingToolMessages.add(
+                Objects.requireNonNull(message, "message must not be null")
+        );
+    }
+
+    public void appendPendingToolMessages(
+            List<ToolMessage> messages
+    ) {
+        Objects.requireNonNull(messages, "messages must not be null");
+        pendingToolMessages.addAll(messages);
+    }
+
+    public void clearPendingMessages() {
+        pendingAssistantMessages.clear();
+        pendingToolMessages.clear();
     }
 
     /**

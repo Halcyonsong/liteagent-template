@@ -94,6 +94,19 @@ public class StreamAgentContext<T> {
     @Setter
     private AgentTerminationReason terminationReason;
 
+    /**
+     * 当前执行内部使用的控制信号。
+     *
+     * <p>该对象只用于触发 expand 的轮次收尾，
+     * 不应暴露给外部订阅者。</p>
+     */
+    @Setter
+    private Object controlSignal;
+
+    public boolean isControlSignal(Object value) {
+        return controlSignal != null && controlSignal == value;
+    }
+
     private StreamAgentContext(String executionId, Invocation invocation) {
         this.executionId = executionId;
         this.invocation = invocation;

@@ -16,6 +16,7 @@ public enum StreamStepKey {
     DECIDE_NEXT_ACTION,     // 决策下一步：结束、构建结果或执行工具
     STREAM_END,             // 单轮流式管道构建结束
     EXECUTE_TOOL,           // 执行工具并准备下一轮
+    APPEND_MESSAGES,        // 合并工具输出到工作态消息
     BUILD_RESULT,           // 构建最终结果
     END                     // 整体结束
 }

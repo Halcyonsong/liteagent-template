@@ -1,6 +1,5 @@
 package io.github.halcyonsong.liteagent.agent.stream.executor;
 
-import io.github.halcyonsong.liteagent.agent.state.AgentTerminationReason;
 import io.github.halcyonsong.liteagent.agent.stream.context.StreamAgentContext;
 import io.github.halcyonsong.liteagent.agent.stream.hook.StreamStepHook;
 import io.github.halcyonsong.liteagent.agent.stream.state.StreamRoundState;
@@ -108,7 +107,12 @@ public final class StreamAgentExecutor<T> {
      */
     private Flux<T> buildFlow(StreamAgentContext<T> context) {
         return buildRound(context)
-                .expand(chunk -> buildNext(context));
+                .expand(chunk -> buildNext(context))
+                /*
+                 * 哨兵必须在 expand 之后过滤。
+                 * 如果放在 expand 之前，buildNext 将无法收到它。
+                 */
+                .filter(chunk -> !context.isControlSignal(chunk));
     }
 
     /**
@@ -155,37 +159,54 @@ public final class StreamAgentExecutor<T> {
      */
     private Flux<T> buildNext(StreamAgentContext<T> context) {
         StreamRoundState roundState = context.currentRound();
+
         if (!roundState.isRoundComplete()) {
             return Flux.empty();
         }
 
         roundState.setRoundComplete(false);
 
-        StreamStepKey nextAction = invokeSyncStep(StreamStepKey.DECIDE_NEXT_ACTION, context);
+        StreamStepKey nextAction = invokeSyncStep(
+                StreamStepKey.DECIDE_NEXT_ACTION,
+                context
+        );
 
-        if (nextAction == StreamStepKey.BUILD_RESULT) {
+        StreamStepKey afterCurrentRound;
+
+        if (nextAction == StreamStepKey.EXECUTE_TOOL) {
+            afterCurrentRound = invokeSyncStep(
+                    StreamStepKey.EXECUTE_TOOL,
+                    context
+            );
+        } else {
+            afterCurrentRound = nextAction;
+        }
+
+        if (afterCurrentRound == StreamStepKey.APPEND_MESSAGES) {
+            afterCurrentRound = invokeSyncStep(
+                    StreamStepKey.APPEND_MESSAGES,
+                    context
+            );
+        }
+
+        if (afterCurrentRound == StreamStepKey.BUILD_RESULT) {
             invokeSyncStep(StreamStepKey.BUILD_RESULT, context);
             return Flux.empty();
         }
 
-        if (nextAction == StreamStepKey.EXECUTE_TOOL) {
-            if (context.getIteration() >= context.getMaxIterations()) {
-                context.setTerminationReason(AgentTerminationReason.MAX_ITERATIONS_REACHED);
-                invokeSyncStep(StreamStepKey.BUILD_RESULT, context);
-                return Flux.empty();
-            }
-
-            context.incrementIteration();
-            invokeSyncStep(StreamStepKey.EXECUTE_TOOL, context);
+        if (afterCurrentRound == StreamStepKey.BEGIN) {
             return buildRound(context);
         }
 
-        if (nextAction == StreamStepKey.END) {
+        if (afterCurrentRound == StreamStepKey.END) {
             invokeSyncStep(StreamStepKey.END, context);
             return Flux.empty();
         }
 
-        throw new IllegalStateException("Unsupported next action after stream round: " + nextAction);
+        throw new IllegalStateException(
+                "Unsupported next action after stream round: "
+                        + afterCurrentRound
+        );
     }
 
     private StreamStepKey invokeSyncStep(StreamStepKey key, StreamAgentContext<T> context) {

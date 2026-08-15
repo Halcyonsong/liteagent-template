@@ -16,8 +16,7 @@ public final class OpenAiStreamRoundSupport {
 
     public static OpenAiStreamRoundAccumulator getOrCreateAccumulator(StreamAgentContext<?> context) {
         StreamRoundState roundState = context.currentRound();
-        OpenAiStreamRoundAccumulator accumulator =
-                (OpenAiStreamRoundAccumulator) roundState.getAccumulator();
+        OpenAiStreamRoundAccumulator accumulator = (OpenAiStreamRoundAccumulator) roundState.getAccumulator();
         if (accumulator == null) {
             accumulator = new OpenAiStreamRoundAccumulator();
             roundState.setAccumulator(accumulator);

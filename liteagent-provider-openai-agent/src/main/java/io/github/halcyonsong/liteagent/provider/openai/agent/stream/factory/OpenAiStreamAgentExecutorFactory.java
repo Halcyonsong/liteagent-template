@@ -6,18 +6,15 @@ import io.github.halcyonsong.liteagent.agent.stream.hook.StreamStepHook;
 import io.github.halcyonsong.liteagent.agent.stream.step.StreamStep;
 import io.github.halcyonsong.liteagent.agent.stream.step.StreamStepKey;
 import io.github.halcyonsong.liteagent.agent.stream.step.StreamSyncStep;
+import io.github.halcyonsong.liteagent.core.tool.impl.ReflectionToolExecutor;
+import io.github.halcyonsong.liteagent.core.tool.norm.ToolExecutor;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.request.OpenAiStreamBeginStep;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.request.OpenAiStreamEnhanceRequestStep;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.request.OpenAiStreamInitToolRegistryStep;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.request.OpenAiStreamInitWorkingMessagesStep;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.request.OpenAiStreamMapRequestStep;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.request.OpenAiStreamSendRequestStep;
-import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.response.OpenAiStreamAccumulateChunkStep;
-import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.response.OpenAiStreamAnalyzeChunkStep;
-import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.response.OpenAiStreamBuildResultStep;
-import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.response.OpenAiStreamDecideNextActionStep;
-import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.response.OpenAiStreamEnhanceChunkStep;
-import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.response.OpenAiStreamExecuteToolStep;
+import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.response.*;
 import io.github.halcyonsong.liteagent.provider.openai.client.support.OpenAiClientSupport;
 import io.github.halcyonsong.liteagent.provider.openai.request.mapper.OpenAiChatRequestMapper;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.stream.OpenAiStreamCompletionResponse;
@@ -36,15 +33,29 @@ public class OpenAiStreamAgentExecutorFactory {
     private final OpenAiClientSupport clientSupport;
     private final OpenAiChatStreamTransport streamTransport;
     private final OpenAiStreamResponseMapper responseMapper;
+    private final ToolExecutor toolExecutor;
 
-    public OpenAiStreamAgentExecutorFactory(OpenAiChatRequestMapper requestMapper,
-                                            OpenAiClientSupport clientSupport,
-                                            OpenAiChatStreamTransport streamTransport,
-                                            OpenAiStreamResponseMapper responseMapper) {
+    public OpenAiStreamAgentExecutorFactory(
+            OpenAiChatRequestMapper requestMapper,
+            OpenAiClientSupport clientSupport,
+            OpenAiChatStreamTransport streamTransport,
+            OpenAiStreamResponseMapper responseMapper
+    ) {
+        this(requestMapper, clientSupport, streamTransport, responseMapper, new ReflectionToolExecutor());
+    }
+
+    public OpenAiStreamAgentExecutorFactory(
+            OpenAiChatRequestMapper requestMapper,
+            OpenAiClientSupport clientSupport,
+            OpenAiChatStreamTransport streamTransport,
+            OpenAiStreamResponseMapper responseMapper,
+            ToolExecutor toolExecutor
+    ) {
         this.requestMapper = Objects.requireNonNull(requestMapper, "requestMapper must not be null");
         this.clientSupport = Objects.requireNonNull(clientSupport, "clientSupport must not be null");
         this.streamTransport = Objects.requireNonNull(streamTransport, "streamTransport must not be null");
         this.responseMapper = Objects.requireNonNull(responseMapper, "responseMapper must not be null");
+        this.toolExecutor = Objects.requireNonNull(toolExecutor, "toolExecutor must not be null");
     }
 
     public StreamAgentExecutor<OpenAiStreamCompletionResponse> create() {
@@ -60,12 +71,12 @@ public class OpenAiStreamAgentExecutorFactory {
         syncSteps.put(StreamStepKey.MAP_REQUEST, new OpenAiStreamMapRequestStep(requestMapper));
         syncSteps.put(StreamStepKey.ENHANCE_REQUEST, new OpenAiStreamEnhanceRequestStep(clientSupport));
         syncSteps.put(StreamStepKey.DECIDE_NEXT_ACTION, new OpenAiStreamDecideNextActionStep());
-        syncSteps.put(StreamStepKey.EXECUTE_TOOL, new OpenAiStreamExecuteToolStep());
+        syncSteps.put(StreamStepKey.EXECUTE_TOOL, new OpenAiStreamExecuteToolStep(toolExecutor));
+        syncSteps.put(StreamStepKey.APPEND_MESSAGES, new OpenAiStreamAppendMessagesStep());
         syncSteps.put(StreamStepKey.BUILD_RESULT, new OpenAiStreamBuildResultStep());
         syncSteps.put(StreamStepKey.END, context -> StreamStepKey.END);
 
-        Map<StreamStepKey, StreamStep<Flux<OpenAiStreamCompletionResponse>>> streamSteps =
-                new EnumMap<>(StreamStepKey.class);
+        Map<StreamStepKey, StreamStep<Flux<OpenAiStreamCompletionResponse>>> streamSteps = new EnumMap<>(StreamStepKey.class);
         streamSteps.put(StreamStepKey.SEND_REQUEST, new OpenAiStreamSendRequestStep(streamTransport, responseMapper));
         streamSteps.put(StreamStepKey.ENHANCE_CHUNK, new OpenAiStreamEnhanceChunkStep(clientSupport));
         streamSteps.put(StreamStepKey.ACCUMULATE_CHUNK, new OpenAiStreamAccumulateChunkStep());

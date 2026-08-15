@@ -14,6 +14,7 @@ public enum ChatStepKey {
     ENHANCE_RESPONSE,       // 对响应应用 advisor / 增强逻辑
     ANALYZE_RESPONSE,       // 分析响应，决定下一步
     EXECUTE_TOOL,           // 执行工具并准备下一轮
+    APPEND_MESSAGES,        // 追加暂存的工具执行结果史
     BUILD_RESULT,           // 构建最终结果
     END                     // 结束
 }

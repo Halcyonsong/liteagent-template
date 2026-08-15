@@ -46,7 +46,9 @@ public class OpenAiStreamSendRequestStep implements StreamStep<Flux<OpenAiStream
         String apiKey = OpenAiAgentRequestSupport.resolveApiKey(providerRequest);
 
         Flux<OpenAiStreamCompletionResponse> stream = transport.send(endpoint, apiKey, rawRequest)
-                .map(responseMapper::fromRaw);
+                .map(responseMapper::fromRaw)
+                .switchIfEmpty(Flux.error(new IllegalStateException("OpenAI stream response is empty")));
+
 
         return new StreamApplyResult<>(stream, StreamStepKey.ENHANCE_CHUNK);
     }

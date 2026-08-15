@@ -6,7 +6,7 @@ package io.github.halcyonsong.liteagent.agent.state;
 public enum AgentTerminationReason {
     COMPLETED,              // 正常完成
     MAX_ITERATIONS_REACHED, // 达到最大执行轮次
-    TOOL_EXECUTION_FAILED,  // 工具执行失败
+    TOOL_ERROR,  // 工具执行失败
     MODEL_ERROR,            // 模型调用失败
     CANCELLED               // 被外部主动取消
 }

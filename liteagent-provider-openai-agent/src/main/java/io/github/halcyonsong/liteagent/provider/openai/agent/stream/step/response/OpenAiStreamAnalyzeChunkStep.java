@@ -1,5 +1,6 @@
 package io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.response;
 
+import io.github.halcyonsong.liteagent.agent.state.AgentTerminationReason;
 import io.github.halcyonsong.liteagent.agent.stream.context.StreamAgentContext;
 import io.github.halcyonsong.liteagent.agent.stream.state.StreamRoundState;
 import io.github.halcyonsong.liteagent.agent.stream.step.StreamApplyResult;
@@ -10,48 +11,125 @@ import io.github.halcyonsong.liteagent.provider.openai.agent.stream.support.Open
 import io.github.halcyonsong.liteagent.provider.openai.response.config.stream.OpenAiStreamCompletionResponse;
 import reactor.core.publisher.Flux;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 /**
  * 分析当前轮流式输出。
- * <p>
- * 当前最小实现负责：
- * 1. 在检测到终止 chunk 时标记本轮完成
- * 2. 将聚合结果写入 finalResponse
- * 3. 预留下一步决策节点，不在这里直接决定是否执行工具
+ *
+ * <p>finishReason 存在时，最后一个正常 chunk 就会触发 expand。
+ * 如果供应商没有返回 finishReason，则在流完成后追加一个内部哨兵，
+ * 让 expand 获得一次额外的轮次收尾机会。</p>
  */
-public class OpenAiStreamAnalyzeChunkStep implements StreamStep<Flux<OpenAiStreamCompletionResponse>> {
+public class OpenAiStreamAnalyzeChunkStep
+        implements StreamStep<Flux<OpenAiStreamCompletionResponse>> {
 
     @Override
     public StreamApplyResult<Flux<OpenAiStreamCompletionResponse>> apply(
             Flux<OpenAiStreamCompletionResponse> upstream,
             StreamAgentContext<?> context
     ) {
+        Objects.requireNonNull(upstream, "upstream must not be null");
+        Objects.requireNonNull(context, "context must not be null");
+
         StreamRoundState roundState = context.currentRound();
+
         OpenAiStreamRoundAccumulator accumulator =
                 OpenAiStreamRoundSupport.getOrCreateAccumulator(context);
 
-        Flux<OpenAiStreamCompletionResponse> stream = upstream
+        AtomicBoolean finishSignalSeen = new AtomicBoolean(false);
+
+        Flux<OpenAiStreamCompletionResponse> analyzedStream = upstream
                 .doOnNext(chunk -> {
-                    if (chunk.getChoices() == null || chunk.getChoices().isEmpty()) {
+                    if (roundState.isRoundComplete()
+                            || chunk == null
+                            || chunk.getChoices() == null
+                            || chunk.getChoices().isEmpty()) {
                         return;
                     }
 
-                    chunk.getChoices().forEach(choice -> {
-                        // 这里依赖 stream mapper 保留 finishReason 的 null 语义；
-                        // 中间 chunk 的 null 不能被映射成 UNKNOWN，否则会误判为本轮完成。
-                        if (choice.getFinishReason() != null) {
-                            roundState.setRoundComplete(true);
-                            roundState.setFinalResponse(accumulator.toFinalResponse());
-                        }
-                    });
-                })
-                .doOnComplete(() -> {
-                    // 兜底：某些 provider 可能没有显式 finishReason，但流已经完成
-                    if (!roundState.isRoundComplete()) {
-                        roundState.setRoundComplete(true);
-                        roundState.setFinalResponse(accumulator.toFinalResponse());
+                    boolean finished = chunk.getChoices()
+                            .stream()
+                            .anyMatch(choice ->
+                                    choice != null
+                                            && choice.getFinishReason() != null
+                            );
+
+                    if (!finished) {
+                        return;
                     }
+
+                    finishSignalSeen.set(true);
+
+                    OpenAiStreamCompletionResponse finalResponse =
+                            accumulator.tryToFinalResponse();
+
+                    if (finalResponse == null) {
+                        context.setTerminationReason(
+                                AgentTerminationReason.MODEL_ERROR
+                        );
+                        roundState.setRoundComplete(true);
+                        return;
+                    }
+
+                    roundState.setFinalResponse(finalResponse);
+                    roundState.setRoundComplete(true);
                 });
 
-        return new StreamApplyResult<>(stream, StreamStepKey.STREAM_END);
+        Flux<OpenAiStreamCompletionResponse> streamWithCompletionSignal =
+                analyzedStream.concatWith(
+                        Flux.defer(() -> {
+                            /*
+                             * 标准供应商已经通过 finishReason 触发过 expand，
+                             * 不需要再次追加哨兵。
+                             */
+                            if (finishSignalSeen.get()
+                                    || roundState.isRoundComplete()) {
+                                return Flux.empty();
+                            }
+
+                            OpenAiStreamCompletionResponse finalResponse =
+                                    accumulator.tryToFinalResponse();
+
+                            /*
+                             * 完全没有有效响应时不能构造哨兵，
+                             * 直接让订阅失败，避免空流被误判为正常完成。
+                             */
+                            if (finalResponse == null) {
+                                context.setTerminationReason(
+                                        AgentTerminationReason.MODEL_ERROR
+                                );
+                                return Flux.error(
+                                        new IllegalStateException(
+                                                "OpenAI stream completed without a valid response"
+                                        )
+                                );
+                            }
+
+                            roundState.setFinalResponse(finalResponse);
+                            roundState.setRoundComplete(true);
+
+                            /*
+                             * 哨兵必须是独立对象，不能直接复用 finalResponse，
+                             * 否则它可能被误认为真实的对外响应 chunk。
+                             */
+                            OpenAiStreamCompletionResponse sentinel =
+                                    new OpenAiStreamCompletionResponse(
+                                            finalResponse.getBaseResponse(),
+                                            List.of(),
+                                            finalResponse.getUsage()
+                                    );
+
+                            context.setControlSignal(sentinel);
+
+                            return Flux.just(sentinel);
+                        })
+                );
+
+        return new StreamApplyResult<>(
+                streamWithCompletionSignal,
+                StreamStepKey.STREAM_END
+        );
     }
 }
