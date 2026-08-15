@@ -1,14 +1,14 @@
 # Quick Start
 
-本文档给出 `liteagent-template` 当前第一版的最短接入方式。
+本文档给出 `liteagent-template` 的最短接入方式。
 
 当前 Quick Start 面向：
 
 - OpenAI-compatible 协议供应商
 - Java 17
 - provider 直调
-- chatAgent 同步编排入口
-- streamAgent 流式编排入口
+- chatAgent 同步编排入口（含工具调用）
+- streamAgent 流式编排入口（含工具调用）
 
 ## 0. 调用流程概览
 
@@ -28,7 +28,7 @@ flowchart TD
     A9 --> End([End])
 ```
 
-### chatAgent 编排（同步）
+### chatAgent 编排（同步，含工具回环）
 
 ```mermaid
 flowchart TD
@@ -37,17 +37,23 @@ flowchart TD
     B2 --> B3[OpenAiChatAgent.execute]
     B3 --> B4[ChatAgentExecutor]
     B4 --> B5[BEGIN]
-    B5 --> B6[MAP_REQUEST]
-    B6 --> B7[ENHANCE_REQUEST]
-    B7 --> B8[SEND_REQUEST]
-    B8 --> B9[MAP_RESPONSE]
-    B9 --> B10[ENHANCE_RESPONSE]
-    B10 --> B11[ANALYZE_RESPONSE]
-    B11 --> B12[BUILD_RESULT]
-    B12 --> End2([End])
+    B5 --> B6[INIT_WORKING_MESSAGES]
+    B6 --> B7[INIT_TOOL_REGISTRY]
+    B7 --> B8[MAP_REQUEST]
+    B8 --> B9[ENHANCE_REQUEST]
+    B9 --> B10[SEND_REQUEST]
+    B10 --> B11[MAP_RESPONSE]
+    B11 --> B12[ENHANCE_RESPONSE]
+    B12 --> B13[ANALYZE_RESPONSE]
+    B13 --> B14{有工具调用?}
+    B14 -- 是 --> B15[EXECUTE_TOOL]
+    B15 --> B16[APPEND_MESSAGES]
+    B16 --> B8
+    B14 -- 否 --> B17[BUILD_RESULT]
+    B17 --> End2([End])
 ```
 
-### streamAgent 编排（流式）
+### streamAgent 编排（流式，含工具回环）
 
 ```mermaid
 flowchart TD
@@ -56,12 +62,16 @@ flowchart TD
     C2 --> C3[OpenAiStreamAgent.execute]
     C3 --> C4[StreamAgentExecutor]
     C4 --> C5[同步准备]
-    C5 --> C6[BEGIN → INIT_WORKING_MESSAGES → MAP_REQUEST → ENHANCE_REQUEST → SEND_REQUEST]
+    C5 --> C6[BEGIN → INIT_WORKING_MESSAGES → INIT_TOOL_REGISTRY → MAP_REQUEST → ENHANCE_REQUEST → SEND_REQUEST]
     C6 --> C7[流式管道]
     C7 --> C8[ENHANCE_CHUNK → ACCUMULATE_CHUNK → ANALYZE_CHUNK → STREAM_END]
     C8 --> C9[expand 轮次调度]
-    C9 --> C10[DECIDE_NEXT_ACTION → BUILD_RESULT → END]
-    C10 --> End3([End])
+    C9 --> C10[DECIDE_NEXT_ACTION]
+    C10 --> C11{有工具调用?}
+    C11 -- 是 --> C12[EXECUTE_TOOL → APPEND_MESSAGES → 下一轮 MAP_REQUEST]
+    C12 --> C7
+    C11 -- 否 --> C13[BUILD_RESULT → END]
+    C13 --> End3([End])
 ```
 
 ## 1. 引入依赖
@@ -84,7 +94,7 @@ flowchart TD
 </dependencies>
 ```
 
-### chatAgent 编排（同步）
+### chatAgent / streamAgent 编排
 
 ```xml
 <dependencies>
@@ -114,9 +124,7 @@ flowchart TD
 </dependencies>
 ```
 
-### streamAgent 编排（流式）
-
-依赖与 chatAgent 编排相同，`liteagent-provider-openai-agent` 已包含同步和流式两套实现。
+`liteagent-provider-openai-agent` 已包含同步和流式两套实现。
 
 ## 2. 创建 provider 客户端
 
@@ -209,6 +217,7 @@ public class RequestExample {
 
 ```java
 import io.github.halcyonsong.liteagent.core.message.Message;
+import io.github.halcyonsong.liteagent.core.message.type.AssistantResponseMessage;
 import io.github.halcyonsong.liteagent.core.model.response.chat.ChatChoice;
 import io.github.halcyonsong.liteagent.provider.openai.client.OpenAiChatClient;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiChatCompletionResponse;
@@ -228,7 +237,7 @@ public class ChatCallExample {
             for (Message message : choice.getChatResponse().getMessages()) {
                 System.out.println("message content = " + message.getContent());
 
-                if (message instanceof OpenAiAssistantMessage assistantMessage) {
+                if (message instanceof AssistantResponseMessage assistantMessage) {
                     System.out.println("reasoning = " + assistantMessage.getReasoningContent());
                 }
             }
@@ -281,7 +290,7 @@ public class QuickRequestExample {
 }
 ```
 
-## 7. 最小 chatAgent 编排入口（同步）
+## 7. chatAgent 编排入口（同步）
 
 ```java
 import io.github.halcyonsong.liteagent.provider.openai.agent.chat.OpenAiChatAgent;
@@ -305,7 +314,7 @@ public class ChatAgentCallExample {
 }
 ```
 
-## 8. 最小 streamAgent 编排入口（流式）
+## 8. streamAgent 编排入口（流式）
 
 ```java
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.OpenAiStreamAgent;
@@ -339,12 +348,180 @@ public class StreamAgentCallExample {
 
 说明：
 
-- `OpenAiChatAgent` 把单轮同步 provider 能力拆进步骤执行器
-- `OpenAiStreamAgent` 把流式 provider 能力拆进步骤执行器，支持 Flux 统一编排
-- 当前两个 agent 都还没有工具自动执行回环
+- `OpenAiChatAgent` 把单轮同步 provider 能力拆进步骤执行器，支持多轮工具调用回环
+- `OpenAiStreamAgent` 把流式 provider 能力拆进步骤执行器，支持 Flux 统一编排和多轮工具调用回环
 - streamAgent 的 `streamResponseTimeoutMillis` 传 `null` 表示不设置超时
 
-## 9. 当前范围
+## 9. 工具调用用法
+
+### 定义工具类
+
+使用 `@ToolComponent`、`@ToolMethod`、`@ToolParam` 注解定义工具：
+
+```java
+import io.github.halcyonsong.liteagent.core.tool.annotation.ToolComponent;
+import io.github.halcyonsong.liteagent.core.tool.annotation.ToolMethod;
+import io.github.halcyonsong.liteagent.core.tool.annotation.ToolParam;
+
+@ToolComponent
+public class WeatherTools {
+
+    @ToolMethod(name = "get_weather", description = "获取指定城市的当前天气信息")
+    public String getWeather(
+            @ToolParam(description = "城市名称，例如：北京") String city
+    ) {
+        return city + "：晴，气温 28°C，湿度 45%";
+    }
+}
+```
+
+### 注册工具并通过 agent 执行
+
+工具通过 `ToolRegistries.inMemory()` 注册，再以 `OpenAiRegistryToolsAdvisor` 作为 request advisor 注入请求。
+agent 运行时自动提取 registry 并执行工具调用，支持多轮回环：
+
+```java
+import io.github.halcyonsong.liteagent.core.message.type.AssistantResponseMessage;
+import io.github.halcyonsong.liteagent.core.message.type.constructor.Messages;
+import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
+import io.github.halcyonsong.liteagent.core.tool.impl.ToolRegistries;
+import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistry;
+import io.github.halcyonsong.liteagent.provider.openai.agent.chat.OpenAiChatAgent;
+import io.github.halcyonsong.liteagent.provider.openai.agent.chat.factory.OpenAiChatAgents;
+import io.github.halcyonsong.liteagent.provider.openai.request.advisor.OpenAiRegistryToolsAdvisor;
+import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
+import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiCompletionOptions;
+import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiChatCompletionResponse;
+
+public class ToolCallExample {
+
+    public void execute() {
+        // 1. 注册工具
+        ToolRegistry registry = ToolRegistries.inMemory(new WeatherTools());
+
+        // 2. 创建 agent
+        OpenAiChatAgent agent = OpenAiChatAgents.create(
+                HttpRuntimeConfig.builder()
+                        .maxInMemorySize(16 * 1024 * 1024)
+                        .connectTimeoutMillis(5000)
+                        .responseTimeoutMillis(60000L)
+                        .build()
+        );
+
+        // 3. 构造带工具增强的请求
+        ChatRequest chatRequest = ChatRequest.builder()
+                .addMessage(Messages.system("你是一位助手，请使用提供的工具回答用户的问题。"))
+                .addMessage(Messages.user("北京今天天气怎么样？"))
+                .build();
+
+        OpenAiChatCompletionRequest request = OpenAiChatCompletionRequest.builder()
+                .baseRequest(baseRequest)
+                .chatRequest(chatRequest)
+                .completionOptions(OpenAiCompletionOptions.builder()
+                        .temperature(0.0)
+                        .maxTokens(512)
+                        .build())
+                .requestAdvisor(new OpenAiRegistryToolsAdvisor(registry))
+                .build();
+
+        // 4. 执行（agent 自动完成多轮工具调用）
+        OpenAiChatCompletionResponse response = agent.execute(request);
+
+        // 5. 读取结果
+        response.getChoices().forEach(choice ->
+                choice.getChatResponse().getMessages().forEach(message -> {
+                    if (message instanceof AssistantResponseMessage arm && !arm.getToolCalls().isEmpty()) {
+                        System.out.println("模型调用了 " + arm.getToolCalls().size() + " 个工具");
+                    }
+                })
+        );
+    }
+}
+```
+
+### 流式 agent 工具调用
+
+流式 agent 同样支持工具调用回环，工具执行结果会自动注入下一轮请求：
+
+```java
+import io.github.halcyonsong.liteagent.provider.openai.agent.stream.OpenAiStreamAgent;
+import io.github.halcyonsong.liteagent.provider.openai.agent.stream.factory.OpenAiStreamAgents;
+
+public class StreamToolCallExample {
+
+    public void execute() {
+        ToolRegistry registry = ToolRegistries.inMemory(new WeatherTools());
+
+        OpenAiStreamAgent agent = OpenAiStreamAgents.create(
+                HttpRuntimeConfig.builder()
+                        .maxInMemorySize(16 * 1024 * 1024)
+                        .connectTimeoutMillis(5000)
+                        .streamResponseTimeoutMillis(null)
+                        .build()
+        );
+
+        OpenAiChatCompletionRequest request = OpenAiChatCompletionRequest.builder()
+                .baseRequest(baseRequest)
+                .chatRequest(chatRequest)
+                .requestAdvisor(new OpenAiRegistryToolsAdvisor(registry))
+                .build();
+
+        agent.execute(request)
+                .doOnNext(chunk -> chunk.getChoices().forEach(choice -> {
+                    if (choice.getDelta() != null) {
+                        String content = choice.getDelta().getContent();
+                        if (content != null && !content.isBlank()) {
+                            System.out.print(content);
+                        }
+                    }
+                }))
+                .blockLast();
+    }
+}
+```
+
+## 10. Step Hook 用法
+
+通过 `StepHook`（chat）或 `StreamStepHook`（stream）可以在每一步执行前后插入自定义逻辑：
+
+```java
+import io.github.halcyonsong.liteagent.agent.chat.hook.StepHook;
+import io.github.halcyonsong.liteagent.agent.chat.step.ChatStepKey;
+import io.github.halcyonsong.liteagent.agent.chat.context.ChatAgentContext;
+
+import java.util.List;
+
+public class HookExample {
+
+    public void execute() {
+        StepHook tracingHook = new StepHook() {
+            @Override
+            public void beforeStep(ChatStepKey key, ChatAgentContext context) {
+                System.out.println("before: " + key);
+            }
+
+            @Override
+            public void afterStep(ChatStepKey key, ChatAgentContext context, ChatStepKey nextKey) {
+                System.out.println("after: " + key + " -> " + nextKey);
+            }
+        };
+
+        OpenAiChatAgent agent = OpenAiChatAgents.create(
+                HttpRuntimeConfig.builder()
+                        .maxInMemorySize(16 * 1024 * 1024)
+                        .connectTimeoutMillis(5000)
+                        .responseTimeoutMillis(60000L)
+                        .build(),
+                List.of(tracingHook),
+                100  // maxStepCount
+        );
+
+        agent.execute(request);
+    }
+}
+```
+
+## 11. 当前范围
 
 当前已经支持：
 
@@ -352,12 +529,14 @@ public class StreamAgentCallExample {
 - 流式 provider 对话调用
 - OpenAI-compatible provider 扩展响应字段保留
 - tools / tool_choice 请求增强
-- OpenAI 最小同步 chatAgent 编排入口
-- OpenAI 最小流式 streamAgent 编排入口
+- 工具自动注册与执行（`@ToolComponent` / `@ToolMethod` / `@ToolParam`）
+- 多轮 agent 编排（同步 chat + 流式 stream，含工具调用回环）
+- 流式 chunk delta 合并（`OpenAiStreamRoundAccumulator`）
+- 响应增强器（request advisor / response advisor）
+- Step Hook（before / after / error）
+- QuickRequest 快捷请求构造
 
 当前尚未覆盖：
 
-- tools 自动执行闭环
-- 多轮 agent 编排
-- response enhancer
-- stream 聚合后的 delta 合并
+- Spring 自动装配增强
+- 更多 provider 适配

@@ -8,6 +8,7 @@ import io.github.halcyonsong.liteagent.core.tool.impl.InMemoryToolRegistry;
 import io.github.halcyonsong.liteagent.core.tool.impl.ReflectionToolRegistrar;
 import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistrar;
 import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistry;
+import io.github.halcyonsong.liteagent.core.message.type.AssistantResponseMessage;
 import io.github.halcyonsong.liteagent.core.tool.annotation.ToolComponent;
 import io.github.halcyonsong.liteagent.core.tool.annotation.ToolMethod;
 import io.github.halcyonsong.liteagent.core.tool.annotation.ToolParam;
@@ -65,7 +66,7 @@ class ProviderToolCallExampleTest extends OpenAiExampleSupport {
             System.out.println("role = " + message.getRole());
             System.out.println("content = " + message.getContent());
 
-            if (message instanceof OpenAiAssistantMessage assistantMessage) {
+            if (message instanceof AssistantResponseMessage assistantMessage) {
                 System.out.println("reasoning = " + assistantMessage.getReasoningContent());
 
                 if (assistantMessage.getToolCalls() != null && !assistantMessage.getToolCalls().isEmpty()) {

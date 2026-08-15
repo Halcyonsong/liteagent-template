@@ -146,6 +146,10 @@ public class OpenAiChatCompletionRequest implements Invocation {
         return JsonSupport.toJson(this);
     }
 
+    public String toCompactJson() {
+        return JsonSupport.toCompactJson(this);
+    }
+
     @Override
     public String toString() {
         return "OpenAiChatCompletionRequest{" +

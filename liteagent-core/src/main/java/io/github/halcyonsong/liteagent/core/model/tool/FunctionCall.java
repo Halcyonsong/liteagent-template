@@ -22,4 +22,8 @@ public class FunctionCall {
         return JsonSupport.toJson(this);
     }
 
+    public String toCompactJson() {
+        return JsonSupport.toCompactJson(this);
+    }
+
 }

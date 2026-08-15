@@ -4,28 +4,31 @@ import io.github.halcyonsong.liteagent.core.tool.norm.ToolDefinition;
 import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistry;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 基于内存的工具注册表实现。
+ *
+ * <p>支持并发注册和查询。</p>
  */
 public class InMemoryToolRegistry implements ToolRegistry {
 
-    private final Map<String, ToolDefinition> tools = new LinkedHashMap<>();
+    private final Map<String, ToolDefinition> tools = new ConcurrentHashMap<>();
 
     @Override
     public void register(ToolDefinition tool) {
         Objects.requireNonNull(tool, "tool must not be null");
-        Objects.requireNonNull(tool.getName(), "tool name must not be null");
 
-        if (tool.getName().isBlank()) {
+        String name = Objects.requireNonNull(tool.getName(), "tool name must not be null");
+
+        if (name.isBlank()) {
             throw new IllegalArgumentException("tool name must not be blank");
         }
 
-        tools.put(tool.getName(), tool);
+        tools.put(name, tool);
     }
 
     @Override

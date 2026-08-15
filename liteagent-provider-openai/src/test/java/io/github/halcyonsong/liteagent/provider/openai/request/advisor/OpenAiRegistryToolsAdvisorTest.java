@@ -1,7 +1,11 @@
 package io.github.halcyonsong.liteagent.provider.openai.request.advisor;
 
 import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
-import io.github.halcyonsong.liteagent.core.tool.impl.InMemoryToolRegistry;
+import io.github.halcyonsong.liteagent.core.message.type.constructor.Messages;
+import io.github.halcyonsong.liteagent.core.tool.annotation.ToolComponent;
+import io.github.halcyonsong.liteagent.core.tool.annotation.ToolMethod;
+import io.github.halcyonsong.liteagent.core.tool.annotation.ToolParam;
+import io.github.halcyonsong.liteagent.core.tool.impl.ToolRegistries;
 import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistry;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiCompletionOptions;
@@ -9,7 +13,6 @@ import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiBase
 import io.github.halcyonsong.liteagent.provider.openai.request.raw.OpenAiChatCompletionRawRequest;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -18,20 +21,7 @@ class OpenAiRegistryToolsAdvisorTest {
 
     @Test
     void should_enhance_raw_request_with_tools() {
-        ToolRegistry registry = new InMemoryToolRegistry();
-        registry.register(
-                SimpleToolDefinition.builder()
-                        .name("get_weather")
-                        .description("获取指定城市的当前天气信息")
-                        .parameters(Map.of(
-                                "type", "object",
-                                "properties", Map.of(
-                                        "city", Map.of("type", "string", "description", "城市名")
-                                ),
-                                "required", List.of("city")
-                        ))
-                        .build()
-        );
+        ToolRegistry registry = ToolRegistries.inMemory(new WeatherTools());
 
         OpenAiRegistryToolsAdvisor advisor = new OpenAiRegistryToolsAdvisor(registry);
         OpenAiChatCompletionRequest request = OpenAiChatCompletionRequest.builder()
@@ -41,7 +31,7 @@ class OpenAiRegistryToolsAdvisorTest {
                         .model("gpt-test")
                         .build())
                 .chatRequest(ChatRequest.builder()
-                        .addMessage(io.github.halcyonsong.liteagent.core.message.type.constructor.Messages.user("hello"))
+                        .addMessage(Messages.user("hello"))
                         .build())
                 .completionOptions(OpenAiCompletionOptions.builder().build())
                 .build();
@@ -58,12 +48,12 @@ class OpenAiRegistryToolsAdvisorTest {
         @SuppressWarnings("unchecked")
         Map<String, Object> function = (Map<String, Object>) tool.get("function");
         assertEquals("get_weather", function.get("name"));
-        assertEquals("获取指定城市的当前天气信息", function.get("description"));
+        assertEquals("获取指定城市的天气", function.get("description"));
     }
 
     @Test
     void should_not_enhance_when_registry_empty() {
-        ToolRegistry registry = new InMemoryToolRegistry();
+        ToolRegistry registry = ToolRegistries.inMemory();
 
         OpenAiRegistryToolsAdvisor advisor = new OpenAiRegistryToolsAdvisor(registry);
         OpenAiChatCompletionRawRequest rawRequest = new OpenAiChatCompletionRawRequest();
@@ -71,5 +61,16 @@ class OpenAiRegistryToolsAdvisorTest {
         advisor.enhance(null, rawRequest);
 
         assertNull(rawRequest.getTools());
+    }
+
+    @ToolComponent
+    public static class WeatherTools {
+
+        @ToolMethod(name = "get_weather", description = "获取指定城市的天气")
+        public String getWeather(
+                @ToolParam(description = "城市名") String city
+        ) {
+            return city + " 晴 32度";
+        }
     }
 }

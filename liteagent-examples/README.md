@@ -8,10 +8,12 @@
 - 演示 provider request 直接调用
 - 演示流式 provider 调用
 - 演示 provider 扩展字段读取
-- 演示 tools 注入
-- 演示 tool_choice 注入
-- 演示 chatAgent 同步编排
-- 演示 streamAgent 流式编排
+- 演示 reasoning 模型调用
+- 演示 tools 注入与 tool_choice
+- 演示 chatAgent 同步编排（含多轮工具调用）
+- 演示 streamAgent 流式编排（含多轮工具调用）
+- 演示 Step Hook 用法
+- 演示 QuickRequest 快捷构造
 - 演示本地配置拆分
 
 ## 当前范围
@@ -21,9 +23,10 @@
 也就是说，这里的测试覆盖：
 
 - `OpenAiChatClient` / `OpenAiStreamClient`（provider 直调）
-- `OpenAiChatAgent` / `OpenAiStreamAgent`（agent 编排）
-- `OpenAiQuickChatRequest`
+- `OpenAiChatAgent` / `OpenAiStreamAgent`（agent 编排，含工具调用回环）
+- `OpenAiQuickChatRequest`（快捷请求构造）
 - tools / tool_choice 请求增强
+- Step Hook（before / after）
 
 ## 当前主线流程
 
@@ -85,16 +88,23 @@ liteagent:
 
 ### provider 直调
 
-- `ProviderChatExampleTest`
-- `ProviderReasoningExampleTest`
-- `ProviderStreamExampleTest`
-- `ProviderToolCallExampleTest`
-- `QuickRequestChatExampleTest`
+- `ProviderChatExampleTest` — 普通对话调用
+- `ProviderReasoningExampleTest` — reasoning 模型调用
+- `ProviderStreamExampleTest` — 流式对话调用
+- `ProviderToolCallExampleTest` — 工具注入与 tool_choice
+- `QuickRequestChatExampleTest` — QuickRequest 快捷构造
 
 ### agent 编排
 
-- `ChatAgentExampleTest`
-- `StreamAgentExampleTest`
+- `ChatAgentExampleTest` — chatAgent 同步编排
+- `StreamAgentExampleTest` — streamAgent 流式编排
+- `ChatAgentToolCallExampleTest` — chatAgent 多轮工具调用
+- `StreamAgentToolCallExampleTest` — streamAgent 多轮工具调用
+- `AgentHookExampleTest` — Step Hook 用法（chat + stream）
+
+### QuickRequest 流式
+
+- `ProviderQuickRequestStreamExampleTest` — QuickRequest 流式调用
 
 ## 示例定位
 

@@ -69,10 +69,7 @@ flowchart TD
 - `OpenAiBaseResponse`
 - `OpenAiUsage`
 - `OpenAiChatCompletionResponse`
-- `OpenAiAssistantMessage`
-- `OpenAiToolCall`
-- `OpenAiFunctionCall`
-- `OpenAiChatResponseMapper`
+- `OpenAiChatResponseMapper`（映射到 core 层 `AssistantResponseMessage`，含 `reasoningContent` 和 `toolCalls`）
 
 流式响应：
 
@@ -138,15 +135,15 @@ flowchart LR
 说明：
 
 - `ToolRegistry` 先负责保存可用工具定义
-- `OpenAiRegistryToolsAdvisor` 再把 registry 里的工具注入 raw request
+- `OpenAiRegistryToolsAdvisor` 再把 registry 里的工具注入 raw request，同时作为 agent 提取 registry 的载体
 - `OpenAiToolChoiceAdvisor` 再补充工具选择策略
-- 工具执行闭环不在本模块内实现
+- 工具执行闭环由 `liteagent-provider-openai-agent` 模块实现
 
 ## 当前限制
 
 当前还没有完成：
 
-- 工具自动执行闭环
-- 响应增强器
-- 更完整的异常细分
+- Spring 自动装配增强
+- 更多 provider 适配
+- 更完整的异常细分与重试策略
 - 更细粒度的 provider 配置抽象

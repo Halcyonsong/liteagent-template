@@ -41,4 +41,8 @@ public class AssistantResponseMessage extends AssistantMessage {
         return JsonSupport.toJson(this);
     }
 
+    public String toCompactJson() {
+        return JsonSupport.toCompactJson(this);
+    }
+
 }

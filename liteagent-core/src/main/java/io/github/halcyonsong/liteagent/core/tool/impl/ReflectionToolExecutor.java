@@ -131,44 +131,62 @@ public class ReflectionToolExecutor implements ToolExecutor {
         return toolParam == null || toolParam.required();
     }
 
-    private Object convertValue(Object rawValue, Class<?> targetType, String parameterName) {
+    private Object convertValue(
+            Object rawValue,
+            Class<?> targetType,
+            String parameterName
+    ) {
         if (rawValue == null) {
             if (targetType.isPrimitive()) {
                 throw new ToolExecutionException(
-                        "Primitive parameter cannot be null: " + parameterName
+                        "Primitive parameter cannot be null: "
+                                + parameterName
                 );
             }
             return null;
         }
 
-        if (targetType == String.class) {
-            return String.valueOf(rawValue);
-        }
+        try {
+            if (targetType == String.class) {
+                return String.valueOf(rawValue);
+            }
 
-        if (targetType == Integer.class || targetType == int.class) {
-            return toInteger(rawValue, parameterName);
-        }
+            if (targetType == Integer.class || targetType == int.class) {
+                return toInteger(rawValue, parameterName);
+            }
 
-        if (targetType == Long.class || targetType == long.class) {
-            return toLong(rawValue, parameterName);
-        }
+            if (targetType == Long.class || targetType == long.class) {
+                return toLong(rawValue, parameterName);
+            }
 
-        if (targetType == Double.class || targetType == double.class) {
-            return toDouble(rawValue, parameterName);
-        }
+            if (targetType == Double.class || targetType == double.class) {
+                return toDouble(rawValue, parameterName);
+            }
 
-        if (targetType == Float.class || targetType == float.class) {
-            return toFloat(rawValue, parameterName);
-        }
+            if (targetType == Float.class || targetType == float.class) {
+                return toFloat(rawValue, parameterName);
+            }
 
-        if (targetType == Boolean.class || targetType == boolean.class) {
-            return toBoolean(rawValue, parameterName);
-        }
+            if (targetType == Boolean.class || targetType == boolean.class) {
+                return toBoolean(rawValue, parameterName);
+            }
 
-        throw new ToolExecutionException(
-                "Unsupported parameter type for tool execution: " + targetType.getName()
-                        + ", parameter=" + parameterName
-        );
+            /*
+             * 复杂类型交给 Jackson 处理：
+             * - enum
+             * - List / Map
+             * - 自定义 POJO
+             */
+            return objectMapper.convertValue(rawValue, targetType);
+        } catch (IllegalArgumentException e) {
+            throw new ToolExecutionException(
+                    "Failed to convert argument to "
+                            + targetType.getName()
+                            + ": "
+                            + parameterName,
+                    e
+            );
+        }
     }
 
     private Integer toInteger(Object rawValue, String parameterName) {

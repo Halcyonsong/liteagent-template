@@ -55,6 +55,10 @@ public class OpenAiChatCompletionRawResponse {
         return JsonSupport.toJson(this);
     }
 
+    public String toCompactJson() {
+        return JsonSupport.toCompactJson(this);
+    }
+
     @Override
     public String toString() {
         return "OpenAiChatCompletionRawResponse{" +
@@ -95,6 +99,10 @@ public class OpenAiChatCompletionRawResponse {
             return JsonSupport.toJson(this);
         }
 
+        public String toCompactJson() {
+            return JsonSupport.toCompactJson(this);
+        }
+
     }
 
     /**
@@ -125,6 +133,10 @@ public class OpenAiChatCompletionRawResponse {
             return JsonSupport.toJson(this);
         }
 
+        public String toCompactJson() {
+            return JsonSupport.toCompactJson(this);
+        }
+
     }
 
     @Setter
@@ -150,6 +162,10 @@ public class OpenAiChatCompletionRawResponse {
             return JsonSupport.toJson(this);
         }
 
+        public String toCompactJson() {
+            return JsonSupport.toCompactJson(this);
+        }
+
     }
 
     @Setter
@@ -169,6 +185,10 @@ public class OpenAiChatCompletionRawResponse {
             return JsonSupport.toJson(this);
         }
 
+        public String toCompactJson() {
+            return JsonSupport.toCompactJson(this);
+        }
+
     }
 
     /**
@@ -178,6 +198,7 @@ public class OpenAiChatCompletionRawResponse {
     @Getter
     @ToString
     @NoArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class RawUsage {
 
         @JsonProperty("prompt_tokens")
@@ -203,6 +224,10 @@ public class OpenAiChatCompletionRawResponse {
 
         public String toJson() {
             return JsonSupport.toJson(this);
+        }
+
+        public String toCompactJson() {
+            return JsonSupport.toCompactJson(this);
         }
 
     }

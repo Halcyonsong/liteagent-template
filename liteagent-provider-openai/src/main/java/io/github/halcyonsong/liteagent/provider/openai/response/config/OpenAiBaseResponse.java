@@ -26,4 +26,8 @@ public class OpenAiBaseResponse implements BaseResponse {
         return JsonSupport.toJson(this);
     }
 
+    public String toCompactJson() {
+        return JsonSupport.toCompactJson(this);
+    }
+
 }

@@ -199,7 +199,6 @@ public final class StreamAgentExecutor<T> {
         }
 
         if (afterCurrentRound == StreamStepKey.END) {
-            invokeSyncStep(StreamStepKey.END, context);
             return Flux.empty();
         }
 

@@ -1,12 +1,13 @@
 package io.github.halcyonsong.example.support;
 
 import io.github.halcyonsong.liteagent.core.message.Message;
+import io.github.halcyonsong.liteagent.core.message.type.AssistantResponseMessage;
 import io.github.halcyonsong.liteagent.core.model.response.chat.ChatChoice;
 import io.github.halcyonsong.liteagent.core.model.response.stream.StreamChoice;
 import io.github.halcyonsong.liteagent.core.model.response.stream.StreamDelta;
+import io.github.halcyonsong.liteagent.core.model.tool.ToolCall;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiChatCompletionResponse;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.stream.OpenAiStreamCompletionResponse;
-import io.github.halcyonsong.liteagent.provider.openai.response.config.tool.OpenAiToolCall;
 
 public final class Printers {
 
@@ -27,11 +28,11 @@ public final class Printers {
                 System.out.println("message role = " + message.getRole());
                 System.out.println("message content = " + message.getContent());
 
-                if (message instanceof OpenAiAssistantMessage openAiMessage) {
-                    System.out.println("reasoning content = " + openAiMessage.getReasoningContent());
+                if (message instanceof AssistantResponseMessage assistantMessage) {
+                    System.out.println("reasoning content = " + assistantMessage.getReasoningContent());
 
-                    if (openAiMessage.getToolCalls() != null && !openAiMessage.getToolCalls().isEmpty()) {
-                        for (OpenAiToolCall toolCall : openAiMessage.getToolCalls()) {
+                    if (assistantMessage.getToolCalls() != null && !assistantMessage.getToolCalls().isEmpty()) {
+                        for (ToolCall toolCall : assistantMessage.getToolCalls()) {
                             System.out.println("tool call id = " + toolCall.getId());
                             System.out.println("tool call type = " + toolCall.getType());
 

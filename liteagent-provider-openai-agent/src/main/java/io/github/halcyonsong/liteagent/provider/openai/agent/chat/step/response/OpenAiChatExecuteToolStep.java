@@ -54,7 +54,7 @@ public class OpenAiChatExecuteToolStep implements ChatStep {
 
         if (toolRegistry == null) {
             context.setTerminationReason(AgentTerminationReason.TOOL_ERROR);
-            return ChatStepKey.END;
+            throw new IllegalStateException("Tool registry is required for chat tool execution");
         }
 
         List<ToolExecutionRequest> executionRequests =

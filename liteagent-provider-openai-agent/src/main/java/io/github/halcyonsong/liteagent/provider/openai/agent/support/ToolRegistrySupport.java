@@ -1,5 +1,6 @@
 package io.github.halcyonsong.liteagent.provider.openai.agent.support;
 
+import io.github.halcyonsong.liteagent.core.model.request.norm.Invocation;
 import io.github.halcyonsong.liteagent.core.model.request.norm.RequestAdvisor;
 import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistry;
 import io.github.halcyonsong.liteagent.provider.openai.request.advisor.OpenAiRegistryToolsAdvisor;
@@ -7,7 +8,7 @@ import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChat
 
 public class ToolRegistrySupport {
 
-    public static ToolRegistry resolveToolRegistry(Object invocation) {
+    public static ToolRegistry resolveToolRegistry(Invocation invocation) {
         if (!(invocation instanceof OpenAiChatCompletionRequest request)) {
             return null;
         }

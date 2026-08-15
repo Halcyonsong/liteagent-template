@@ -42,6 +42,7 @@ io.github.halcyonsong.liteagent.core
 - `AbstractMessage`
 - `UserMessage`
 - `AssistantMessage`
+- `AssistantResponseMessage` — 含 `reasoningContent` 和 `toolCalls`
 - `SystemMessage`
 - `ToolMessage`
 - `Messages`
@@ -75,19 +76,30 @@ io.github.halcyonsong.liteagent.core
 - `StreamChoice`
 - `StreamChunk`
 
+### model.tool
+
+工具模型：
+
+- `ToolCall` — 工具调用（含 `index`、`id`、`type`、`function`）
+- `FunctionCall` — 函数调用（含 `name`、`arguments`）
+
 ### tool
 
-工具注册规范：
+工具注册与执行规范：
 
 - `@ToolComponent`
 - `@ToolMethod`
 - `@ToolParam`
-- `ToolDefinition`
+- `ToolDefinition` / `ExecutableToolDefinition`
 - `ToolRegistry`
 - `ToolRegistrar`
+- `ToolExecutor`
 - `InMemoryToolRegistry`
 - `ReflectionToolRegistrar`
+- `ReflectiveToolDefinition`
+- `ReflectionToolExecutor`
 - `ToolRegistries`
+- `ToolExecutionRequest`
 
 ### exception
 
@@ -97,29 +109,33 @@ io.github.halcyonsong.liteagent.core
 - `ModelException`
 - `ToolExecutionException`
 
-## 工具注册链路
+## 工具注册与执行链路
 
 ```mermaid
 flowchart LR
     A[工具类] --> B[@ToolComponent]
     B --> C[@ToolMethod]
     C --> D[ReflectionToolRegistrar]
-    D --> E[ToolDefinition]
-    E --> F[ToolRegistry]
+    D --> E[ReflectiveToolDefinition]
+    E --> F[InMemoryToolRegistry]
     F --> G[provider 请求增强器]
     G --> H[raw request.tools]
+    H --> I[agent ANALYZE_RESPONSE]
+    I --> J[ReflectionToolExecutor]
+    J --> K[ToolMessage]
 ```
 
 ## 设计边界
 
 core 不直接包含这些内容：
 
-- OpenAI-compatible `tool_calls`
+- OpenAI-compatible `tool_calls` 协议字段
 - provider 扩展 `usage`
 - 具体 HTTP 实现
-- 具体工具执行编排
+- agent 编排步骤链
 
-这些内容留在 provider 或更上层的编排层。
+这些内容留在 provider 或 provider-agent 层。
+core 提供工具执行器（`ReflectionToolExecutor`）但不管编排调度。
 
 ## 使用原则
 

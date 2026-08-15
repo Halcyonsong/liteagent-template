@@ -9,6 +9,7 @@ import io.github.halcyonsong.liteagent.provider.openai.request.mapper.OpenAiChat
 import io.github.halcyonsong.liteagent.provider.openai.response.mapper.OpenAiChatResponseMapper;
 import io.github.halcyonsong.liteagent.provider.openai.runtime.config.HttpRuntimeConfig;
 import io.github.halcyonsong.liteagent.provider.openai.runtime.register.WebClientFactory;
+import io.github.halcyonsong.liteagent.provider.openai.runtime.register.WebClientRegistry;
 import io.github.halcyonsong.liteagent.provider.openai.transport.OpenAiChatTransport;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -18,10 +19,25 @@ import java.util.Objects;
 /**
  * OpenAI agent 自动装配入口。
  * <p>
- * 该类面向普通调用者提供最小装配成本的创建方式，
- * 同时保留基于 WebClient 与 HttpRuntimeConfig 的高级配置入口。
+ * 提供三类创建方式：
+ * 1. 直接传入现成 WebClient
+ * 2. 传入 HttpRuntimeConfig，使用默认共享 WebClientRegistry
+ * 3. 传入自定义 WebClientRegistry + HttpRuntimeConfig
  */
 public final class OpenAiChatAgents {
+
+    /**
+     * 默认共享的 WebClientFactory。
+     */
+    private static final WebClientFactory WEB_CLIENT_FACTORY = new WebClientFactory();
+
+    /**
+     * 默认共享的 WebClientRegistry。
+     * <p>
+     * 普通静态 create(HttpRuntimeConfig...) 入口会复用这里的缓存，
+     * 避免每次重新创建底层 HTTP 客户端。
+     */
+    private static final WebClientRegistry WEB_CLIENT_REGISTRY = new WebClientRegistry(WEB_CLIENT_FACTORY);
 
     private OpenAiChatAgents() {
     }
@@ -30,9 +46,6 @@ public final class OpenAiChatAgents {
      * 基于现成的 WebClient 创建 OpenAiChatAgent。
      * <p>
      * 适合调用方已经自行管理 WebClient 生命周期的场景。
-     *
-     * @param webClient 已配置完成的 WebClient
-     * @return 完成最小装配的 OpenAiChatAgent
      */
     public static OpenAiChatAgent create(WebClient webClient) {
         return create(webClient, List.of(), 1000);
@@ -40,10 +53,6 @@ public final class OpenAiChatAgents {
 
     /**
      * 基于现成的 WebClient 创建 OpenAiChatAgent，并允许传入最大步骤数。
-     *
-     * @param webClient 已配置完成的 WebClient
-     * @param maxStepCount 单次执行允许的最大步骤数
-     * @return 完成装配的 OpenAiChatAgent
      */
     public static OpenAiChatAgent create(WebClient webClient, int maxStepCount) {
         return create(webClient, List.of(), maxStepCount);
@@ -51,41 +60,35 @@ public final class OpenAiChatAgents {
 
     /**
      * 基于现成的 WebClient 创建 OpenAiChatAgent，并允许传入 hook 与最大步骤数。
-     *
-     * @param webClient 已配置完成的 WebClient
-     * @param hooks 步骤生命周期钩子
-     * @param maxStepCount 单次执行允许的最大步骤数
-     * @return 完成装配的 OpenAiChatAgent
      */
-    public static OpenAiChatAgent create(WebClient webClient,
-                                         List<StepHook> hooks,
-                                         int maxStepCount) {
-        Objects.requireNonNull(webClient, "webClient must not be null");
+    public static OpenAiChatAgent create(WebClient webClient, List<StepHook> hooks, int maxStepCount) {
+        return createAgent(webClient, hooks, maxStepCount);
+    }
 
+    private static OpenAiChatAgent createAgent(WebClient webClient, List<StepHook> hooks, int maxStepCount) {
         OpenAiChatRequestMapper requestMapper = new OpenAiChatRequestMapper();
         OpenAiClientSupport clientSupport = new OpenAiClientSupport();
         OpenAiChatTransport chatTransport = new OpenAiChatTransport(webClient);
         OpenAiChatResponseMapper responseMapper = new OpenAiChatResponseMapper();
 
-        OpenAiChatAgentExecutorFactory executorFactory = new OpenAiChatAgentExecutorFactory(
-                requestMapper,
-                clientSupport,
-                chatTransport,
-                responseMapper
-        );
+        OpenAiChatAgentExecutorFactory executorFactory =
+                new OpenAiChatAgentExecutorFactory(
+                        requestMapper,
+                        clientSupport,
+                        chatTransport,
+                        responseMapper
+                );
 
-        ChatAgentExecutor executor = executorFactory.create(hooks, maxStepCount);
-        ChatAgent chatAgent = new ChatAgent(executor);
-        return new OpenAiChatAgent(chatAgent);
+        ChatAgentExecutor executor =
+                executorFactory.create(hooks, maxStepCount);
+
+        return new OpenAiChatAgent(new ChatAgent(executor));
     }
 
     /**
      * 基于运行时配置创建 OpenAiChatAgent。
      * <p>
-     * 适合普通 Java 使用者只提供运行时参数，由框架内部自动创建 WebClient 的场景。
-     *
-     * @param runtimeConfig HTTP 运行时配置
-     * @return 完成最小装配的 OpenAiChatAgent
+     * 使用默认共享 WebClientRegistry 复用 WebClient。
      */
     public static OpenAiChatAgent create(HttpRuntimeConfig runtimeConfig) {
         return create(runtimeConfig, List.of(), 1000);
@@ -97,19 +100,37 @@ public final class OpenAiChatAgents {
 
     /**
      * 基于运行时配置创建 OpenAiChatAgent，并允许传入 hook 与最大步骤数。
-     *
-     * @param runtimeConfig HTTP 运行时配置
-     * @param hooks 步骤生命周期钩子
-     * @param maxStepCount 单次执行允许的最大步骤数
-     * @return 完成装配的 OpenAiChatAgent
+     * <p>
+     * 该入口内部会走默认共享的 WebClientRegistry，不会重复创建 WebClient。
      */
-    public static OpenAiChatAgent create(HttpRuntimeConfig runtimeConfig,
-                                         List<StepHook> hooks,
-                                         int maxStepCount) {
+    public static OpenAiChatAgent create(HttpRuntimeConfig runtimeConfig, List<StepHook> hooks, int maxStepCount) {
+        return create(WEB_CLIENT_REGISTRY, runtimeConfig, hooks, maxStepCount);
+    }
+
+    /**
+     * 基于自定义 WebClientRegistry 和运行时配置创建 OpenAiChatAgent。
+     * <p>
+     * 适合 Spring 等由外部管理 registry 生命周期的场景。
+     */
+    public static OpenAiChatAgent create(WebClientRegistry registry, HttpRuntimeConfig runtimeConfig) {
+        return create(registry, runtimeConfig, List.of(), 1000);
+    }
+
+    /**
+     * 基于自定义 WebClientRegistry 和运行时配置创建 OpenAiChatAgent，
+     * 并允许传入 hook 与最大步骤数。
+     */
+    public static OpenAiChatAgent create(
+            WebClientRegistry registry,
+            HttpRuntimeConfig runtimeConfig,
+            List<StepHook> hooks,
+            int maxStepCount
+    ) {
+        Objects.requireNonNull(registry, "registry must not be null");
         Objects.requireNonNull(runtimeConfig, "runtimeConfig must not be null");
 
-        WebClientFactory webClientFactory = new WebClientFactory();
-        WebClient webClient = webClientFactory.createChatClient(runtimeConfig);
+        WebClient webClient =
+                registry.getOrCreateChatClient(runtimeConfig);
 
         return create(webClient, hooks, maxStepCount);
     }

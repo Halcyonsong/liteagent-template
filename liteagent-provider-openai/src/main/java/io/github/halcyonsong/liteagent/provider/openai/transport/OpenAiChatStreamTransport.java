@@ -2,9 +2,9 @@ package io.github.halcyonsong.liteagent.provider.openai.transport;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.halcyonsong.liteagent.core.exception.ModelException;
+import io.github.halcyonsong.liteagent.core.support.JsonSupport;
 import io.github.halcyonsong.liteagent.provider.openai.request.raw.OpenAiChatCompletionRawRequest;
 import io.github.halcyonsong.liteagent.provider.openai.response.raw.OpenAiChatCompletionRawResponse;
-import io.github.halcyonsong.liteagent.provider.openai.support.OpenAiJsonSupport;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -25,7 +25,7 @@ public class OpenAiChatStreamTransport {
     private final ObjectMapper objectMapper;
 
     public OpenAiChatStreamTransport(WebClient webClient) {
-        this(webClient, OpenAiJsonSupport.getObjectMapper());
+        this(webClient, JsonSupport.getObjectMapper());
     }
 
     public OpenAiChatStreamTransport(WebClient webClient, ObjectMapper objectMapper) {

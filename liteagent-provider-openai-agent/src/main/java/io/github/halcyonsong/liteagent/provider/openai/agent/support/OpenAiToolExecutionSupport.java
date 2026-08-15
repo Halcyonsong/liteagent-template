@@ -98,4 +98,9 @@ public final class OpenAiToolExecutionSupport {
 
         return JsonSupport.toJson(result);
     }
+
+    public String toCompactJson() {
+        return JsonSupport.toCompactJson(this);
+    }
+
 }

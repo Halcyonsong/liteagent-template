@@ -32,7 +32,8 @@ public class OpenAiStreamEnhanceChunkStep implements StreamStep<Flux<OpenAiStrea
                 OpenAiAgentRequestSupport.requireProviderRequest(context);
 
         Flux<OpenAiStreamCompletionResponse> stream = upstream.doOnNext(
-                response -> clientSupport.applyStreamResponseAdvisors(providerRequest, null, response)
+                response ->
+                        clientSupport.applyStreamResponseAdvisors(providerRequest, null, response)
         );
 
         return new StreamApplyResult<>(stream, StreamStepKey.ACCUMULATE_CHUNK);

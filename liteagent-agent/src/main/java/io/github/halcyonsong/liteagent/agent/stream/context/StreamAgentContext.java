@@ -101,10 +101,14 @@ public class StreamAgentContext<T> {
      * 不应暴露给外部订阅者。</p>
      */
     @Setter
-    private Object controlSignal;
+    private volatile Object controlSignal;
 
     public boolean isControlSignal(Object value) {
         return controlSignal != null && controlSignal == value;
+    }
+
+    public void clearControlSignal() {
+        this.controlSignal = null;
     }
 
     private StreamAgentContext(String executionId, Invocation invocation) {

@@ -37,6 +37,10 @@ public class OpenAiStreamCompletionResponse {
         return JsonSupport.toJson(this);
     }
 
+    public String toCompactJson() {
+        return JsonSupport.toCompactJson(this);
+    }
+
     @Override
     public String toString() {
         return "OpenAiStreamCompletionResponse{" +

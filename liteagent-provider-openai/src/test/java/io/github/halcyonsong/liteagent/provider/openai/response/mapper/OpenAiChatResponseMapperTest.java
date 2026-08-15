@@ -1,6 +1,7 @@
 package io.github.halcyonsong.liteagent.provider.openai.response.mapper;
 
 import io.github.halcyonsong.liteagent.core.message.Message;
+import io.github.halcyonsong.liteagent.core.message.type.AssistantResponseMessage;
 import io.github.halcyonsong.liteagent.core.model.enums.FinishReason;
 import io.github.halcyonsong.liteagent.core.model.response.chat.ChatChoice;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiChatCompletionResponse;
@@ -53,9 +54,9 @@ class OpenAiChatResponseMapperTest {
         assertEquals(FinishReason.STOP, choice.getFinishReason());
 
         Message message = choice.getChatResponse().getMessages().get(0);
-        assertInstanceOf(OpenAiAssistantMessage.class, message);
+        assertInstanceOf(AssistantResponseMessage.class, message);
 
-        OpenAiAssistantMessage assistantMessage = (OpenAiAssistantMessage) message;
+        AssistantResponseMessage assistantMessage = (AssistantResponseMessage) message;
         assertEquals("你好", assistantMessage.getContent());
         assertEquals("我正在分析问题", assistantMessage.getReasoningContent());
         assertTrue(assistantMessage.getToolCalls().isEmpty());
@@ -98,8 +99,8 @@ class OpenAiChatResponseMapperTest {
         OpenAiChatCompletionResponse response = mapper.fromRaw(rawResponse);
 
         ChatChoice choice = response.getChoices().get(0);
-        OpenAiAssistantMessage assistantMessage =
-                (OpenAiAssistantMessage) choice.getChatResponse().getMessages().get(0);
+        AssistantResponseMessage assistantMessage =
+                (AssistantResponseMessage) choice.getChatResponse().getMessages().get(0);
 
         assertEquals(FinishReason.TOOL_CALLS, choice.getFinishReason());
         assertEquals(1, assistantMessage.getToolCalls().size());
