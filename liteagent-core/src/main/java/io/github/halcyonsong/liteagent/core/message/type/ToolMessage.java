@@ -1,6 +1,6 @@
 package io.github.halcyonsong.liteagent.core.message.type;
 
-import io.github.halcyonsong.liteagent.core.message.AbstractMessage;
+import io.github.halcyonsong.liteagent.core.message.norm.AbstractMessage;
 import io.github.halcyonsong.liteagent.core.message.enums.MessageRole;
 import lombok.Getter;
 import lombok.ToString;
@@ -10,7 +10,7 @@ import java.util.Objects;
 /**
  * 工具执行结果消息。
  * <p>
- * toolCallId 用于将本条 tool 消息与上一轮 assistant 发出的具体 tool call 关联。
+ * toolCallId 用于回指上一轮 assistant 发出的 tool call。
  */
 @Getter
 @ToString(callSuper = true)

@@ -11,8 +11,8 @@ import java.util.List;
 /**
  * 完整 assistant 响应消息。
  * <p>
- * 在基础 assistant content 之外，补充 reasoningContent 与 toolCalls，
- * 作为统一层对模型响应消息的增强规范。
+ * 作为 chat 和 stream 的统一响应载体，
+ * 扩展保留 reasoningContent 和 toolCalls。
  */
 @Getter
 @ToString(callSuper = true)

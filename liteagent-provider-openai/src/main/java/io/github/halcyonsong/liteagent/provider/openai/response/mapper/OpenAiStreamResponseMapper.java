@@ -13,9 +13,9 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * OpenAI-compatible 流式响应映射器。
+ * OpenAI-compatible 流式 completion 响应包装对象。
  * <p>
- * 负责将原始协议流式 chunk 响应转换为 provider 层流式响应包装对象。
+ * 表示一次流式返回中的单个 chunk，不负责跨 chunk 聚合。
  */
 public class OpenAiStreamResponseMapper extends OpenAiResponseMappingSupport {
 

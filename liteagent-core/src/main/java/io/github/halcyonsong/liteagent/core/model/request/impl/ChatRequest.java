@@ -1,6 +1,6 @@
 package io.github.halcyonsong.liteagent.core.model.request.impl;
 
-import io.github.halcyonsong.liteagent.core.message.Message;
+import io.github.halcyonsong.liteagent.core.message.norm.Message;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -10,9 +10,7 @@ import java.util.Objects;
 /**
  * 统一的聊天请求内容对象。
  * <p>
- * 该对象仅负责封装本次对话输入的消息集合，
- * 不包含供应商地址、鉴权、模型名称等基础调用信息，
- * 也不包含供应商特有的协议扩展参数。
+ * 仅封装消息序列，不包含基础调用信息和 provider 扩展参数。
  */
 @Getter
 public class ChatRequest {

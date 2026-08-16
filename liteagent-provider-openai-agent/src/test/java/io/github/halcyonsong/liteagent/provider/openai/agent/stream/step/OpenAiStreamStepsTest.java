@@ -9,7 +9,7 @@ import io.github.halcyonsong.liteagent.core.model.enums.FinishReason;
 import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
 import io.github.halcyonsong.liteagent.core.model.response.stream.StreamChoice;
 import io.github.halcyonsong.liteagent.core.model.response.stream.StreamDelta;
-import io.github.halcyonsong.liteagent.provider.openai.agent.stream.constant.OpenAiStreamAgentAttributes;
+import io.github.halcyonsong.liteagent.provider.openai.agent.constant.OpenAiAgentAttributes;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.state.OpenAiStreamRoundAccumulator;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.support.OpenAiStreamRoundSupport;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.request.OpenAiStreamBeginStep;
@@ -21,13 +21,12 @@ import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.respons
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.response.OpenAiStreamBuildResultStep;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.response.OpenAiStreamDecideNextActionStep;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.response.OpenAiStreamExecuteToolStep;
-import io.github.halcyonsong.liteagent.provider.openai.client.support.OpenAiClientSupport;
+import io.github.halcyonsong.liteagent.provider.openai.support.OpenAiAdvisorsSupport;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiBaseRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.mapper.OpenAiChatRequestMapper;
 import io.github.halcyonsong.liteagent.provider.openai.request.raw.OpenAiChatCompletionRawRequest;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.OpenAiBaseResponse;
-import io.github.halcyonsong.liteagent.provider.openai.response.config.OpenAiUsage;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.stream.OpenAiStreamCompletionResponse;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
@@ -79,8 +78,8 @@ class OpenAiStreamStepsTest {
         StreamStepKey next = step.invoke(ctx);
 
         assertEquals(StreamStepKey.ENHANCE_REQUEST, next);
-        assertNotNull(ctx.getAttribute(OpenAiStreamAgentAttributes.PROVIDER_REQUEST, OpenAiChatCompletionRequest.class));
-        assertNotNull(ctx.getAttribute(OpenAiStreamAgentAttributes.RAW_REQUEST, OpenAiChatCompletionRawRequest.class));
+        assertNotNull(ctx.getAttribute(OpenAiAgentAttributes.PROVIDER_REQUEST, OpenAiChatCompletionRequest.class));
+        assertNotNull(ctx.getAttribute(OpenAiAgentAttributes.RAW_REQUEST, OpenAiChatCompletionRawRequest.class));
     }
 
     @Test
@@ -96,10 +95,10 @@ class OpenAiStreamStepsTest {
         StreamAgentContext<OpenAiStreamCompletionResponse> ctx = createContext();
         OpenAiChatCompletionRequest providerRequest = createProviderRequest();
         OpenAiChatCompletionRawRequest rawRequest = new OpenAiChatCompletionRawRequest();
-        ctx.setAttribute(OpenAiStreamAgentAttributes.PROVIDER_REQUEST, providerRequest);
-        ctx.setAttribute(OpenAiStreamAgentAttributes.RAW_REQUEST, rawRequest);
+        ctx.setAttribute(OpenAiAgentAttributes.PROVIDER_REQUEST, providerRequest);
+        ctx.setAttribute(OpenAiAgentAttributes.RAW_REQUEST, rawRequest);
 
-        OpenAiStreamEnhanceRequestStep step = new OpenAiStreamEnhanceRequestStep(new OpenAiClientSupport());
+        OpenAiStreamEnhanceRequestStep step = new OpenAiStreamEnhanceRequestStep(new OpenAiAdvisorsSupport());
         StreamStepKey next = step.invoke(ctx);
 
         assertEquals(StreamStepKey.SEND_REQUEST, next);
@@ -109,7 +108,7 @@ class OpenAiStreamStepsTest {
     @Test
     void enhance_request_should_fail_when_attributes_missing() {
         StreamAgentContext<OpenAiStreamCompletionResponse> ctx = createContext();
-        OpenAiStreamEnhanceRequestStep step = new OpenAiStreamEnhanceRequestStep(new OpenAiClientSupport());
+        OpenAiStreamEnhanceRequestStep step = new OpenAiStreamEnhanceRequestStep(new OpenAiAdvisorsSupport());
 
         assertThrows(IllegalStateException.class, () -> step.invoke(ctx));
     }
@@ -205,7 +204,7 @@ class OpenAiStreamStepsTest {
     private static OpenAiStreamCompletionResponse createChunk(String content, FinishReason finishReason) {
         return new OpenAiStreamCompletionResponse(
                 new OpenAiBaseResponse("resp-1", "chat.completion.chunk", 123L, "test-model"),
-                List.of(new StreamChoice(0, new StreamDelta("assistant", content, null), finishReason)),
+                List.of(new StreamChoice(0, new StreamDelta("assistant", content, null, List.of()), finishReason)),
                 null
         );
     }

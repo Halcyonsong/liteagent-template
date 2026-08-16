@@ -2,62 +2,146 @@ package io.github.halcyonsong.liteagent.provider.openai.agent.stream.factory;
 
 import io.github.halcyonsong.liteagent.agent.stream.hook.StreamStepHook;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.OpenAiStreamAgent;
-import io.github.halcyonsong.liteagent.provider.openai.client.support.OpenAiClientSupport;
+import io.github.halcyonsong.liteagent.provider.openai.runtime.register.OpenAiRuntime;
+import io.github.halcyonsong.liteagent.provider.openai.support.OpenAiAdvisorsSupport;
 import io.github.halcyonsong.liteagent.provider.openai.request.mapper.OpenAiChatRequestMapper;
 import io.github.halcyonsong.liteagent.provider.openai.response.mapper.OpenAiStreamResponseMapper;
 import io.github.halcyonsong.liteagent.provider.openai.runtime.config.HttpRuntimeConfig;
 import io.github.halcyonsong.liteagent.provider.openai.runtime.register.WebClientRegistry;
-import io.github.halcyonsong.liteagent.provider.openai.transport.OpenAiChatStreamTransport;
+import io.github.halcyonsong.liteagent.provider.openai.transport.OpenAiStreamTransport;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * OpenAI 流式 Agent 自动装配入口。
+ * <p>
+ * 提供三类创建方式，按由简到繁排列：
+ * <ol>
+ *     <li>传入现成 {@link WebClient} — 调用方完全自行管理 HTTP 客户端生命周期</li>
+ *     <li>传入 {@link HttpRuntimeConfig} — 通过 {@link OpenAiRuntime} 全局共享 registry 复用 WebClient</li>
+ *     <li>传入自定义 {@link WebClientRegistry} + {@link HttpRuntimeConfig} — 适合 Spring 等外部管理 registry 的场景</li>
+ * </ol>
+ */
 public final class OpenAiStreamAgents {
 
     private OpenAiStreamAgents() {
     }
 
+    // ─── WebClient 入口 ───────────────────────────────────────────
+
+    /**
+     * 基于现成的 WebClient 创建 OpenAiStreamAgent。
+     * <p>
+     * 适合调用方已经自行管理 WebClient 生命周期的场景。
+     *
+     * @param webClient 已构建好的 WebClient 实例
+     */
     public static OpenAiStreamAgent create(WebClient webClient) {
-        Objects.requireNonNull(webClient, "webClient must not be null");
-
-        OpenAiStreamAgentExecutorFactory factory = new OpenAiStreamAgentExecutorFactory(
-                new OpenAiChatRequestMapper(),
-                new OpenAiClientSupport(),
-                new OpenAiChatStreamTransport(webClient),
-                new OpenAiStreamResponseMapper()
-        );
-
-        return new OpenAiStreamAgent(factory.createAgent());
+        return create(webClient, List.of(), 1000);
     }
 
+    /**
+     * 基于现成的 WebClient 创建 OpenAiStreamAgent，并允许传入 hook 与最大步骤数。
+     *
+     * @param webClient    已构建好的 WebClient 实例
+     * @param hooks        步骤钩子列表
+     * @param maxStepCount agent 编排最大步骤数（防止无限循环）
+     */
     public static OpenAiStreamAgent create(WebClient webClient,
                                            List<StreamStepHook> hooks,
                                            int maxStepCount) {
         Objects.requireNonNull(webClient, "webClient must not be null");
-
-        OpenAiStreamAgentExecutorFactory factory = new OpenAiStreamAgentExecutorFactory(
-                new OpenAiChatRequestMapper(),
-                new OpenAiClientSupport(),
-                new OpenAiChatStreamTransport(webClient),
-                new OpenAiStreamResponseMapper()
-        );
-
-        return new OpenAiStreamAgent(factory.createAgent(hooks, maxStepCount));
+        return createAgent(webClient, hooks, maxStepCount);
     }
 
+    // ─── HttpRuntimeConfig 入口（全局共享 registry）─────────────────
+
+    /**
+     * 基于运行时配置创建 OpenAiStreamAgent。
+     * <p>
+     * 内部通过 {@link OpenAiRuntime#sharedRegistry()} 复用 WebClient，
+     * 相同配置的多次调用不会重复创建 HTTP 客户端。
+     *
+     * @param runtimeConfig HTTP 运行时配置
+     */
+    public static OpenAiStreamAgent create(HttpRuntimeConfig runtimeConfig) {
+        return create(OpenAiRuntime.sharedRegistry(), runtimeConfig, List.of(), 1000);
+    }
+
+    /**
+     * 基于运行时配置创建 OpenAiStreamAgent，并指定最大步骤数。
+     *
+     * @param runtimeConfig HTTP 运行时配置
+     * @param maxStepCount  agent 编排最大步骤数（防止无限循环）
+     */
+    public static OpenAiStreamAgent create(HttpRuntimeConfig runtimeConfig, int maxStepCount) {
+        return create(OpenAiRuntime.sharedRegistry(), runtimeConfig, List.of(), maxStepCount);
+    }
+
+    /**
+     * 基于运行时配置创建 OpenAiStreamAgent，并允许传入 hook 与最大步骤数。
+     * <p>
+     * 内部通过 {@link OpenAiRuntime#sharedRegistry()} 复用 WebClient。
+     *
+     * @param runtimeConfig HTTP 运行时配置
+     * @param hooks         步骤钩子列表
+     * @param maxStepCount  agent 编排最大步骤数（防止无限循环）
+     */
+    public static OpenAiStreamAgent create(HttpRuntimeConfig runtimeConfig,
+                                           List<StreamStepHook> hooks,
+                                           int maxStepCount) {
+        return create(OpenAiRuntime.sharedRegistry(), runtimeConfig, hooks, maxStepCount);
+    }
+
+    // ─── 自定义 WebClientRegistry 入口 ────────────────────────────
+
+    /**
+     * 基于自定义 WebClientRegistry 和运行时配置创建 OpenAiStreamAgent。
+     * <p>
+     * 适合 Spring 等由外部管理 registry 生命周期的场景。
+     *
+     * @param registry      自定义的 WebClientRegistry 实例
+     * @param runtimeConfig HTTP 运行时配置
+     */
     public static OpenAiStreamAgent create(WebClientRegistry registry, HttpRuntimeConfig runtimeConfig) {
-        Objects.requireNonNull(registry, "registry must not be null");
-        Objects.requireNonNull(runtimeConfig, "runtimeConfig must not be null");
-        return create(registry.getOrCreateStreamClient(runtimeConfig));
+        return create(registry, runtimeConfig, List.of(), 1000);
     }
 
+    /**
+     * 基于自定义 WebClientRegistry 和运行时配置创建 OpenAiStreamAgent，
+     * 并允许传入 hook 与最大步骤数。
+     *
+     * @param registry      自定义的 WebClientRegistry 实例
+     * @param runtimeConfig HTTP 运行时配置
+     * @param hooks         步骤钩子列表
+     * @param maxStepCount  agent 编排最大步骤数（防止无限循环）
+     */
     public static OpenAiStreamAgent create(WebClientRegistry registry,
                                            HttpRuntimeConfig runtimeConfig,
                                            List<StreamStepHook> hooks,
                                            int maxStepCount) {
         Objects.requireNonNull(registry, "registry must not be null");
         Objects.requireNonNull(runtimeConfig, "runtimeConfig must not be null");
-        return create(registry.getOrCreateStreamClient(runtimeConfig), hooks, maxStepCount);
+        return createAgent(registry.getOrCreateStreamClient(runtimeConfig), hooks, maxStepCount);
+    }
+
+    // ─── 内部实现 ─────────────────────────────────────────────────
+
+    /**
+     * 组装底层组件并创建 StreamAgentExecutor。
+     */
+    private static OpenAiStreamAgent createAgent(WebClient webClient,
+                                                 List<StreamStepHook> hooks,
+                                                 int maxStepCount) {
+        OpenAiStreamAgentExecutorFactory factory = new OpenAiStreamAgentExecutorFactory(
+                new OpenAiChatRequestMapper(),
+                new OpenAiAdvisorsSupport(),
+                new OpenAiStreamTransport(webClient),
+                new OpenAiStreamResponseMapper()
+        );
+
+        return new OpenAiStreamAgent(factory.createAgent(hooks, maxStepCount));
     }
 }

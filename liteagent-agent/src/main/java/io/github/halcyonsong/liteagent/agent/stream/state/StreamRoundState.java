@@ -1,6 +1,6 @@
 package io.github.halcyonsong.liteagent.agent.stream.state;
 
-import io.github.halcyonsong.liteagent.core.message.Message;
+import io.github.halcyonsong.liteagent.core.message.norm.Message;
 import io.github.halcyonsong.liteagent.core.message.type.ToolMessage;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,11 +10,8 @@ import java.util.*;
 /**
  * 单轮流式请求的运行时状态。
  * <p>
- * 该对象描述某一轮流式请求的控制状态、增量聚合容器、
- * 最终聚合结果以及当前轮附加数据。
- * <p>
- * 它不承担整次编排的全局状态管理；
- * 多轮历史由 StreamAgentContext 中的 rounds 列表统一维护。
+ * 保存当前轮的增量聚合器、最终响应、待追加消息和附加属性。
+ * 多轮历史由 StreamAgentContext 的 rounds 列表维护。
  */
 @Getter
 @Setter
@@ -41,18 +38,12 @@ public class StreamRoundState {
     private final List<ToolMessage> pendingToolMessages = new ArrayList<>();
 
     /**
-     * provider-specific 的本轮增量聚合器。
-     * <p>
-     * 该对象通常用于在 chunk 到达过程中累积 content、reasoning、
-     * tool calls、usage 等增量数据。
+     * 当前轮增量聚合器。
      */
     private Object accumulator;
 
     /**
-     * provider-specific 的本轮最终聚合结果。
-     * <p>
-     * 该对象通常由 accumulator 在本轮结束后构造，
-     * 可供 BUILD_RESULT、EXECUTE_TOOL 或调试逻辑读取。
+     * 当前轮聚合完成后的最终响应。
      */
     private Object finalResponse;
 

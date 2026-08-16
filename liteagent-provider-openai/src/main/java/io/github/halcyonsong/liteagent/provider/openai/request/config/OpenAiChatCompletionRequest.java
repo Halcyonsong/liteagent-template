@@ -19,12 +19,11 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * OpenAI-compatible chat completions 请求包装对象。
+ * OpenAI-compatible provider 级编排输入对象。
  * <p>
- * 该对象面向 provider 层使用，组合统一基础请求信息、统一聊天请求内容、
- * 通用聊天参数以及 OpenAI-compatible 协议扩展参数。
- * <p>
- * 该类本身不是直接发送的 JSON 请求体，实际发送时应映射为 raw request。
+ * 封装基础请求、聊天消息、completion 参数以及 request/response advisor，
+ * 供 agent 链路在构造 raw 请求和处理响应时使用。
+ * 它不是直接发送的 JSON 请求体。
  */
 @Getter
 public class OpenAiChatCompletionRequest implements Invocation {
@@ -38,19 +37,19 @@ public class OpenAiChatCompletionRequest implements Invocation {
     private final OpenAiCompletionOptions completionOptions;
 
     /**
-     * 请求增强器列表。
+     * 请求增强器列表，作用于 request -> rawRequest 的构造阶段。
      */
     @JsonIgnore
     private final List<RequestAdvisor<OpenAiChatCompletionRequest, OpenAiChatCompletionRawRequest>> requestAdvisors;
 
     /**
-     * 普通对话响应增强器列表。
+     * 普通聊天响应增强器列表，作用于 raw response -> chat response。
      */
     @JsonIgnore
     private final List<ResponseAdvisor<OpenAiChatCompletionRawResponse, OpenAiChatCompletionResponse>> chatResponseAdvisors;
 
     /**
-     * 流式响应增强器列表。
+     * 流式响应增强器列表，作用于 raw response -> stream response。
      */
     @JsonIgnore
     private final List<ResponseAdvisor<OpenAiChatCompletionRawResponse, OpenAiStreamCompletionResponse>> streamResponseAdvisors;

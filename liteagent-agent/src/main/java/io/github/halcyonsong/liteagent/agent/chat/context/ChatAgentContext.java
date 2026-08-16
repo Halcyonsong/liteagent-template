@@ -1,7 +1,7 @@
 package io.github.halcyonsong.liteagent.agent.chat.context;
 
 import io.github.halcyonsong.liteagent.agent.state.AgentTerminationReason;
-import io.github.halcyonsong.liteagent.core.message.Message;
+import io.github.halcyonsong.liteagent.core.message.norm.Message;
 import io.github.halcyonsong.liteagent.core.message.type.ToolMessage;
 import io.github.halcyonsong.liteagent.core.model.request.norm.Invocation;
 import io.github.halcyonsong.liteagent.core.model.response.chat.Result;
@@ -16,6 +16,12 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * 单次 chat 编排调用的上下文。
+ * <p>
+ * 该对象只在一次 execute 调用内使用，不跨请求复用。
+ * 它承载本次执行的输入、工作态消息、扩展属性、工具注册表和最终结果。
+ */
 @Getter
 public class ChatAgentContext {
 
@@ -27,21 +33,26 @@ public class ChatAgentContext {
     @Setter
     private Result result;
 
+    /**
+     * 当前编排可用的工具注册表，由初始化阶段的增强器写入。
+     */
     @Setter
     private ToolRegistry toolRegistry;
 
     /**
-     * 当前轮待写入 workingMessages 的 assistant 消息。
+     * 当前轮待统一追加到 workingMessages 的 assistant 消息缓存。
      */
     private final List<Message> pendingAssistantMessages = new ArrayList<>();
 
     /**
-     * 当前轮待写入 workingMessages 的 tool 消息。
+     * 当前轮待统一追加到 workingMessages 的 tool 消息缓存。
      */
     private final List<ToolMessage> pendingToolMessages = new ArrayList<>();
 
     private int iteration;
     private int maxIterations = 10;
+
+    private volatile boolean cancelled = false;
 
     @Setter
     private AgentTerminationReason terminationReason;
@@ -131,4 +142,9 @@ public class ChatAgentContext {
         }
         this.maxIterations = maxIterations;
     }
+
+    public void cancel() {
+        this.cancelled = true;
+    }
+
 }

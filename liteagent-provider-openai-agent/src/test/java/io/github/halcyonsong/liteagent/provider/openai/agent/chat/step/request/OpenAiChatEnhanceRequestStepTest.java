@@ -4,8 +4,8 @@ import io.github.halcyonsong.liteagent.agent.chat.context.ChatAgentContext;
 import io.github.halcyonsong.liteagent.agent.chat.step.ChatStepKey;
 import io.github.halcyonsong.liteagent.core.message.type.constructor.Messages;
 import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
-import io.github.halcyonsong.liteagent.provider.openai.agent.chat.constant.OpenAiChatAgentAttributes;
-import io.github.halcyonsong.liteagent.provider.openai.client.support.OpenAiClientSupport;
+import io.github.halcyonsong.liteagent.provider.openai.agent.constant.OpenAiAgentAttributes;
+import io.github.halcyonsong.liteagent.provider.openai.support.OpenAiAdvisorsSupport;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiBaseRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.raw.OpenAiChatCompletionRawRequest;
@@ -31,10 +31,10 @@ class OpenAiChatEnhanceRequestStepTest {
 
         OpenAiChatCompletionRawRequest rawRequest = new OpenAiChatCompletionRawRequest();
         ChatAgentContext context = ChatAgentContext.create(request);
-        context.setAttribute(OpenAiChatAgentAttributes.PROVIDER_REQUEST, request);
-        context.setAttribute(OpenAiChatAgentAttributes.RAW_REQUEST, rawRequest);
+        context.setAttribute(OpenAiAgentAttributes.PROVIDER_REQUEST, request);
+        context.setAttribute(OpenAiAgentAttributes.RAW_REQUEST, rawRequest);
 
-        OpenAiChatEnhanceRequestStep step = new OpenAiChatEnhanceRequestStep(new OpenAiClientSupport());
+        OpenAiChatEnhanceRequestStep step = new OpenAiChatEnhanceRequestStep(new OpenAiAdvisorsSupport());
 
         ChatStepKey next = step.invoke(context);
 
@@ -45,7 +45,7 @@ class OpenAiChatEnhanceRequestStepTest {
 
     @Test
     void invoke_should_fail_when_context_missing_required_attributes() {
-        OpenAiChatEnhanceRequestStep step = new OpenAiChatEnhanceRequestStep(new OpenAiClientSupport());
+        OpenAiChatEnhanceRequestStep step = new OpenAiChatEnhanceRequestStep(new OpenAiAdvisorsSupport());
         ChatAgentContext context = ChatAgentContext.create(createRequest());
 
         assertThrows(IllegalStateException.class, () -> step.invoke(context));

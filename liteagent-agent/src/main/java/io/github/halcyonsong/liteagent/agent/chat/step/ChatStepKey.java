@@ -1,20 +1,58 @@
 package io.github.halcyonsong.liteagent.agent.chat.step;
 
 /**
- * 同步 chat 编排内部使用的步骤标识。
+ * 同步 chat 编排步骤标识。
+ * <p>
+ * 以接口形式定义，内置常量覆盖标准编排流程，
+ * 同时允许调用方通过 {@link #of(String)} 创建自定义 key，
+ * 将自定义步骤插入链路。
+ * <p>
+ * 内置常量均为单例，使用 {@code ==} 或 {@code equals} 比较均可；
+ * 自定义 key 基于 name 做相等性判断。
  */
-public enum ChatStepKey {
-    BEGIN,                  // 起始步骤
-    INIT_WORKING_MESSAGES,  // 初始化工作态消息历史
-    INIT_TOOL_REGISTRY,     // 初始化工具注册表
-    MAP_REQUEST,            // 将统一输入映射为 provider 请求
-    ENHANCE_REQUEST,        // 对请求应用 advisor / 增强逻辑
-    SEND_REQUEST,           // 发送普通对话请求
-    MAP_RESPONSE,           // 映射普通对话响应
-    ENHANCE_RESPONSE,       // 对响应应用 advisor / 增强逻辑
-    ANALYZE_RESPONSE,       // 分析响应，决定下一步
-    EXECUTE_TOOL,           // 执行工具并准备下一轮
-    APPEND_MESSAGES,        // 追加暂存的工具执行结果史
-    BUILD_RESULT,           // 构建最终结果
-    END                     // 结束
+public interface ChatStepKey {
+
+    /**
+     * 步骤标识名称，用于日志、调试和相等性判断。
+     */
+    String name();
+
+    // ─── 内置步骤 ───────────────────────────────────────────────
+
+    ChatStepKey BEGIN = of("BEGIN");
+    ChatStepKey INIT_WORKING_MESSAGES = of("INIT_WORKING_MESSAGES");
+    ChatStepKey INIT_TOOL_REGISTRY = of("INIT_TOOL_REGISTRY");
+    ChatStepKey MAP_REQUEST = of("MAP_REQUEST");
+    ChatStepKey ENHANCE_REQUEST = of("ENHANCE_REQUEST");
+    ChatStepKey SEND_REQUEST = of("SEND_REQUEST");
+    ChatStepKey MAP_RESPONSE = of("MAP_RESPONSE");
+    ChatStepKey ENHANCE_RESPONSE = of("ENHANCE_RESPONSE");
+    ChatStepKey ANALYZE_RESPONSE = of("ANALYZE_RESPONSE");
+    ChatStepKey EXECUTE_TOOL = of("EXECUTE_TOOL");
+    ChatStepKey APPEND_MESSAGES = of("APPEND_MESSAGES");
+    ChatStepKey BUILD_RESULT = of("BUILD_RESULT");
+    ChatStepKey END = of("END");
+
+    // ─── 自定义 key 工厂 ───────────────────────────────────────
+
+    /**
+     * 创建自定义步骤标识。
+     * <p>
+     * 两个相同 name 的 key 视为相等，可用于在步骤注册表中查找。
+     *
+     * @param name 步骤标识名称，不可为 blank
+     * @return 新的步骤标识实例
+     */
+    static ChatStepKey of(String name) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("name must not be blank");
+        }
+        return new SimpleChatStepKey(name);
+    }
+
+    /**
+     * 默认实现，基于 name 的 record。
+     */
+    record SimpleChatStepKey(String name) implements ChatStepKey {
+    }
 }

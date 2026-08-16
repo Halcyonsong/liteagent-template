@@ -98,7 +98,7 @@ class OpenAiStreamAgentTest {
     private static OpenAiStreamCompletionResponse createChunk(String content, FinishReason finishReason) {
         return new OpenAiStreamCompletionResponse(
                 new OpenAiBaseResponse("resp-1", "chat.completion.chunk", 123L, "test-model"),
-                List.of(new StreamChoice(0, new StreamDelta("assistant", content, null), finishReason)),
+                List.of(new StreamChoice(0, new StreamDelta("assistant", content, null, List.of()), finishReason)),
                 null
         );
     }

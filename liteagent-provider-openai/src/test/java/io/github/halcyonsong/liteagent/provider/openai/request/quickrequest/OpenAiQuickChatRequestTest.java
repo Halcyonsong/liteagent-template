@@ -20,7 +20,7 @@ class OpenAiQuickChatRequestTest {
                 .systemMessage("you are helpful")
                 .build();
 
-        OpenAiBaseRequest baseRequest = request.toBaseRequest();
+        OpenAiBaseRequest baseRequest = request.toOpenAiBaseRequest();
 
         assertEquals("https://example.com", baseRequest.getBaseUrl());
         assertEquals("test-key", baseRequest.getApiKey());
@@ -73,7 +73,7 @@ class OpenAiQuickChatRequestTest {
                 .systemMessage("you are helpful")
                 .build();
 
-        OpenAiChatCompletionRequest providerRequest = request.toRequest();
+        OpenAiChatCompletionRequest providerRequest = request.toChatCompletion();
 
         assertNotNull(providerRequest.getBaseRequest());
         assertNotNull(providerRequest.getChatRequest());

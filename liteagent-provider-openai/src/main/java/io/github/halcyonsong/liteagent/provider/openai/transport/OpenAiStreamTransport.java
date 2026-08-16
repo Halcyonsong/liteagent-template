@@ -19,16 +19,16 @@ import java.util.Objects;
  * OpenAI-compatible 流式对话请求发送器。
  */
 @Slf4j
-public class OpenAiChatStreamTransport {
+public class OpenAiStreamTransport {
 
     private final WebClient webClient;
     private final ObjectMapper objectMapper;
 
-    public OpenAiChatStreamTransport(WebClient webClient) {
+    public OpenAiStreamTransport(WebClient webClient) {
         this(webClient, JsonSupport.getObjectMapper());
     }
 
-    public OpenAiChatStreamTransport(WebClient webClient, ObjectMapper objectMapper) {
+    public OpenAiStreamTransport(WebClient webClient, ObjectMapper objectMapper) {
         this.webClient = Objects.requireNonNull(webClient, "webClient must not be null");
         this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper must not be null");
     }

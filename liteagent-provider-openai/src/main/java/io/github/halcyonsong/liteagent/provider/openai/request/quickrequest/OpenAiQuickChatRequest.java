@@ -10,10 +10,10 @@ import lombok.Getter;
 import java.util.Objects;
 
 /**
- * OpenAI-compatible 快速聊天请求构造对象。
+ * OpenAI-compatible 快速构造入口。
  * <p>
- * 面向快速测试和最小调用场景，只要求提供 baseUrl、apiKey、model、
- * userMessage 和可选的 systemMessage，内部自动封装为完整的 provider 请求对象。
+ * 适合示例、测试或简单调用场景，
+ * 最终通过 toChatCompletion() 转换为标准的 OpenAiChatCompletionRequest。
  */
 @Getter
 public class OpenAiQuickChatRequest {
@@ -35,7 +35,7 @@ public class OpenAiQuickChatRequest {
     /**
      * 转换为完整的 OpenAI provider 基础请求对象。
      */
-    public OpenAiBaseRequest toBaseRequest() {
+    public OpenAiBaseRequest toOpenAiBaseRequest() {
         return OpenAiBaseRequest.builder()
                 .baseUrl(baseUrl)
                 .apiKey(apiKey)
@@ -62,9 +62,9 @@ public class OpenAiQuickChatRequest {
      * <p>
      * 当前快速构造场景不包含 completionOptions，默认使用 null。
      */
-    public OpenAiChatCompletionRequest toRequest() {
+    public OpenAiChatCompletionRequest toChatCompletion() {
         return OpenAiChatCompletionRequest.builder()
-                .baseRequest(toBaseRequest())
+                .baseRequest(toOpenAiBaseRequest())
                 .chatRequest(toChatRequest())
                 .completionOptions(null)
                 .build();

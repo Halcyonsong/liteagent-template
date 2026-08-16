@@ -9,7 +9,7 @@ import io.github.halcyonsong.liteagent.core.model.enums.FinishReason;
 import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
 import io.github.halcyonsong.liteagent.core.model.response.chat.ChatChoice;
 import io.github.halcyonsong.liteagent.core.model.response.chat.ChatResponse;
-import io.github.halcyonsong.liteagent.provider.openai.agent.chat.constant.OpenAiChatAgentAttributes;
+import io.github.halcyonsong.liteagent.provider.openai.agent.constant.OpenAiAgentAttributes;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiBaseRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.OpenAiBaseResponse;
@@ -30,14 +30,14 @@ class OpenAiResponseStepsTest {
         ChatAgentContext context = ChatAgentContext.create(createRequest());
         OpenAiChatCompletionRawResponse rawResponse = createRawResponse();
 
-        context.setAttribute(OpenAiChatAgentAttributes.RAW_RESPONSE, rawResponse);
+        context.setAttribute(OpenAiAgentAttributes.RAW_RESPONSE, rawResponse);
         OpenAiChatMapResponseStep step = new OpenAiChatMapResponseStep(new OpenAiChatResponseMapper());
 
         ChatStepKey next = step.invoke(context);
 
         assertEquals(ChatStepKey.ENHANCE_RESPONSE, next);
         OpenAiChatCompletionResponse response = context.getAttribute(
-                OpenAiChatAgentAttributes.PROVIDER_RESPONSE,
+                OpenAiAgentAttributes.PROVIDER_RESPONSE,
                 OpenAiChatCompletionResponse.class
         );
         assertNotNull(response);
@@ -60,19 +60,19 @@ class OpenAiResponseStepsTest {
     @Test
     void analyze_response_should_continue_when_response_exists() {
         ChatAgentContext context = ChatAgentContext.create(createRequest());
-        context.setAttribute(OpenAiChatAgentAttributes.PROVIDER_RESPONSE, createProviderResponse());
+        context.setAttribute(OpenAiAgentAttributes.PROVIDER_RESPONSE, createProviderResponse());
         OpenAiChatAnalyzeResponseStep step = new OpenAiChatAnalyzeResponseStep();
 
         ChatStepKey next = step.invoke(context);
 
-        assertEquals(ChatStepKey.BUILD_RESULT, next);
+        assertEquals(ChatStepKey.APPEND_MESSAGES, next);
     }
 
     @Test
     void build_result_should_write_result_and_mark_completed() {
         ChatAgentContext context = ChatAgentContext.create(createRequest());
         OpenAiChatCompletionResponse response = createProviderResponse();
-        context.setAttribute(OpenAiChatAgentAttributes.PROVIDER_RESPONSE, response);
+        context.setAttribute(OpenAiAgentAttributes.PROVIDER_RESPONSE, response);
         OpenAiChatBuildResultStep step = new OpenAiChatBuildResultStep();
 
         ChatStepKey next = step.invoke(context);

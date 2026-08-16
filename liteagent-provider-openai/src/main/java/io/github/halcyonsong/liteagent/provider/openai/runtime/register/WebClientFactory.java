@@ -12,7 +12,7 @@ import java.time.Duration;
 /**
  * 基础 WebClient 工厂。
  * <p>
- * 负责根据运行时配置创建不绑定 provider 地址和鉴权信息的基础 WebClient 实例。
+ * 仅负责创建运行时客户端，不负责 provider 认证和 endpoint 绑定。
  */
 @Slf4j
 public class WebClientFactory {

@@ -1,4 +1,4 @@
-package io.github.halcyonsong.liteagent.provider.openai.client.support;
+package io.github.halcyonsong.liteagent.provider.openai.support;
 
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.raw.OpenAiChatCompletionRawRequest;
@@ -6,7 +6,7 @@ import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.Open
 import io.github.halcyonsong.liteagent.provider.openai.response.config.stream.OpenAiStreamCompletionResponse;
 import io.github.halcyonsong.liteagent.provider.openai.response.raw.OpenAiChatCompletionRawResponse;
 
-public class OpenAiClientSupport {
+public class OpenAiAdvisorsSupport {
 
     /**
      * 应用请求增强器。

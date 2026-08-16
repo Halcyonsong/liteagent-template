@@ -4,7 +4,7 @@ import io.github.halcyonsong.liteagent.agent.chat.context.ChatAgentContext;
 import io.github.halcyonsong.liteagent.agent.chat.step.ChatStepKey;
 import io.github.halcyonsong.liteagent.core.message.type.constructor.Messages;
 import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
-import io.github.halcyonsong.liteagent.provider.openai.agent.chat.constant.OpenAiChatAgentAttributes;
+import io.github.halcyonsong.liteagent.provider.openai.agent.constant.OpenAiAgentAttributes;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiBaseRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.mapper.OpenAiChatRequestMapper;
@@ -34,10 +34,10 @@ class OpenAiChatMapRequestStepTest {
         ChatStepKey next = step.invoke(context);
 
         assertEquals(ChatStepKey.ENHANCE_REQUEST, next);
-        assertSame(request, context.getAttribute(OpenAiChatAgentAttributes.PROVIDER_REQUEST));
+        assertSame(request, context.getAttribute(OpenAiAgentAttributes.PROVIDER_REQUEST));
 
         OpenAiChatCompletionRawRequest rawRequest = context.getAttribute(
-                OpenAiChatAgentAttributes.RAW_REQUEST,
+                OpenAiAgentAttributes.RAW_REQUEST,
                 OpenAiChatCompletionRawRequest.class
         );
         assertNotNull(rawRequest);

@@ -5,13 +5,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.halcyonsong.liteagent.core.model.enums.FinishReason;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class StreamChoiceTest {
 
     @Test
     void shouldCreateStreamChoiceSuccessfully() {
-        StreamDelta delta = new StreamDelta("assistant", "内容", "推理");
+        StreamDelta delta = new StreamDelta("assistant", "内容", "推理", List.of());
         StreamChoice choice = new StreamChoice(0, delta, FinishReason.STOP);
 
         assertEquals(0, choice.getIndex());
@@ -31,7 +33,7 @@ class StreamChoiceTest {
 
     @Test
     void shouldSerializeToJson() throws Exception {
-        StreamDelta delta = new StreamDelta("assistant", "hello", "thinking");
+        StreamDelta delta = new StreamDelta("assistant", "hello", "thinking", List.of());
         StreamChoice choice = new StreamChoice(1, delta, FinishReason.LENGTH);
 
         String json = choice.toJson();

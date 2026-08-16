@@ -34,7 +34,7 @@ class MessageTypesTest {
 
     @Test
     void shouldCreateToolMessage() {
-        ToolMessage message = new ToolMessage("tool output");
+        ToolMessage message = new ToolMessage("tool output", "tool-call-id");
         assertEquals(MessageRole.TOOL, message.getRole());
         assertEquals("tool output", message.getContent());
     }

@@ -1,4 +1,4 @@
-package io.github.halcyonsong.liteagent.core.message;
+package io.github.halcyonsong.liteagent.core.message.norm;
 
 import io.github.halcyonsong.liteagent.core.message.enums.MessageRole;
 

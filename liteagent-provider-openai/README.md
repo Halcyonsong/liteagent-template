@@ -94,7 +94,7 @@ flowchart TD
 流式调用：
 
 - `OpenAiStreamClient`
-- `OpenAiChatStreamTransport`
+- `OpenAiStreamTransport`
 
 快捷构造：
 

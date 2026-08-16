@@ -1,8 +1,11 @@
 package io.github.halcyonsong.liteagent.core.exception;
 
+import lombok.Getter;
+
 /**
  * LiteAgent 框架运行时异常基类。
  */
+@Getter
 public class LiteAgentException extends RuntimeException {
 
     private final ErrorCode errorCode;
@@ -28,7 +31,4 @@ public class LiteAgentException extends RuntimeException {
         this.errorCode = errorCode == null ? ErrorCode.UNKNOWN : errorCode;
     }
 
-    public ErrorCode getErrorCode() {
-        return errorCode;
-    }
 }

@@ -24,7 +24,7 @@ class ProviderReasoningExampleTest extends OpenAiExampleSupport {
 
         ChatRequest chatRequest = ChatRequest.builder()
                 .addMessage(Messages.system("You are a helpful assistant."))
-                .addMessage(Messages.user("请回答一个需要推理的问题，并在支持时返回 reasoning_content。"))
+                .addMessage(Messages.user("你好"))
                 .build();
 
         OpenAiChatCompletionRequest request = OpenAiChatCompletionRequest.builder()

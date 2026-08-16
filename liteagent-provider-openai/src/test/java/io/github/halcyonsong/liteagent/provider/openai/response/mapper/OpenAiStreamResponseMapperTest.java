@@ -96,6 +96,6 @@ class OpenAiStreamResponseMapperTest {
         assertNull(choice.getDelta().getRole());
         assertNull(choice.getDelta().getContent());
         assertNull(choice.getDelta().getReasoningContent());
-        assertEquals(FinishReason.UNKNOWN, choice.getFinishReason());
+        assertEquals(null, choice.getFinishReason());
     }
 }

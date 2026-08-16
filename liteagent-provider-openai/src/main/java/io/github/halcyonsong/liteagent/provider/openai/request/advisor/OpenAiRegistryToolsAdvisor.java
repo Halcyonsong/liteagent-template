@@ -5,7 +5,7 @@ import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistry;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.raw.OpenAiChatCompletionRawRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.tool.OpenAiToolSpec;
-import io.github.halcyonsong.liteagent.provider.openai.request.config.tool.OpenAiToolSpecResolver;
+import io.github.halcyonsong.liteagent.provider.openai.request.mapper.OpenAiToolSpecResolver;
 import lombok.Getter;
 
 import java.util.List;
@@ -13,7 +13,9 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * 基于工具注册表的 tools 请求增强器。
+ * 将 ToolRegistry 解析为 OpenAI tools 并写入 rawRequest。
+ * <p>
+ * 只负责工具定义注入，不负责工具执行。
  */
 @Getter
 public class OpenAiRegistryToolsAdvisor implements RequestAdvisor<OpenAiChatCompletionRequest, OpenAiChatCompletionRawRequest> {

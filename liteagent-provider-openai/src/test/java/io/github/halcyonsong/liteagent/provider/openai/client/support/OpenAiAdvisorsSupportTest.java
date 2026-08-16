@@ -6,6 +6,7 @@ import io.github.halcyonsong.liteagent.core.model.request.norm.RequestAdvisor;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiBaseRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.raw.OpenAiChatCompletionRawRequest;
+import io.github.halcyonsong.liteagent.provider.openai.support.OpenAiAdvisorsSupport;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -13,9 +14,9 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class OpenAiClientSupportTest {
+class OpenAiAdvisorsSupportTest {
 
-    private final OpenAiClientSupport support = new OpenAiClientSupport();
+    private final OpenAiAdvisorsSupport support = new OpenAiAdvisorsSupport();
 
     @Test
     void apply_advisors_should_run_all_advisors_in_order() {

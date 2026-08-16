@@ -5,6 +5,7 @@ import io.github.halcyonsong.liteagent.core.tool.annotation.ToolMethod;
 import io.github.halcyonsong.liteagent.core.tool.annotation.ToolParam;
 import io.github.halcyonsong.liteagent.core.tool.impl.ToolRegistries;
 import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistry;
+import io.github.halcyonsong.liteagent.provider.openai.request.mapper.OpenAiToolSpecResolver;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

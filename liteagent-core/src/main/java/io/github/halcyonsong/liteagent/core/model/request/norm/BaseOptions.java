@@ -1,10 +1,9 @@
 package io.github.halcyonsong.liteagent.core.model.request.norm;
 
 /**
- * 请求选项基础约束。
+ * 请求选项的标记接口。
  * <p>
- * 用于统一标识各类请求选项对象，
- * 例如 core 的通用聊天选项、provider 的扩展选项等。
+ * 仅用于统一不同 provider 的 options 类型，不约束具体行为。
  */
 public interface BaseOptions {
 }

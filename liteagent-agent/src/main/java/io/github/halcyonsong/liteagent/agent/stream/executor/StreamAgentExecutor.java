@@ -1,5 +1,6 @@
 package io.github.halcyonsong.liteagent.agent.stream.executor;
 
+import io.github.halcyonsong.liteagent.agent.state.AgentTerminationReason;
 import io.github.halcyonsong.liteagent.agent.stream.context.StreamAgentContext;
 import io.github.halcyonsong.liteagent.agent.stream.hook.StreamStepHook;
 import io.github.halcyonsong.liteagent.agent.stream.state.StreamRoundState;
@@ -9,7 +10,7 @@ import io.github.halcyonsong.liteagent.agent.stream.step.StreamStepKey;
 import io.github.halcyonsong.liteagent.agent.stream.step.StreamSyncStep;
 import reactor.core.publisher.Flux;
 
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -17,40 +18,17 @@ import java.util.Objects;
 /**
  * 基于 step key 驱动的流式执行器。
  * <p>
- * 执行器分为三个阶段：
- * 1. Phase 1：同步准备阶段，顺序推进到 SEND_REQUEST
- * 2. Phase 2：流式管道构建阶段，顺序包装上游流直到 STREAM_END
- * 3. Phase 3：轮次调度阶段，通过 expand 在单轮结束后决定是否进入下一轮
- * <p>
- * 该执行器只负责流式编排流程和轮次调度，
- * 不直接解析 provider chunk 内部结构；
- * 具体的 chunk 增量分析、响应聚合和工具调用判断应由 provider-specific 的流步骤完成。
- *
- * @param <T> provider 对外输出的单个流元素类型
+ * 通过 expand 处理轮次展开；每次 buildNext 只消费一个已完成的 round，
+ * 决定是否进入下一轮、追加消息或结束执行。
  */
 public final class StreamAgentExecutor<T> {
 
-    /**
-     * 服务于流式编排的同步步骤注册表。
-     */
     private final Map<StreamStepKey, StreamSyncStep> syncSteps;
 
-    /**
-     * 服务于流式编排的流步骤注册表。
-     * <p>
-     * 每个步骤处理的都是 Flux<T>，并返回处理后的 Flux<T>。
-     * 这些步骤通常由 provider 层提供，用于执行 chunk 增强、增量聚合和轮次分析。
-     */
     private final Map<StreamStepKey, StreamStep<Flux<T>>> streamSteps;
 
-    /**
-     * 流步骤生命周期钩子。
-     */
     private final List<StreamStepHook> hooks;
 
-    /**
-     * 单次执行允许的最大步骤数。
-     */
     private final int maxStepCount;
 
     public StreamAgentExecutor(Map<StreamStepKey, StreamSyncStep> syncSteps,
@@ -68,69 +46,42 @@ public final class StreamAgentExecutor<T> {
             throw new IllegalArgumentException("maxStepCount must be greater than zero");
         }
 
-        this.syncSteps = new EnumMap<>(StreamStepKey.class);
-        this.syncSteps.putAll(syncSteps);
-
-        this.streamSteps = new EnumMap<>(StreamStepKey.class);
-        this.streamSteps.putAll(streamSteps);
-
+        this.syncSteps = new HashMap<>(syncSteps);
+        this.streamSteps = new HashMap<>(streamSteps);
         this.hooks = hooks == null ? List.of() : List.copyOf(hooks);
         this.maxStepCount = maxStepCount;
     }
 
-    /**
-     * 执行一次完整的流式编排准备，并将惰性输出流写入上下文。
-     * <p>
-     * 该方法返回时不会主动消费流；
-     * 真正执行发生在调用方订阅 output 时。
-     */
     public StreamAgentContext<T> executeContext(StreamAgentContext<T> context) {
         Objects.requireNonNull(context, "context must not be null");
         context.setOutput(buildFlow(context));
         return context;
     }
 
-    /**
-     * 执行一次完整的流式编排，并直接返回 provider 对外输出的流。
-     *
-     * @param context 本次流式编排上下文
-     * @return provider 对外输出的流
-     */
     public Flux<T> execute(StreamAgentContext<T> context) {
         return executeContext(context).getOutput();
     }
 
-    /**
-     * 构建完整的多轮流式输出。
-     * <p>
-     * 先构建第一轮流，再通过 expand 在轮次完成后决定是否进入下一轮。
-     */
     private Flux<T> buildFlow(StreamAgentContext<T> context) {
         return buildRound(context)
                 .expand(chunk -> buildNext(context))
-                /*
-                 * 哨兵必须在 expand 之后过滤。
-                 * 如果放在 expand 之前，buildNext 将无法收到它。
-                 */
-                .filter(chunk -> !context.isControlSignal(chunk));
+                .filter(chunk -> !context.isControlSignal(chunk))
+                .doOnCancel(() -> context.setTerminationReason(AgentTerminationReason.CANCELLED));
     }
 
-    /**
-     * 构建单轮流式请求的完整输出。
-     * <p>
-     * 在进入当前轮时，会先创建并登记新的 StreamRoundState。
-     * <p>
-     * Phase 1：同步准备
-     * Phase 2：流式管道构建
-     */
     private Flux<T> buildRound(StreamAgentContext<T> context) {
+        if (context.isCancelled()) {
+            context.setTerminationReason(AgentTerminationReason.CANCELLED);
+            return Flux.empty();
+        }
+
         StreamRoundState roundState = new StreamRoundState(context.getIteration());
         context.addRound(roundState);
 
         StreamStepKey syncKey = StreamStepKey.BEGIN;
         int executedSteps = 0;
 
-        while (syncKey != StreamStepKey.SEND_REQUEST) {
+        while (!syncKey.equals(StreamStepKey.SEND_REQUEST)) {
             if (++executedSteps > maxStepCount) {
                 throw new IllegalStateException("StreamAgent step limit exceeded: " + maxStepCount);
             }
@@ -140,7 +91,7 @@ public final class StreamAgentExecutor<T> {
         Flux<T> stream = null;
         StreamStepKey streamKey = StreamStepKey.SEND_REQUEST;
 
-        while (streamKey != StreamStepKey.STREAM_END) {
+        while (!streamKey.equals(StreamStepKey.STREAM_END)) {
             if (++executedSteps > maxStepCount) {
                 throw new IllegalStateException("StreamAgent step limit exceeded: " + maxStepCount);
             }
@@ -152,11 +103,6 @@ public final class StreamAgentExecutor<T> {
         return stream;
     }
 
-    /**
-     * 在当前轮输出的每个元素到达后，检查是否需要展开下一轮。
-     * <p>
-     * 实际上只有当前轮已经完成时，才会真正触发后续同步决策逻辑。
-     */
     private Flux<T> buildNext(StreamAgentContext<T> context) {
         StreamRoundState roundState = context.currentRound();
 
@@ -173,7 +119,7 @@ public final class StreamAgentExecutor<T> {
 
         StreamStepKey afterCurrentRound;
 
-        if (nextAction == StreamStepKey.EXECUTE_TOOL) {
+        if (nextAction.equals(StreamStepKey.EXECUTE_TOOL)) {
             afterCurrentRound = invokeSyncStep(
                     StreamStepKey.EXECUTE_TOOL,
                     context
@@ -182,23 +128,23 @@ public final class StreamAgentExecutor<T> {
             afterCurrentRound = nextAction;
         }
 
-        if (afterCurrentRound == StreamStepKey.APPEND_MESSAGES) {
+        if (afterCurrentRound.equals(StreamStepKey.APPEND_MESSAGES)) {
             afterCurrentRound = invokeSyncStep(
                     StreamStepKey.APPEND_MESSAGES,
                     context
             );
         }
 
-        if (afterCurrentRound == StreamStepKey.BUILD_RESULT) {
+        if (afterCurrentRound.equals(StreamStepKey.BUILD_RESULT)) {
             invokeSyncStep(StreamStepKey.BUILD_RESULT, context);
             return Flux.empty();
         }
 
-        if (afterCurrentRound == StreamStepKey.BEGIN) {
+        if (afterCurrentRound.equals(StreamStepKey.BEGIN)) {
             return buildRound(context);
         }
 
-        if (afterCurrentRound == StreamStepKey.END) {
+        if (afterCurrentRound.equals(StreamStepKey.END)) {
             return Flux.empty();
         }
 

@@ -1,7 +1,9 @@
-package io.github.halcyonsong.liteagent.provider.openai.request.config.tool;
+package io.github.halcyonsong.liteagent.provider.openai.request.mapper;
 
 import io.github.halcyonsong.liteagent.core.tool.norm.ToolDefinition;
 import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistry;
+import io.github.halcyonsong.liteagent.provider.openai.request.config.tool.OpenAiFunctionSpec;
+import io.github.halcyonsong.liteagent.provider.openai.request.config.tool.OpenAiToolSpec;
 
 import java.util.List;
 import java.util.Objects;

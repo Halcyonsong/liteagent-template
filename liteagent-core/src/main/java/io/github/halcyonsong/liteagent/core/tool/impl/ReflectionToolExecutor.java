@@ -46,9 +46,7 @@ public class ReflectionToolExecutor implements ToolExecutor {
             throw new ToolExecutionException("Tool not found in registry: " + request.getToolName());
         }
         if (!(definition instanceof ExecutableToolDefinition executableTool)) {
-            throw new ToolExecutionException(
-                    "Tool definition is not executable: " + request.getToolName()
-            );
+            throw new ToolExecutionException("Tool definition is not executable: " + request.getToolName());
         }
 
         Map<String, Object> arguments = parseArguments(request.getArgumentsJson());
@@ -60,15 +58,9 @@ public class ReflectionToolExecutor implements ToolExecutor {
             return method.invoke(executableTool.getTarget(), methodArguments);
         } catch (InvocationTargetException e) {
             Throwable cause = e.getTargetException() == null ? e : e.getTargetException();
-            throw new ToolExecutionException(
-                    "Failed to execute tool: " + request.getToolName(),
-                    cause
-            );
+            throw new ToolExecutionException("Failed to execute tool: " + request.getToolName(), cause);
         } catch (Exception e) {
-            throw new ToolExecutionException(
-                    "Failed to execute tool: " + request.getToolName(),
-                    e
-            );
+            throw new ToolExecutionException("Failed to execute tool: " + request.getToolName(), e);
         }
     }
 
@@ -78,15 +70,9 @@ public class ReflectionToolExecutor implements ToolExecutor {
         }
 
         try {
-            return objectMapper.readValue(
-                    argumentsJson,
-                    new TypeReference<>() {}
-            );
+            return objectMapper.readValue(argumentsJson, new TypeReference<>() {});
         } catch (Exception e) {
-            throw new ToolExecutionException(
-                    "Failed to parse tool arguments JSON: " + argumentsJson,
-                    e
-            );
+            throw new ToolExecutionException("Failed to parse tool arguments JSON: " + argumentsJson, e);
         }
     }
 
@@ -100,9 +86,7 @@ public class ReflectionToolExecutor implements ToolExecutor {
 
             Object rawValue = arguments.get(parameterName);
             if (rawValue == null && isRequired(parameter)) {
-                throw new ToolExecutionException(
-                        "Missing required tool argument: " + parameterName
-                );
+                throw new ToolExecutionException("Missing required tool argument: " + parameterName);
             }
 
             result[i] = convertValue(rawValue, parameter.getType(), parameterName);
@@ -121,9 +105,7 @@ public class ReflectionToolExecutor implements ToolExecutor {
             return parameter.getName();
         }
 
-        throw new ToolExecutionException(
-                "Parameter name not found, please compile with -parameters or set @ToolParam.name"
-        );
+        throw new ToolExecutionException("Parameter name not found, please compile with -parameters or set @ToolParam.name");
     }
 
     private boolean isRequired(Parameter parameter) {
@@ -131,17 +113,10 @@ public class ReflectionToolExecutor implements ToolExecutor {
         return toolParam == null || toolParam.required();
     }
 
-    private Object convertValue(
-            Object rawValue,
-            Class<?> targetType,
-            String parameterName
-    ) {
+    private Object convertValue(Object rawValue, Class<?> targetType, String parameterName) {
         if (rawValue == null) {
             if (targetType.isPrimitive()) {
-                throw new ToolExecutionException(
-                        "Primitive parameter cannot be null: "
-                                + parameterName
-                );
+                throw new ToolExecutionException("Primitive parameter cannot be null: " + parameterName);
             }
             return null;
         }
@@ -172,10 +147,7 @@ public class ReflectionToolExecutor implements ToolExecutor {
             }
 
             /*
-             * 复杂类型交给 Jackson 处理：
-             * - enum
-             * - List / Map
-             * - 自定义 POJO
+             * 基础类型走显式转换，复杂类型统一交给 Jackson。
              */
             return objectMapper.convertValue(rawValue, targetType);
         } catch (IllegalArgumentException e) {
@@ -200,10 +172,7 @@ public class ReflectionToolExecutor implements ToolExecutor {
             try {
                 return Integer.parseInt(s);
             } catch (NumberFormatException e) {
-                throw new ToolExecutionException(
-                        "Failed to convert argument to Integer: " + parameterName,
-                        e
-                );
+                throw new ToolExecutionException("Failed to convert argument to Integer: " + parameterName, e);
             }
         }
         throw new ToolExecutionException("Unsupported Integer argument type: " + parameterName);
@@ -220,10 +189,7 @@ public class ReflectionToolExecutor implements ToolExecutor {
             try {
                 return Long.parseLong(s);
             } catch (NumberFormatException e) {
-                throw new ToolExecutionException(
-                        "Failed to convert argument to Long: " + parameterName,
-                        e
-                );
+                throw new ToolExecutionException("Failed to convert argument to Long: " + parameterName, e);
             }
         }
         throw new ToolExecutionException("Unsupported Long argument type: " + parameterName);
@@ -240,10 +206,7 @@ public class ReflectionToolExecutor implements ToolExecutor {
             try {
                 return Double.parseDouble(s);
             } catch (NumberFormatException e) {
-                throw new ToolExecutionException(
-                        "Failed to convert argument to Double: " + parameterName,
-                        e
-                );
+                throw new ToolExecutionException("Failed to convert argument to Double: " + parameterName, e);
             }
         }
         throw new ToolExecutionException("Unsupported Double argument type: " + parameterName);
@@ -260,10 +223,7 @@ public class ReflectionToolExecutor implements ToolExecutor {
             try {
                 return Float.parseFloat(s);
             } catch (NumberFormatException e) {
-                throw new ToolExecutionException(
-                        "Failed to convert argument to Float: " + parameterName,
-                        e
-                );
+                throw new ToolExecutionException("Failed to convert argument to Float: " + parameterName, e);
             }
         }
         throw new ToolExecutionException("Unsupported Float argument type: " + parameterName);

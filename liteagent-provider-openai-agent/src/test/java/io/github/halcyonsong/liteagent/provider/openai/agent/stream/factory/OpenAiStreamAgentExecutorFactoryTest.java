@@ -4,13 +4,13 @@ import io.github.halcyonsong.liteagent.agent.stream.context.StreamAgentContext;
 import io.github.halcyonsong.liteagent.agent.stream.executor.StreamAgentExecutor;
 import io.github.halcyonsong.liteagent.core.message.type.constructor.Messages;
 import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
-import io.github.halcyonsong.liteagent.provider.openai.client.support.OpenAiClientSupport;
+import io.github.halcyonsong.liteagent.provider.openai.support.OpenAiAdvisorsSupport;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiBaseRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.mapper.OpenAiChatRequestMapper;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.stream.OpenAiStreamCompletionResponse;
 import io.github.halcyonsong.liteagent.provider.openai.response.mapper.OpenAiStreamResponseMapper;
-import io.github.halcyonsong.liteagent.provider.openai.transport.OpenAiChatStreamTransport;
+import io.github.halcyonsong.liteagent.provider.openai.transport.OpenAiStreamTransport;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -27,8 +27,8 @@ class OpenAiStreamAgentExecutorFactoryTest {
     void create_should_build_executable_stream_pipeline() {
         OpenAiStreamAgentExecutorFactory factory = new OpenAiStreamAgentExecutorFactory(
                 new OpenAiChatRequestMapper(),
-                new OpenAiClientSupport(),
-                new OpenAiChatStreamTransport(createStubWebClient()),
+                new OpenAiAdvisorsSupport(),
+                new OpenAiStreamTransport(createStubWebClient()),
                 new OpenAiStreamResponseMapper()
         );
 
@@ -48,8 +48,8 @@ class OpenAiStreamAgentExecutorFactoryTest {
     @Test
     void constructor_should_validate_arguments() {
         OpenAiChatRequestMapper requestMapper = new OpenAiChatRequestMapper();
-        OpenAiClientSupport clientSupport = new OpenAiClientSupport();
-        OpenAiChatStreamTransport transport = new OpenAiChatStreamTransport(createStubWebClient());
+        OpenAiAdvisorsSupport clientSupport = new OpenAiAdvisorsSupport();
+        OpenAiStreamTransport transport = new OpenAiStreamTransport(createStubWebClient());
         OpenAiStreamResponseMapper responseMapper = new OpenAiStreamResponseMapper();
 
         assertThrows(NullPointerException.class,

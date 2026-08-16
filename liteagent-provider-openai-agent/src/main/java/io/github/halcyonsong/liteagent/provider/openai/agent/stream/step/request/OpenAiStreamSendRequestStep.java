@@ -9,7 +9,7 @@ import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChat
 import io.github.halcyonsong.liteagent.provider.openai.request.raw.OpenAiChatCompletionRawRequest;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.stream.OpenAiStreamCompletionResponse;
 import io.github.halcyonsong.liteagent.provider.openai.response.mapper.OpenAiStreamResponseMapper;
-import io.github.halcyonsong.liteagent.provider.openai.transport.OpenAiChatStreamTransport;
+import io.github.halcyonsong.liteagent.provider.openai.transport.OpenAiStreamTransport;
 import reactor.core.publisher.Flux;
 
 import java.util.Objects;
@@ -19,10 +19,10 @@ import java.util.Objects;
  */
 public class OpenAiStreamSendRequestStep implements StreamStep<Flux<OpenAiStreamCompletionResponse>> {
 
-    private final OpenAiChatStreamTransport transport;
+    private final OpenAiStreamTransport transport;
     private final OpenAiStreamResponseMapper responseMapper;
 
-    public OpenAiStreamSendRequestStep(OpenAiChatStreamTransport transport,
+    public OpenAiStreamSendRequestStep(OpenAiStreamTransport transport,
                                        OpenAiStreamResponseMapper responseMapper) {
         this.transport = Objects.requireNonNull(transport, "transport must not be null");
         this.responseMapper = Objects.requireNonNull(responseMapper, "responseMapper must not be null");

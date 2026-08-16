@@ -1,6 +1,6 @@
 package io.github.halcyonsong.liteagent.provider.openai.response.mapper;
 
-import io.github.halcyonsong.liteagent.core.message.Message;
+import io.github.halcyonsong.liteagent.core.message.norm.Message;
 import io.github.halcyonsong.liteagent.core.message.type.AssistantResponseMessage;
 import io.github.halcyonsong.liteagent.core.model.enums.FinishReason;
 import io.github.halcyonsong.liteagent.core.model.response.chat.ChatChoice;

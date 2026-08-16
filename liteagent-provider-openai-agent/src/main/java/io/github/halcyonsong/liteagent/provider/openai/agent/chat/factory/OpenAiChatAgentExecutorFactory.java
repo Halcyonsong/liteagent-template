@@ -11,12 +11,12 @@ import io.github.halcyonsong.liteagent.provider.openai.agent.chat.step.request.O
 import io.github.halcyonsong.liteagent.provider.openai.agent.chat.step.request.OpenAiChatMapRequestStep;
 import io.github.halcyonsong.liteagent.provider.openai.agent.chat.step.request.OpenAiChatSendRequestStep;
 import io.github.halcyonsong.liteagent.provider.openai.agent.chat.step.response.*;
-import io.github.halcyonsong.liteagent.provider.openai.client.support.OpenAiClientSupport;
+import io.github.halcyonsong.liteagent.provider.openai.support.OpenAiAdvisorsSupport;
 import io.github.halcyonsong.liteagent.provider.openai.request.mapper.OpenAiChatRequestMapper;
 import io.github.halcyonsong.liteagent.provider.openai.response.mapper.OpenAiChatResponseMapper;
 import io.github.halcyonsong.liteagent.provider.openai.transport.OpenAiChatTransport;
 
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -24,16 +24,16 @@ import java.util.Objects;
 public class OpenAiChatAgentExecutorFactory {
 
     private final OpenAiChatRequestMapper requestMapper;
-    private final OpenAiClientSupport clientSupport;
+    private final OpenAiAdvisorsSupport advisorsSupport;
     private final OpenAiChatTransport chatTransport;
     private final OpenAiChatResponseMapper responseMapper;
 
     public OpenAiChatAgentExecutorFactory(OpenAiChatRequestMapper requestMapper,
-                                          OpenAiClientSupport clientSupport,
+                                          OpenAiAdvisorsSupport advisorsSupport,
                                           OpenAiChatTransport chatTransport,
                                           OpenAiChatResponseMapper responseMapper) {
         this.requestMapper = Objects.requireNonNull(requestMapper, "requestMapper must not be null");
-        this.clientSupport = Objects.requireNonNull(clientSupport, "clientSupport must not be null");
+        this.advisorsSupport = Objects.requireNonNull(advisorsSupport, "clientSupport must not be null");
         this.chatTransport = Objects.requireNonNull(chatTransport, "chatTransport must not be null");
         this.responseMapper = Objects.requireNonNull(responseMapper, "responseMapper must not be null");
     }
@@ -43,16 +43,16 @@ public class OpenAiChatAgentExecutorFactory {
     }
 
     public ChatAgentExecutor create(List<StepHook> hooks, int maxStepCount) {
-        Map<ChatStepKey, ChatStep> steps = new EnumMap<>(ChatStepKey.class);
+        Map<ChatStepKey, ChatStep> steps = new HashMap<>();
 
         steps.put(ChatStepKey.BEGIN, new OpenAiChatBeginStep());
         steps.put(ChatStepKey.INIT_WORKING_MESSAGES, new OpenAiChatInitWorkingMessagesStep());
         steps.put(ChatStepKey.INIT_TOOL_REGISTRY, new OpenAiChatInitToolRegistryStep());
         steps.put(ChatStepKey.MAP_REQUEST, new OpenAiChatMapRequestStep(requestMapper));
-        steps.put(ChatStepKey.ENHANCE_REQUEST, new OpenAiChatEnhanceRequestStep(clientSupport));
+        steps.put(ChatStepKey.ENHANCE_REQUEST, new OpenAiChatEnhanceRequestStep(advisorsSupport));
         steps.put(ChatStepKey.SEND_REQUEST, new OpenAiChatSendRequestStep(chatTransport));
         steps.put(ChatStepKey.MAP_RESPONSE, new OpenAiChatMapResponseStep(responseMapper));
-        steps.put(ChatStepKey.ENHANCE_RESPONSE, new OpenAiChatEnhanceResponseStep(clientSupport));
+        steps.put(ChatStepKey.ENHANCE_RESPONSE, new OpenAiChatEnhanceResponseStep(advisorsSupport));
         steps.put(ChatStepKey.ANALYZE_RESPONSE, new OpenAiChatAnalyzeResponseStep());
         steps.put(ChatStepKey.EXECUTE_TOOL, new OpenAiChatExecuteToolStep());
         steps.put(ChatStepKey.APPEND_MESSAGES, new OpenAiChatAppendMessagesStep());

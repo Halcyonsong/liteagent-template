@@ -2,7 +2,7 @@ package io.github.halcyonsong.liteagent.agent.stream.context;
 
 import io.github.halcyonsong.liteagent.agent.state.AgentTerminationReason;
 import io.github.halcyonsong.liteagent.agent.stream.state.StreamRoundState;
-import io.github.halcyonsong.liteagent.core.message.Message;
+import io.github.halcyonsong.liteagent.core.message.norm.Message;
 import io.github.halcyonsong.liteagent.core.model.request.norm.Invocation;
 import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistry;
 import lombok.Getter;
@@ -15,19 +15,8 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * 单次流式编排调用的上下文。
  * <p>
- * 该对象的生命周期限定在一次 execute 调用内部，
- * 不是全局共享状态，也不会跨请求复用。
- * <p>
- * 它主要承载六类数据：
- * 1. 本次调用输入 invocation
- * 2. 工作态消息历史 workingMessages，用于轮次间继续发给模型
- * 3. 每轮执行状态 rounds，用于记录响应聚合、工具调用和控制标志
- * 4. 执行控制状态：iteration、maxIterations、terminationReason
- * 5. 当前对外输出流 output
- * 6. 跨步骤共享的扩展数据 attributes
- * <p>
- * provider-specific 的中间产物不直接定义为固定字段，
- * 而是优先通过 rounds 或 attributes 扩展槽存储。
+ * 该对象只在一次 execute 调用内部使用，不跨请求复用。
+ * 它承载输入、工作态消息、轮次状态、扩展属性、输出流和执行控制信号。
  */
 @Getter
 public class StreamAgentContext<T> {
@@ -71,10 +60,7 @@ public class StreamAgentContext<T> {
     private final List<Message> workingMessages = new ArrayList<>();
 
     /**
-     * 本次流式编排的轮次历史。
-     * <p>
-     * 每进入一轮流式请求，都会创建一个新的 StreamRoundState 追加到该列表中。
-     * 轮次索引从 0 开始。
+     * 本次流式编排的轮次历史，从第 0 轮开始，按执行顺序追加。
      */
     private final List<StreamRoundState> rounds = new ArrayList<>();
 
@@ -94,11 +80,11 @@ public class StreamAgentContext<T> {
     @Setter
     private AgentTerminationReason terminationReason;
 
+    private volatile boolean cancelled = false;
+
     /**
-     * 当前执行内部使用的控制信号。
-     *
-     * <p>该对象只用于触发 expand 的轮次收尾，
-     * 不应暴露给外部订阅者。</p>
+     * 内部控制哨兵，用于驱动 expand / 轮次切换。
+     * 不应作为业务数据暴露给外部订阅者。
      */
     @Setter
     private volatile Object controlSignal;
@@ -218,4 +204,9 @@ public class StreamAgentContext<T> {
         }
         this.maxIterations = maxIterations;
     }
+
+    public void cancel() {
+        this.cancelled = true;
+    }
+
 }

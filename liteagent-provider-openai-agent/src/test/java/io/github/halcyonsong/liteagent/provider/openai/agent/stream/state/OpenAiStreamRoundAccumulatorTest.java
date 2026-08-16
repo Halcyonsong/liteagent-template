@@ -104,10 +104,7 @@ class OpenAiStreamRoundAccumulatorTest {
     @Test
     void accumulate_should_track_usage() {
         OpenAiStreamRoundAccumulator acc = new OpenAiStreamRoundAccumulator();
-        OpenAiUsage usage = new OpenAiUsage();
-        usage.setPromptTokens(10);
-        usage.setCompletionTokens(5);
-        usage.setTotalTokens(15);
+        OpenAiUsage usage = new OpenAiUsage(10, 5, 15, null, null, 10, 10);
 
         acc.accumulate(chunk(null, 0, "text", null, null, null));
         acc.accumulate(chunkWithUsage(usage));
@@ -135,9 +132,13 @@ class OpenAiStreamRoundAccumulatorTest {
     }
 
     @Test
-    void accumulate_should_ignore_empty_choices() {
+   void accumulate_should_ignore_empty_choices() {
         OpenAiStreamRoundAccumulator acc = new OpenAiStreamRoundAccumulator();
-        acc.accumulate(new OpenAiStreamCompletionResponse(null, List.of(), null));
+        acc.accumulate(new OpenAiStreamCompletionResponse(
+                new OpenAiBaseResponse("id-empty", "chat.completion.chunk", 1L, "gpt-4"),
+                List.of(),
+                null
+        ));
         assertFalse(acc.hasChoices());
     }
 
@@ -193,6 +194,10 @@ class OpenAiStreamRoundAccumulatorTest {
     }
 
     private static OpenAiStreamCompletionResponse chunkWithUsage(OpenAiUsage usage) {
-        return new OpenAiStreamCompletionResponse(null, List.of(), usage);
+        return new OpenAiStreamCompletionResponse(
+                new OpenAiBaseResponse("id-usage", "chat.completion.chunk", 1L, "gpt-4"),
+                List.of(),
+                usage
+        );
     }
 }

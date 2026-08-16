@@ -16,7 +16,9 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * 基于反射的工具注册器。
+ * 基于反射的可执行工具定义。
+ * <p>
+ * 既用于向模型暴露 schema，也用于运行时反射执行。
  */
 public class ReflectionToolRegistrar implements ToolRegistrar {
 
@@ -49,9 +51,7 @@ public class ReflectionToolRegistrar implements ToolRegistrar {
         }
 
         if (!method.getDeclaringClass().isAssignableFrom(toolObject.getClass())) {
-            throw new IllegalArgumentException(
-                    "method does not belong to toolObject type: " + method.getName()
-            );
+            throw new IllegalArgumentException("method does not belong to toolObject type: " + method.getName());
         }
 
         ToolMethod toolMethod = method.getAnnotation(ToolMethod.class);
@@ -59,9 +59,7 @@ public class ReflectionToolRegistrar implements ToolRegistrar {
         registry.register(definition);
     }
 
-    private ExecutableToolDefinition buildDefinition(Object toolObject,
-                                                     Method method,
-                                                     ToolMethod toolMethod) {
+    private ExecutableToolDefinition buildDefinition(Object toolObject, Method method, ToolMethod toolMethod) {
         Map<String, Object> parameters = buildParameters(method);
 
         return new ReflectiveToolDefinition(
@@ -114,9 +112,7 @@ public class ReflectionToolRegistrar implements ToolRegistrar {
             return parameter.getName();
         }
 
-        throw new IllegalStateException(
-                "Parameter name not found, please compile with -parameters or set @ToolParam.name"
-        );
+        throw new IllegalStateException("Parameter name not found, please compile with -parameters or set @ToolParam.name");
     }
 
     private String resolveParameterDescription(Parameter parameter) {

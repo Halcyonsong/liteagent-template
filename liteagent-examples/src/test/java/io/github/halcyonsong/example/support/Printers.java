@@ -1,6 +1,6 @@
 package io.github.halcyonsong.example.support;
 
-import io.github.halcyonsong.liteagent.core.message.Message;
+import io.github.halcyonsong.liteagent.core.message.norm.Message;
 import io.github.halcyonsong.liteagent.core.message.type.AssistantResponseMessage;
 import io.github.halcyonsong.liteagent.core.model.response.chat.ChatChoice;
 import io.github.halcyonsong.liteagent.core.model.response.stream.StreamChoice;

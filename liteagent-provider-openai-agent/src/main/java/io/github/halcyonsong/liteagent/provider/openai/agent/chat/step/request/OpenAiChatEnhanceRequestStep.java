@@ -4,7 +4,7 @@ import io.github.halcyonsong.liteagent.agent.chat.context.ChatAgentContext;
 import io.github.halcyonsong.liteagent.agent.chat.step.ChatStep;
 import io.github.halcyonsong.liteagent.agent.chat.step.ChatStepKey;
 import io.github.halcyonsong.liteagent.provider.openai.agent.support.OpenAiAgentRequestSupport;
-import io.github.halcyonsong.liteagent.provider.openai.client.support.OpenAiClientSupport;
+import io.github.halcyonsong.liteagent.provider.openai.support.OpenAiAdvisorsSupport;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.raw.OpenAiChatCompletionRawRequest;
 
@@ -17,9 +17,9 @@ import java.util.Objects;
  */
 public class OpenAiChatEnhanceRequestStep implements ChatStep {
 
-    private final OpenAiClientSupport clientSupport;
+    private final OpenAiAdvisorsSupport clientSupport;
 
-    public OpenAiChatEnhanceRequestStep(OpenAiClientSupport clientSupport) {
+    public OpenAiChatEnhanceRequestStep(OpenAiAdvisorsSupport clientSupport) {
         this.clientSupport = Objects.requireNonNull(clientSupport, "clientSupport must not be null");
     }
 

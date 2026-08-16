@@ -11,6 +11,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * OpenAI 响应字段映射辅助类。
+ * <p>
+ * 这里只做协议字段到统一模型的转换，不负责跨 chunk 聚合或业务编排。
+ */
 public class OpenAiResponseMappingSupport {
 
     protected OpenAiBaseResponse mapBaseResponse(OpenAiChatCompletionRawResponse rawResponse) {

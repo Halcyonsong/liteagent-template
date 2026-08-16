@@ -1,12 +1,10 @@
 package io.github.halcyonsong.liteagent.core.model.response.chat;
 
-import io.github.halcyonsong.liteagent.core.message.Message;
+import io.github.halcyonsong.liteagent.core.message.norm.Message;
 import io.github.halcyonsong.liteagent.core.support.JsonSupport;
 import lombok.Getter;
 import lombok.ToString;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -28,7 +26,7 @@ public class ChatResponse {
 
     public ChatResponse(List<Message> messages) {
         Objects.requireNonNull(messages, "messages must not be null");
-        this.messages = Collections.unmodifiableList(new ArrayList<>(messages));
+        this.messages = List.copyOf(messages);
     }
 
     public String toJson() {

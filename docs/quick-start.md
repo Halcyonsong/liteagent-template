@@ -216,7 +216,7 @@ public class RequestExample {
 ## 4. 发起普通 provider 调用
 
 ```java
-import io.github.halcyonsong.liteagent.core.message.Message;
+import io.github.halcyonsong.liteagent.core.message.norm.Message;
 import io.github.halcyonsong.liteagent.core.message.type.AssistantResponseMessage;
 import io.github.halcyonsong.liteagent.core.model.response.chat.ChatChoice;
 import io.github.halcyonsong.liteagent.provider.openai.client.OpenAiChatClient;

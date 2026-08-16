@@ -9,10 +9,10 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * 流式响应中的增量消息片段。
+ * 流式响应中的增量片段。
  * <p>
- * 该对象对应 OpenAI-compatible 协议中的 delta 结构，
- * 用于承载一次流式 chunk 中新增的角色信息、文本内容、推理内容以及工具调用增量。
+ * 该对象不代表完整响应，
+ * toolCalls 需要由上层按 index 聚合。
  */
 @Getter
 @ToString
@@ -46,18 +46,11 @@ public class StreamDelta {
      */
     private final List<ToolCall> toolCalls;
 
-    public StreamDelta(
-            String role,
-            String content,
-            String reasoningContent,
-            List<ToolCall> toolCalls
-    ) {
+    public StreamDelta(String role, String content, String reasoningContent, List<ToolCall> toolCalls) {
         this.role = role;
         this.content = content;
         this.reasoningContent = reasoningContent;
-        this.toolCalls = toolCalls == null
-                ? Collections.emptyList()
-                : List.copyOf(toolCalls);
+        this.toolCalls = toolCalls == null ? Collections.emptyList() : List.copyOf(toolCalls);
     }
 
     public String toJson() {

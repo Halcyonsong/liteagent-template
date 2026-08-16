@@ -15,14 +15,14 @@ import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.request
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.request.OpenAiStreamMapRequestStep;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.request.OpenAiStreamSendRequestStep;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.response.*;
-import io.github.halcyonsong.liteagent.provider.openai.client.support.OpenAiClientSupport;
+import io.github.halcyonsong.liteagent.provider.openai.support.OpenAiAdvisorsSupport;
 import io.github.halcyonsong.liteagent.provider.openai.request.mapper.OpenAiChatRequestMapper;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.stream.OpenAiStreamCompletionResponse;
 import io.github.halcyonsong.liteagent.provider.openai.response.mapper.OpenAiStreamResponseMapper;
-import io.github.halcyonsong.liteagent.provider.openai.transport.OpenAiChatStreamTransport;
+import io.github.halcyonsong.liteagent.provider.openai.transport.OpenAiStreamTransport;
 import reactor.core.publisher.Flux;
 
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -30,15 +30,15 @@ import java.util.Objects;
 public class OpenAiStreamAgentExecutorFactory {
 
     private final OpenAiChatRequestMapper requestMapper;
-    private final OpenAiClientSupport clientSupport;
-    private final OpenAiChatStreamTransport streamTransport;
+    private final OpenAiAdvisorsSupport clientSupport;
+    private final OpenAiStreamTransport streamTransport;
     private final OpenAiStreamResponseMapper responseMapper;
     private final ToolExecutor toolExecutor;
 
     public OpenAiStreamAgentExecutorFactory(
             OpenAiChatRequestMapper requestMapper,
-            OpenAiClientSupport clientSupport,
-            OpenAiChatStreamTransport streamTransport,
+            OpenAiAdvisorsSupport clientSupport,
+            OpenAiStreamTransport streamTransport,
             OpenAiStreamResponseMapper responseMapper
     ) {
         this(requestMapper, clientSupport, streamTransport, responseMapper, new ReflectionToolExecutor());
@@ -46,8 +46,8 @@ public class OpenAiStreamAgentExecutorFactory {
 
     public OpenAiStreamAgentExecutorFactory(
             OpenAiChatRequestMapper requestMapper,
-            OpenAiClientSupport clientSupport,
-            OpenAiChatStreamTransport streamTransport,
+            OpenAiAdvisorsSupport clientSupport,
+            OpenAiStreamTransport streamTransport,
             OpenAiStreamResponseMapper responseMapper,
             ToolExecutor toolExecutor
     ) {
@@ -64,7 +64,7 @@ public class OpenAiStreamAgentExecutorFactory {
 
     public StreamAgentExecutor<OpenAiStreamCompletionResponse> create(List<StreamStepHook> hooks,
                                                                       int maxStepCount) {
-        Map<StreamStepKey, StreamSyncStep> syncSteps = new EnumMap<>(StreamStepKey.class);
+        Map<StreamStepKey, StreamSyncStep> syncSteps = new HashMap<>();
         syncSteps.put(StreamStepKey.BEGIN, new OpenAiStreamBeginStep());
         syncSteps.put(StreamStepKey.INIT_WORKING_MESSAGES, new OpenAiStreamInitWorkingMessagesStep());
         syncSteps.put(StreamStepKey.INIT_TOOL_REGISTRY, new OpenAiStreamInitToolRegistryStep());
@@ -76,7 +76,7 @@ public class OpenAiStreamAgentExecutorFactory {
         syncSteps.put(StreamStepKey.BUILD_RESULT, new OpenAiStreamBuildResultStep());
         syncSteps.put(StreamStepKey.END, context -> StreamStepKey.END);
 
-        Map<StreamStepKey, StreamStep<Flux<OpenAiStreamCompletionResponse>>> streamSteps = new EnumMap<>(StreamStepKey.class);
+        Map<StreamStepKey, StreamStep<Flux<OpenAiStreamCompletionResponse>>> streamSteps = new HashMap<>();
         streamSteps.put(StreamStepKey.SEND_REQUEST, new OpenAiStreamSendRequestStep(streamTransport, responseMapper));
         streamSteps.put(StreamStepKey.ENHANCE_CHUNK, new OpenAiStreamEnhanceChunkStep(clientSupport));
         streamSteps.put(StreamStepKey.ACCUMULATE_CHUNK, new OpenAiStreamAccumulateChunkStep());

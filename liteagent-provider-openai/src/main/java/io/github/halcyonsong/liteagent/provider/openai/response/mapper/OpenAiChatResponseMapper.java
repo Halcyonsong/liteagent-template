@@ -13,6 +13,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * OpenAI-compatible chat completion 响应包装对象。
+ * <p>
+ * 表示 provider 返回的一次完整响应，供上层编排消费。
+ */
 public class OpenAiChatResponseMapper extends OpenAiResponseMappingSupport {
 
     public OpenAiChatCompletionResponse fromRaw(OpenAiChatCompletionRawResponse rawResponse) {

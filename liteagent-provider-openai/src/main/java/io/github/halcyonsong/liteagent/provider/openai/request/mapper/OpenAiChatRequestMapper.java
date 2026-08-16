@@ -1,6 +1,6 @@
 package io.github.halcyonsong.liteagent.provider.openai.request.mapper;
 
-import io.github.halcyonsong.liteagent.core.message.Message;
+import io.github.halcyonsong.liteagent.core.message.norm.Message;
 import io.github.halcyonsong.liteagent.core.message.type.AssistantResponseMessage;
 import io.github.halcyonsong.liteagent.core.message.type.ToolMessage;
 import io.github.halcyonsong.liteagent.core.model.tool.FunctionCall;
@@ -15,7 +15,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * OpenAI-compatible 请求映射器。
+ * OpenAI-compatible chat 请求映射器。
+ * <p>
+ * 负责将编排层 ChatRequest 转换为 OpenAI raw request，
+ * 同时保留 assistant tool_calls 和 tool tool_call_id 等协议字段。
  */
 public class OpenAiChatRequestMapper {
 
@@ -37,6 +40,11 @@ public class OpenAiChatRequestMapper {
         return rawRequest;
     }
 
+    /**
+     * 映射消息列表到 OpenAI wire format。
+     * <p>
+     * 除 role/content 外，还保留 assistant 的 tool_calls 和 tool 消息的 tool_call_id。
+     */
     private List<Map<String, Object>> mapMessages(List<Message> messages) {
         List<Map<String, Object>> result = new ArrayList<>();
         for (Message message : messages) {

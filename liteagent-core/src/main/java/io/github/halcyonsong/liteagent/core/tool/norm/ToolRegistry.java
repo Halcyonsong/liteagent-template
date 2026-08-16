@@ -4,6 +4,8 @@ import java.util.List;
 
 /**
  * 工具注册表规范。
+ * <p>
+ * 这里只负责保存工具定义，不负责工具执行。
  */
 public interface ToolRegistry {
 

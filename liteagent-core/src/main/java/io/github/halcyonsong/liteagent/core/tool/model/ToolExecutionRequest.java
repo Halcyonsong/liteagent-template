@@ -10,7 +10,9 @@ import lombok.ToString;
 import java.util.Objects;
 
 /**
- * 统一工具执行请求。
+ * 工具执行请求。
+ * <p>
+ * 由模型 tool call 转换而来，供执行器进行参数绑定和实际调用。
  */
 @Getter
 @ToString
