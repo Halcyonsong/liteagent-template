@@ -13,7 +13,7 @@ import io.github.halcyonsong.liteagent.core.model.request.norm.Invocation;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -48,13 +48,13 @@ class StreamAgentTest {
     }
 
     private static StreamAgentExecutor<String> createExecutor() {
-        Map<StreamStepKey, StreamSyncStep> syncSteps = new EnumMap<>(StreamStepKey.class);
+        Map<StreamStepKey, StreamSyncStep> syncSteps = new HashMap<>();
         syncSteps.put(StreamStepKey.BEGIN, ctx -> StreamStepKey.SEND_REQUEST);
         syncSteps.put(StreamStepKey.DECIDE_NEXT_ACTION, ctx -> StreamStepKey.BUILD_RESULT);
         syncSteps.put(StreamStepKey.BUILD_RESULT, ctx -> StreamStepKey.END);
         syncSteps.put(StreamStepKey.END, ctx -> StreamStepKey.END);
 
-        Map<StreamStepKey, StreamStep<Flux<String>>> streamSteps = new EnumMap<>(StreamStepKey.class);
+        Map<StreamStepKey, StreamStep<Flux<String>>> streamSteps = new HashMap<>();
         streamSteps.put(StreamStepKey.SEND_REQUEST, (upstream, ctx) ->
                 new StreamApplyResult<>(Flux.just("hello"), StreamStepKey.STREAM_END));
 

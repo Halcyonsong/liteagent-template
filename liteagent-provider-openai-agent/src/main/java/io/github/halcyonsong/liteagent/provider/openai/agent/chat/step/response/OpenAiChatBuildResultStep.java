@@ -6,7 +6,9 @@ import io.github.halcyonsong.liteagent.agent.chat.step.ChatStepKey;
 import io.github.halcyonsong.liteagent.agent.state.AgentTerminationReason;
 import io.github.halcyonsong.liteagent.provider.openai.agent.constant.OpenAiAgentAttributes;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiChatCompletionResponse;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class OpenAiChatBuildResultStep implements ChatStep {
 
     @Override
@@ -29,6 +31,18 @@ public class OpenAiChatBuildResultStep implements ChatStep {
                     AgentTerminationReason.COMPLETED
             );
         }
+
+        log.debug(
+                "Built chat result. " +
+                        "executionId={}, " +
+                        "iteration={}, " +
+                        "terminationReason={}, " +
+                        "responseId={}",
+                context.getExecutionId(),
+                context.getIteration(),
+                context.getTerminationReason(),
+                response.getBaseResponse() == null ? null : response.getBaseResponse().getId()
+        );
 
         return ChatStepKey.END;
     }

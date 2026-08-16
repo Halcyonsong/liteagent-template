@@ -13,19 +13,18 @@ import io.github.halcyonsong.liteagent.provider.openai.agent.constant.OpenAiAgen
 import io.github.halcyonsong.liteagent.provider.openai.agent.support.OpenAiToolCallSupport;
 import io.github.halcyonsong.liteagent.provider.openai.agent.support.OpenAiToolExecutionSupport;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiChatCompletionResponse;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Objects;
 
 /**
- * OpenAI 工具执行步骤。
+ * 执行当前轮 chat 响应中的全部工具调用。
  * <p>
- * 当前实现：
- * 1. 解析本轮全部工具调用
- * 2. 逐个执行工具
- * 3. 将 assistant/tool 消息写入 pending 列表
- * 4. 返回 APPEND_MESSAGES，由下一节点统一写入 workingMessages
+ * 该步骤只负责填充 pending assistant/tool 消息，
+ * 不直接写入 workingMessages。
  */
+@Slf4j
 public class OpenAiChatExecuteToolStep implements ChatStep {
 
     private final ToolExecutor toolExecutor;
@@ -45,20 +44,36 @@ public class OpenAiChatExecuteToolStep implements ChatStep {
                 OpenAiChatCompletionResponse.class
         );
 
-        ToolRegistry toolRegistry = context.getToolRegistry();
-
         if (response == null) {
+            log.warn(
+                    "Chat tool execution requested but response is missing. executionId={}, iteration={}",
+                    context.getExecutionId(),
+                    context.getIteration()
+            );
             context.setTerminationReason(AgentTerminationReason.MODEL_ERROR);
             return ChatStepKey.END;
         }
 
+        ToolRegistry toolRegistry = context.getToolRegistry();
+
         if (toolRegistry == null) {
+            log.warn(
+                    "Chat tool execution requested but tool registry is missing. executionId={}, iteration={}",
+                    context.getExecutionId(),
+                    context.getIteration()
+            );
             context.setTerminationReason(AgentTerminationReason.TOOL_ERROR);
             throw new IllegalStateException("Tool registry is required for chat tool execution");
         }
 
-        List<ToolExecutionRequest> executionRequests =
-                OpenAiToolCallSupport.collectExecutionRequests(response);
+        List<ToolExecutionRequest> executionRequests = OpenAiToolCallSupport.collectExecutionRequests(response);
+
+        log.debug(
+                "Collected chat tool execution requests. executionId={}, iteration={}, requestCount={}",
+                context.getExecutionId(),
+                context.getIteration(),
+                executionRequests.size()
+        );
 
         if (executionRequests.isEmpty()) {
             return ChatStepKey.BUILD_RESULT;
@@ -82,8 +97,25 @@ public class OpenAiChatExecuteToolStep implements ChatStep {
         } catch (Exception e) {
             context.clearPendingMessages();
             context.setTerminationReason(AgentTerminationReason.TOOL_ERROR);
+
+            log.error(
+                    "Failed to execute chat tools. executionId={}, iteration={}, requestCount={}",
+                    context.getExecutionId(),
+                    context.getIteration(),
+                    executionRequests.size(),
+                    e
+            );
+
             throw e;
         }
+
+        log.debug(
+                "Executed chat tools. executionId={}, iteration={}, assistantMessageCount={}, toolMessageCount={}",
+                context.getExecutionId(),
+                context.getIteration(),
+                context.getPendingAssistantMessages().size(),
+                context.getPendingToolMessages().size()
+        );
 
         return ChatStepKey.APPEND_MESSAGES;
     }

@@ -5,6 +5,7 @@ import io.github.halcyonsong.liteagent.agent.chat.step.ChatStep;
 import io.github.halcyonsong.liteagent.agent.chat.step.ChatStepKey;
 import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistry;
 import io.github.halcyonsong.liteagent.provider.openai.agent.support.ToolRegistrySupport;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 初始化 chat 编排中的工具注册表。
@@ -12,12 +13,21 @@ import io.github.halcyonsong.liteagent.provider.openai.agent.support.ToolRegistr
  * 只在第 0 轮执行，通过扫描 request advisors 提取
  * OpenAiRegistryToolsAdvisor 中持有的 ToolRegistry。
  */
+@Slf4j
 public class OpenAiChatInitToolRegistryStep implements ChatStep {
 
     @Override
     public ChatStepKey invoke(ChatAgentContext context) {
         ToolRegistry registry = ToolRegistrySupport.resolveToolRegistry(context.getInvocation());
         context.setToolRegistry(registry);
+
+        log.debug(
+                "Initialized OpenAI chat tool registry. executionId={}, iteration={}, registryResolved={}",
+                context.getExecutionId(),
+                context.getIteration(),
+                registry != null
+        );
+
         return ChatStepKey.MAP_REQUEST;
     }
 

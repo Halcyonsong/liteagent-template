@@ -7,7 +7,7 @@ package io.github.halcyonsong.liteagent.agent.chat.step;
  * 同时允许调用方通过 {@link #of(String)} 创建自定义 key，
  * 将自定义步骤插入链路。
  * <p>
- * 内置常量均为单例，使用 {@code ==} 或 {@code equals} 比较均可；
+ * 内置常量均为单例，建议使用 {@code equals} 比较；
  * 自定义 key 基于 name 做相等性判断。
  */
 public interface ChatStepKey {

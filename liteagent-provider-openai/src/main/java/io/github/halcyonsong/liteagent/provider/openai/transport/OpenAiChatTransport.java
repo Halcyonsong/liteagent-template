@@ -31,11 +31,15 @@ public class OpenAiChatTransport {
         Objects.requireNonNull(rawRequest, "rawRequest must not be null");
 
         try {
-            log.debug("Sending OpenAI-compatible HTTP request. endpoint={}, model={}, stream={}, messageCount={}",
+            log.debug(
+                    "Sending OpenAI-compatible HTTP request. endpoint={}, model={}, stream={}, messageCount={}, toolCount={}, hasToolChoice={}",
                     endpoint,
                     rawRequest.getModel(),
                     rawRequest.getStream(),
-                    rawRequest.getMessages() == null ? 0 : rawRequest.getMessages().size());
+                    rawRequest.getMessages() == null ? 0 : rawRequest.getMessages().size(),
+                    rawRequest.getTools() == null ? 0 : rawRequest.getTools().size(),
+                    rawRequest.getToolChoice() != null
+            );
 
             OpenAiChatCompletionRawResponse rawResponse = webClient.post()
                     .uri(endpoint)
@@ -47,8 +51,6 @@ public class OpenAiChatTransport {
                     .block();
 
             if (rawResponse == null) {
-                log.warn("Received null response from OpenAI-compatible API. endpoint={}, model={}",
-                        endpoint, rawRequest.getModel());
                 throw new ModelException("OpenAI response is null");
             }
 

@@ -4,9 +4,10 @@ import io.github.halcyonsong.liteagent.agent.chat.context.ChatAgentContext;
 import io.github.halcyonsong.liteagent.agent.chat.step.ChatStep;
 import io.github.halcyonsong.liteagent.agent.chat.step.ChatStepKey;
 import io.github.halcyonsong.liteagent.provider.openai.agent.support.OpenAiAgentRequestSupport;
-import io.github.halcyonsong.liteagent.provider.openai.support.OpenAiAdvisorsSupport;
+import io.github.halcyonsong.liteagent.provider.openai.support.OpenAiAdvisorsExecutor;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.raw.OpenAiChatCompletionRawRequest;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
 
@@ -15,11 +16,12 @@ import java.util.Objects;
  * <p>
  * 当前主要负责执行 request advisor，并显式设定为普通 chat 请求。
  */
+@Slf4j
 public class OpenAiChatEnhanceRequestStep implements ChatStep {
 
-    private final OpenAiAdvisorsSupport clientSupport;
+    private final OpenAiAdvisorsExecutor clientSupport;
 
-    public OpenAiChatEnhanceRequestStep(OpenAiAdvisorsSupport clientSupport) {
+    public OpenAiChatEnhanceRequestStep(OpenAiAdvisorsExecutor clientSupport) {
         this.clientSupport = Objects.requireNonNull(clientSupport, "clientSupport must not be null");
     }
 
@@ -32,6 +34,22 @@ public class OpenAiChatEnhanceRequestStep implements ChatStep {
 
         clientSupport.applyRequestAdvisors(providerRequest, rawRequest);
         rawRequest.setStream(false);
+
+        log.debug(
+                "Enhanced OpenAI chat raw request. " +
+                        "executionId={}, " +
+                        "iteration={}, " +
+                        "advisorCount={}, " +
+                        "toolCount={}, " +
+                        "hasToolChoice={}, " +
+                        "stream={}",
+                context.getExecutionId(),
+                context.getIteration(),
+                providerRequest.getRequestAdvisors().size(),
+                rawRequest.getTools() == null ? 0 : rawRequest.getTools().size(),
+                rawRequest.getToolChoice() != null,
+                rawRequest.getStream()
+        );
 
         return ChatStepKey.SEND_REQUEST;
     }

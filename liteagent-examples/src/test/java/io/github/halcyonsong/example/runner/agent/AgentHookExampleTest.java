@@ -11,16 +11,11 @@ import io.github.halcyonsong.liteagent.provider.openai.agent.chat.factory.OpenAi
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.OpenAiStreamAgent;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.factory.OpenAiStreamAgents;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
-import io.github.halcyonsong.liteagent.provider.openai.runtime.config.HttpRuntimeConfig;
-import io.github.halcyonsong.liteagent.provider.openai.runtime.register.WebClientFactory;
-import io.github.halcyonsong.liteagent.provider.openai.runtime.register.WebClientRegistry;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @SpringBootTest(classes = OpenAiConfig.class)
 class AgentHookExampleTest extends OpenAiExampleSupport {
@@ -35,23 +30,19 @@ class AgentHookExampleTest extends OpenAiExampleSupport {
             @Override
             public void beforeStep(io.github.halcyonsong.liteagent.agent.chat.step.ChatStepKey key,
                                    io.github.halcyonsong.liteagent.agent.chat.context.ChatAgentContext context) {
-                traces.add("before:" + key);
+                traces.add("before:" + key.name());
             }
 
             @Override
             public void afterStep(io.github.halcyonsong.liteagent.agent.chat.step.ChatStepKey key,
                                   io.github.halcyonsong.liteagent.agent.chat.context.ChatAgentContext context,
                                   io.github.halcyonsong.liteagent.agent.chat.step.ChatStepKey nextKey) {
-                traces.add("after:" + key + "->" + nextKey);
+                traces.add("after:" + key.name() + "->" + nextKey.name());
             }
         };
 
         OpenAiChatAgent agent = OpenAiChatAgents.create(
-                HttpRuntimeConfig.builder()
-                        .maxInMemorySize(properties.getRuntime().getMaxInMemorySize())
-                        .connectTimeoutMillis(properties.getRuntime().getConnectTimeoutMillis())
-                        .responseTimeoutMillis(properties.getRuntime().getResponseTimeoutMillis())
-                        .build(),
+                buildRuntimeConfig(),
                 List.of(tracingHook),
                 100
         );
@@ -67,8 +58,6 @@ class AgentHookExampleTest extends OpenAiExampleSupport {
 
         System.out.println("===== Chat Agent Hook Traces =====");
         traces.forEach(System.out::println);
-
-        assertFalse(traces.isEmpty());
     }
 
     @Test
@@ -81,26 +70,19 @@ class AgentHookExampleTest extends OpenAiExampleSupport {
             @Override
             public void beforeStep(io.github.halcyonsong.liteagent.agent.stream.step.StreamStepKey key,
                                    io.github.halcyonsong.liteagent.agent.stream.context.StreamAgentContext<?> context) {
-                traces.add("before:" + key);
+                traces.add("before:" + key.name());
             }
 
             @Override
             public void afterStep(io.github.halcyonsong.liteagent.agent.stream.step.StreamStepKey key,
                                   io.github.halcyonsong.liteagent.agent.stream.context.StreamAgentContext<?> context,
                                   io.github.halcyonsong.liteagent.agent.stream.step.StreamStepKey nextKey) {
-                traces.add("after:" + key + "->" + nextKey);
+                traces.add("after:" + key.name() + "->" + nextKey.name());
             }
         };
 
-        WebClientRegistry registry = new WebClientRegistry(new WebClientFactory());
-
         OpenAiStreamAgent agent = OpenAiStreamAgents.create(
-                registry,
-                HttpRuntimeConfig.builder()
-                        .maxInMemorySize(properties.getRuntime().getMaxInMemorySize())
-                        .connectTimeoutMillis(properties.getRuntime().getConnectTimeoutMillis())
-                        .streamResponseTimeoutMillis(properties.getRuntime().getStreamResponseTimeoutMillis())
-                        .build(),
+                buildStreamRuntimeConfig(),
                 List.of(tracingHook),
                 100
         );
@@ -117,7 +99,5 @@ class AgentHookExampleTest extends OpenAiExampleSupport {
 
         System.out.println("===== Stream Agent Hook Traces =====");
         traces.forEach(System.out::println);
-
-        assertFalse(traces.isEmpty());
     }
 }

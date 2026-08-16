@@ -21,7 +21,7 @@ import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.respons
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.response.OpenAiStreamBuildResultStep;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.response.OpenAiStreamDecideNextActionStep;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.response.OpenAiStreamExecuteToolStep;
-import io.github.halcyonsong.liteagent.provider.openai.support.OpenAiAdvisorsSupport;
+import io.github.halcyonsong.liteagent.provider.openai.support.OpenAiAdvisorsExecutor;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiBaseRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.mapper.OpenAiChatRequestMapper;
@@ -98,7 +98,7 @@ class OpenAiStreamStepsTest {
         ctx.setAttribute(OpenAiAgentAttributes.PROVIDER_REQUEST, providerRequest);
         ctx.setAttribute(OpenAiAgentAttributes.RAW_REQUEST, rawRequest);
 
-        OpenAiStreamEnhanceRequestStep step = new OpenAiStreamEnhanceRequestStep(new OpenAiAdvisorsSupport());
+        OpenAiStreamEnhanceRequestStep step = new OpenAiStreamEnhanceRequestStep(new OpenAiAdvisorsExecutor());
         StreamStepKey next = step.invoke(ctx);
 
         assertEquals(StreamStepKey.SEND_REQUEST, next);
@@ -108,7 +108,7 @@ class OpenAiStreamStepsTest {
     @Test
     void enhance_request_should_fail_when_attributes_missing() {
         StreamAgentContext<OpenAiStreamCompletionResponse> ctx = createContext();
-        OpenAiStreamEnhanceRequestStep step = new OpenAiStreamEnhanceRequestStep(new OpenAiAdvisorsSupport());
+        OpenAiStreamEnhanceRequestStep step = new OpenAiStreamEnhanceRequestStep(new OpenAiAdvisorsExecutor());
 
         assertThrows(IllegalStateException.class, () -> step.invoke(ctx));
     }

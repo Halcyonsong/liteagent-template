@@ -1,9 +1,7 @@
 package io.github.halcyonsong.liteagent.provider.openai.agent.constant;
 
 /**
- * OpenAI agent 编排过程中写入 context 的属性键定义。
- * <p>
- * chat / stream 共用同一套键，避免重复维护。
+ * OpenAI agent 链路内部使用的上下文属性键。
  */
 public final class OpenAiAgentAttributes {
 

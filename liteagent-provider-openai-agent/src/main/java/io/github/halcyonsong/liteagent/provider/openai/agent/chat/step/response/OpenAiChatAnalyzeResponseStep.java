@@ -4,18 +4,21 @@ import io.github.halcyonsong.liteagent.agent.chat.context.ChatAgentContext;
 import io.github.halcyonsong.liteagent.agent.chat.step.ChatStep;
 import io.github.halcyonsong.liteagent.agent.chat.step.ChatStepKey;
 import io.github.halcyonsong.liteagent.agent.state.AgentTerminationReason;
+import io.github.halcyonsong.liteagent.core.message.type.AssistantResponseMessage;
 import io.github.halcyonsong.liteagent.provider.openai.agent.constant.OpenAiAgentAttributes;
 import io.github.halcyonsong.liteagent.provider.openai.agent.support.OpenAiToolCallSupport;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiChatCompletionResponse;
+import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
- * 分析当前轮 OpenAI 响应。
- *
- * <p>无论响应中是否存在工具调用，都会将 assistant 响应暂存到
- * pendingAssistantMessages。后续由 APPEND_MESSAGES 统一写入 workingMessages。</p>
+ * 分析当前轮 chat 响应，并决定进入普通收尾还是工具执行分支。
+ * <p>
+ * assistant 消息先写入 pending 区，后续统一由 APPEND_MESSAGES 落入 workingMessages。
  */
+@Slf4j
 public class OpenAiChatAnalyzeResponseStep implements ChatStep {
 
     @Override
@@ -28,21 +31,30 @@ public class OpenAiChatAnalyzeResponseStep implements ChatStep {
         );
 
         if (response == null) {
+            log.warn(
+                    "Missing provider chat response. executionId={}, iteration={}",
+                    context.getExecutionId(),
+                    context.getIteration()
+            );
             context.setTerminationReason(AgentTerminationReason.MODEL_ERROR);
             return ChatStepKey.END;
         }
 
-        /*
-         * 普通响应也需要写入 workingMessages，供后续记忆窗口或日志增强器使用。
-         *
-         * 工具调用响应不会在这里写入，交给 EXECUTE_TOOL 统一处理，
-         * 避免 assistant 消息被重复追加。
-         */
-        if (!OpenAiToolCallSupport.hasAnyToolCalls(response)) {
+        List<AssistantResponseMessage> assistantMessages = OpenAiToolCallSupport.collectAssistantMessages(response);
+        boolean hasToolCalls = OpenAiToolCallSupport.hasAnyToolCalls(response);
+
+        log.debug(
+                "Analyzed chat response. executionId={}, iteration={}, assistantMessageCount={}, hasToolCalls={}, nextStep={}",
+                context.getExecutionId(),
+                context.getIteration(),
+                assistantMessages.size(),
+                hasToolCalls,
+                hasToolCalls ? ChatStepKey.EXECUTE_TOOL.name() : ChatStepKey.APPEND_MESSAGES.name()
+        );
+
+        if (!hasToolCalls) {
             context.clearPendingMessages();
-            context.appendPendingAssistantMessages(
-                    OpenAiToolCallSupport.collectAssistantMessages(response)
-            );
+            context.appendPendingAssistantMessages(assistantMessages);
             return ChatStepKey.APPEND_MESSAGES;
         }
 

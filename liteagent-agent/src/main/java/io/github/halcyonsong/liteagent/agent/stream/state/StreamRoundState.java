@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 单轮流式请求的运行时状态。
@@ -53,7 +54,7 @@ public class StreamRoundState {
      * 可用于存放 toolCalls、finishReason、usage、raw response metadata
      * 等当前轮特有的 provider-specific 数据。
      */
-    private final Map<String, Object> attributes = new HashMap<>();
+    private final Map<String, Object> attributes = new ConcurrentHashMap<>();
 
     public StreamRoundState(int roundIndex) {
         if (roundIndex < 0) {

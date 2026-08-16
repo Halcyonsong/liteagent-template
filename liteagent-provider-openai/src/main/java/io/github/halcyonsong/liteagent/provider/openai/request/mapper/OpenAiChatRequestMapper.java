@@ -8,6 +8,7 @@ import io.github.halcyonsong.liteagent.core.model.tool.ToolCall;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiCompletionOptions;
 import io.github.halcyonsong.liteagent.provider.openai.request.raw.OpenAiChatCompletionRawRequest;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -20,6 +21,7 @@ import java.util.Map;
  * 负责将编排层 ChatRequest 转换为 OpenAI raw request，
  * 同时保留 assistant tool_calls 和 tool tool_call_id 等协议字段。
  */
+@Slf4j
 public class OpenAiChatRequestMapper {
 
     public OpenAiChatCompletionRawRequest toRawRequest(OpenAiChatCompletionRequest request) {
@@ -36,7 +38,12 @@ public class OpenAiChatRequestMapper {
         rawRequest.setFrequencyPenalty(options == null ? null : options.getFrequencyPenalty());
         rawRequest.setResponseFormat(options == null ? null : options.getResponseFormat());
         rawRequest.setStop(options == null || options.getStop() == null ? null : options.getStop().toRawValue());
-
+        log.debug(
+                "Mapped OpenAI chat request. model={}, messageCount={}, hasOptions={}",
+                rawRequest.getModel(),
+                rawRequest.getMessages() == null ? 0 : rawRequest.getMessages().size(),
+                options != null
+        );
         return rawRequest;
     }
 

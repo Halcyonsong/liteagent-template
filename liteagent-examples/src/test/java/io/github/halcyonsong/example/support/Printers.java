@@ -11,35 +11,93 @@ import io.github.halcyonsong.liteagent.provider.openai.response.config.stream.Op
 
 public final class Printers {
 
+    private static final String SEP = "════════════════════════════════════════";
+
     private Printers() {
     }
 
-    public static void printProviderResponse(OpenAiChatCompletionResponse response) {
-        System.out.println("========== OpenAiChatCompletionResponse ==========");
-        System.out.println("response id = " + response.getBaseResponse().getId());
-        System.out.println("object = " + response.getBaseResponse().getObject());
-        System.out.println("model = " + response.getBaseResponse().getModel());
+    // ─── 同步响应 ──────────────────────────────────────────────
+
+    public static void printChatResponse(OpenAiChatCompletionResponse response) {
+        System.out.println(SEP);
+        System.out.println("Response id  = " + response.getBaseResponse().getId());
+        System.out.println("Model        = " + response.getBaseResponse().getModel());
 
         for (ChatChoice choice : response.getChoices()) {
-            System.out.println("choice index = " + choice.getIndex());
-            System.out.println("finish reason = " + choice.getFinishReason());
+            System.out.println("  choice[" + choice.getIndex() + "] finish_reason = " + choice.getFinishReason());
 
             for (Message message : choice.getChatResponse().getMessages()) {
-                System.out.println("message role = " + message.getRole());
-                System.out.println("message content = " + message.getContent());
+                printMessage(message, 2);
+            }
+        }
 
-                if (message instanceof AssistantResponseMessage assistantMessage) {
-                    System.out.println("reasoning content = " + assistantMessage.getReasoningContent());
+        if (response.getUsage() != null) {
+            System.out.println("Usage: prompt=" + response.getUsage().getPromptTokens()
+                    + " completion=" + response.getUsage().getCompletionTokens()
+                    + " total=" + response.getUsage().getTotalTokens());
+        }
+        System.out.println(SEP);
+    }
 
-                    if (assistantMessage.getToolCalls() != null && !assistantMessage.getToolCalls().isEmpty()) {
-                        for (ToolCall toolCall : assistantMessage.getToolCalls()) {
-                            System.out.println("tool call id = " + toolCall.getId());
-                            System.out.println("tool call type = " + toolCall.getType());
+    public static void printMessage(Message message, int indent) {
+        String prefix = " ".repeat(indent);
+        System.out.println(prefix + "role = " + message.getRole());
 
-                            if (toolCall.getFunction() != null) {
-                                System.out.println("tool function name = " + toolCall.getFunction().getName());
-                                System.out.println("tool function arguments = " + toolCall.getFunction().getArguments());
-                            }
+        if (message.getContent() != null && !message.getContent().isBlank()) {
+            System.out.println(prefix + "content = " + message.getContent());
+        }
+
+        if (message instanceof AssistantResponseMessage arm) {
+            if (arm.getReasoningContent() != null && !arm.getReasoningContent().isBlank()) {
+                System.out.println(prefix + "reasoning = " + arm.getReasoningContent());
+            }
+
+            if (arm.getToolCalls() != null && !arm.getToolCalls().isEmpty()) {
+                for (ToolCall toolCall : arm.getToolCalls()) {
+                    System.out.println(prefix + "tool_call:");
+                    System.out.println(prefix + "  id   = " + toolCall.getId());
+                    System.out.println(prefix + "  type = " + toolCall.getType());
+                    if (toolCall.getFunction() != null) {
+                        System.out.println(prefix + "  name = " + toolCall.getFunction().getName());
+                        System.out.println(prefix + "  args = " + toolCall.getFunction().getArguments());
+                    }
+                }
+            }
+        }
+    }
+
+    // ─── 流式响应 ──────────────────────────────────────────────
+
+    /**
+     * 打印流式 chunk 的完整信息（id / delta / finishReason / usage）。
+     */
+    public static void printStreamChunk(OpenAiStreamCompletionResponse response) {
+        System.out.println(SEP);
+        System.out.println("Stream id   = " + response.getBaseResponse().getId());
+        System.out.println("Model       = " + response.getBaseResponse().getModel());
+
+        for (StreamChoice choice : response.getChoices()) {
+            System.out.println("  choice[" + choice.getIndex() + "] finish_reason = " + choice.getFinishReason());
+
+            StreamDelta delta = choice.getDelta();
+            if (delta != null) {
+                if (delta.getRole() != null) {
+                    System.out.println("    role = " + delta.getRole());
+                }
+                if (delta.getContent() != null && !delta.getContent().isBlank()) {
+                    System.out.println("    content = " + delta.getContent());
+                }
+                if (delta.getReasoningContent() != null && !delta.getReasoningContent().isBlank()) {
+                    System.out.println("    reasoning = " + delta.getReasoningContent());
+                }
+                if (delta.getToolCalls() != null && !delta.getToolCalls().isEmpty()) {
+                    for (ToolCall toolCall : delta.getToolCalls()) {
+                        System.out.println("    tool_call delta:");
+                        System.out.println("      index = " + toolCall.getIndex());
+                        System.out.println("      id    = " + toolCall.getId());
+                        if (toolCall.getFunction() != null) {
+                            System.out.println("      name  = " + toolCall.getFunction().getName());
+                            System.out.println("      args  = " + toolCall.getFunction().getArguments());
                         }
                     }
                 }
@@ -47,52 +105,63 @@ public final class Printers {
         }
 
         if (response.getUsage() != null) {
-            System.out.println("prompt tokens = " + response.getUsage().getPromptTokens());
-            System.out.println("completion tokens = " + response.getUsage().getCompletionTokens());
-            System.out.println("total tokens = " + response.getUsage().getTotalTokens());
+            System.out.println("Usage: prompt=" + response.getUsage().getPromptTokens()
+                    + " completion=" + response.getUsage().getCompletionTokens()
+                    + " total=" + response.getUsage().getTotalTokens());
         }
+        System.out.println(SEP);
     }
 
-    public static void printProviderStreamResponse(OpenAiStreamCompletionResponse response) {
-        System.out.println("========== OpenAiStreamCompletionResponse ==========");
-        System.out.println("response id = " + response.getBaseResponse().getId());
-        System.out.println("object = " + response.getBaseResponse().getObject());
-        System.out.println("model = " + response.getBaseResponse().getModel());
-
-        for (StreamChoice choice : response.getChoices()) {
-            System.out.println("choice index = " + choice.getIndex());
-            System.out.println("finish reason = " + choice.getFinishReason());
-
-            StreamDelta delta = choice.getDelta();
-            if (delta != null) {
-                System.out.println("delta role = " + delta.getRole());
-                System.out.println("delta content = " + delta.getContent());
-                System.out.println("delta reasoning content = " + delta.getReasoningContent());
+    /**
+     * 仅打印流式 delta 的内容部分（content），适合连续流式输出。
+     */
+    public static void printStreamDeltaContent(OpenAiStreamCompletionResponse response) {
+        response.getChoices().forEach(choice -> {
+            if (choice.getDelta() == null) {
+                return;
             }
-        }
-
-        if (response.getUsage() != null) {
-            System.out.println("prompt tokens = " + response.getUsage().getPromptTokens());
-            System.out.println("completion tokens = " + response.getUsage().getCompletionTokens());
-            System.out.println("total tokens = " + response.getUsage().getTotalTokens());
-        }
+            String content = choice.getDelta().getContent();
+            if (content != null && !content.isBlank()) {
+                System.out.print(content);
+            }
+        });
     }
 
-    public static void printStreamDeltaContentAndReasoning(OpenAiStreamCompletionResponse response) {
+    /**
+     * 打印流式 delta 的内容 + 思考 + 工具调用，适合展示完整流式过程。
+     */
+    public static void printStreamDeltaAll(OpenAiStreamCompletionResponse response) {
         response.getChoices().forEach(choice -> {
             if (choice.getDelta() == null) {
                 return;
             }
 
-            String content = choice.getDelta().getContent();
-            String reasoning = choice.getDelta().getReasoningContent();
+            StreamDelta delta = choice.getDelta();
 
-            if (reasoning != null && !reasoning.isBlank()) {
-                System.out.print(reasoning);
+            if (delta.getReasoningContent() != null && !delta.getReasoningContent().isBlank()) {
+                System.out.print(delta.getReasoningContent());
             }
 
-            if (content != null && !content.isBlank()) {
-                System.out.print(content);
+            if (delta.getContent() != null && !delta.getContent().isBlank()) {
+                System.out.print(delta.getContent());
+            }
+
+            if (delta.getToolCalls() != null && !delta.getToolCalls().isEmpty()) {
+                for (ToolCall toolCall : delta.getToolCalls()) {
+                    System.out.println();
+                    System.out.println("[tool_call delta]");
+                    System.out.println("  index = " + toolCall.getIndex());
+                    System.out.println("  id    = " + toolCall.getId());
+                    if (toolCall.getFunction() != null) {
+                        System.out.println("  name  = " + toolCall.getFunction().getName());
+                        System.out.println("  args  = " + toolCall.getFunction().getArguments());
+                    }
+                }
+            }
+
+            if (choice.getFinishReason() != null) {
+                System.out.println();
+                System.out.println("[finish_reason] " + choice.getFinishReason());
             }
         });
     }

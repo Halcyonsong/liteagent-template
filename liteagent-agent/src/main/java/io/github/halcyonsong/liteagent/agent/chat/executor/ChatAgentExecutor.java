@@ -26,25 +26,33 @@ public final class ChatAgentExecutor {
     private final Map<ChatStepKey, ChatStep> steps;
     private final List<StepHook> hooks;
     private final int maxStepCount;
+    private final int maxIterations;
 
     public ChatAgentExecutor(Map<ChatStepKey, ChatStep> steps) {
-        this(steps, List.of(), 1000);
+        this(steps, List.of(), 1000, 10);
     }
 
-    public ChatAgentExecutor(Map<ChatStepKey, ChatStep> steps,
-                             List<StepHook> hooks,
-                             int maxStepCount) {
+    public ChatAgentExecutor(Map<ChatStepKey, ChatStep> steps, List<StepHook> hooks, int maxStepCount) {
+        this(steps, hooks, maxStepCount, 10);
+    }
+
+    public ChatAgentExecutor(Map<ChatStepKey, ChatStep> steps, List<StepHook> hooks, int maxStepCount, int maxIterations) {
         Objects.requireNonNull(steps, "steps must not be null");
         if (maxStepCount < 1) {
             throw new IllegalArgumentException("maxStepCount must be greater than zero");
         }
+        if (maxIterations < 1) {
+            throw new IllegalArgumentException("maxIterations must be greater than zero");
+        }
         this.steps = new HashMap<>(steps);
         this.hooks = hooks == null ? List.of() : List.copyOf(hooks);
         this.maxStepCount = maxStepCount;
+        this.maxIterations = maxIterations;
     }
 
     public ChatAgentContext execute(ChatAgentContext context) {
         Objects.requireNonNull(context, "context must not be null");
+        context.setMaxIterations(maxIterations);
 
         ChatStepKey currentKey = ChatStepKey.BEGIN;
         int executedSteps = 0;
@@ -79,6 +87,15 @@ public final class ChatAgentExecutor {
                 hooks.forEach(hook -> hook.onStepError(stepKey, context, error));
                 throw error;
             }
+        }
+
+        try {
+            hooks.forEach(hook -> hook.beforeStep(ChatStepKey.END, context));
+            steps.get(ChatStepKey.END).invoke(context);
+            hooks.forEach(hook -> hook.afterStep(ChatStepKey.END, context, ChatStepKey.END));
+        } catch (Throwable error) {
+            hooks.forEach(hook -> hook.onStepError(ChatStepKey.END, context, error));
+            throw error;
         }
 
         return context;

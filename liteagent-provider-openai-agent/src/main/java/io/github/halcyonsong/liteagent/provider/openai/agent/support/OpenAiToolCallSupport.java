@@ -15,8 +15,7 @@ import java.util.List;
 /**
  * OpenAI tool call 解析辅助类。
  * <p>
- * 当前负责从 provider response 中提取全部 assistant 响应消息及其 tool calls，
- * 不承担实际工具执行职责。
+ * 负责从 chat 响应中提取 assistant 消息、tool calls 和工具执行请求。
  */
 public final class OpenAiToolCallSupport {
 
@@ -56,9 +55,9 @@ public final class OpenAiToolCallSupport {
     }
 
     /**
-     * 收集所有 assistant message 中的全部 tool calls。
+     * 收集当前响应中的全部 assistant 消息。
      * <p>
-     * 适合用于 EXECUTE_TOOL 节点后续真正执行工具时遍历全部调用。
+     * 这些消息会在后续步骤中写入 workingMessages。
      */
     public static List<ToolCall> collectAllToolCalls(OpenAiChatCompletionResponse response) {
         if (response == null || response.getChoices() == null || response.getChoices().isEmpty()) {

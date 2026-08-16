@@ -7,12 +7,14 @@ import io.github.halcyonsong.liteagent.provider.openai.agent.constant.OpenAiAgen
 import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiChatCompletionResponse;
 import io.github.halcyonsong.liteagent.provider.openai.response.mapper.OpenAiChatResponseMapper;
 import io.github.halcyonsong.liteagent.provider.openai.response.raw.OpenAiChatCompletionRawResponse;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
 
 /**
  * 将 OpenAI raw response 映射为 provider response。
  */
+@Slf4j
 public class OpenAiChatMapResponseStep implements ChatStep {
 
     private final OpenAiChatResponseMapper responseMapper;
@@ -34,6 +36,18 @@ public class OpenAiChatMapResponseStep implements ChatStep {
 
         OpenAiChatCompletionResponse providerResponse = responseMapper.fromRaw(rawResponse);
         context.setAttribute(OpenAiAgentAttributes.PROVIDER_RESPONSE, providerResponse);
+
+        log.debug(
+                "Mapped OpenAI chat response. " +
+                        "executionId={}, " +
+                        "iteration={}, " +
+                        "responseId={}, " +
+                        "choiceCount={}",
+                context.getExecutionId(),
+                context.getIteration(),
+                providerResponse.getBaseResponse() == null ? null : providerResponse.getBaseResponse().getId(),
+                providerResponse.getChoices() == null ? 0 : providerResponse.getChoices().size()
+        );
 
         return ChatStepKey.ENHANCE_RESPONSE;
     }

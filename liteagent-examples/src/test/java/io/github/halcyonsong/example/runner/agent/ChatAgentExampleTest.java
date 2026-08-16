@@ -9,7 +9,6 @@ import io.github.halcyonsong.liteagent.provider.openai.agent.chat.OpenAiChatAgen
 import io.github.halcyonsong.liteagent.provider.openai.agent.chat.factory.OpenAiChatAgents;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiChatCompletionResponse;
-import io.github.halcyonsong.liteagent.provider.openai.runtime.config.HttpRuntimeConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -20,13 +19,7 @@ class ChatAgentExampleTest extends OpenAiExampleSupport {
     void chat_agent_should_execute_and_return_response() {
         assumeConfigReady();
 
-        OpenAiChatAgent agent = OpenAiChatAgents.create(
-                HttpRuntimeConfig.builder()
-                        .maxInMemorySize(properties.getRuntime().getMaxInMemorySize())
-                        .connectTimeoutMillis(properties.getRuntime().getConnectTimeoutMillis())
-                        .responseTimeoutMillis(properties.getRuntime().getResponseTimeoutMillis())
-                        .build()
-        );
+        OpenAiChatAgent agent = OpenAiChatAgents.create(buildRuntimeConfig());
 
         ChatRequest chatRequest = ChatRequest.builder()
                 .addMessage(Messages.system("你是一位精通法律的助手。"))
@@ -39,6 +32,6 @@ class ChatAgentExampleTest extends OpenAiExampleSupport {
                 .build();
 
         OpenAiChatCompletionResponse response = agent.execute(request);
-        Printers.printProviderResponse(response);
+        Printers.printChatResponse(response);
     }
 }

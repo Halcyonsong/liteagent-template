@@ -2,6 +2,7 @@ package io.github.halcyonsong.example.support;
 
 import io.github.halcyonsong.example.config.OpenAiProperties;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiBaseRequest;
+import io.github.halcyonsong.liteagent.provider.openai.runtime.config.HttpRuntimeConfig;
 import org.junit.jupiter.api.Assumptions;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -15,6 +16,22 @@ public abstract class OpenAiExampleSupport {
                 .baseUrl(properties.getBaseUrl())
                 .apiKey(properties.getApiKey())
                 .model(properties.getModel())
+                .build();
+    }
+
+    protected HttpRuntimeConfig buildRuntimeConfig() {
+        return HttpRuntimeConfig.builder()
+                .maxInMemorySize(properties.getRuntime().getMaxInMemorySize())
+                .connectTimeoutMillis(properties.getRuntime().getConnectTimeoutMillis())
+                .responseTimeoutMillis(properties.getRuntime().getResponseTimeoutMillis())
+                .build();
+    }
+
+    protected HttpRuntimeConfig buildStreamRuntimeConfig() {
+        return HttpRuntimeConfig.builder()
+                .maxInMemorySize(properties.getRuntime().getMaxInMemorySize())
+                .connectTimeoutMillis(properties.getRuntime().getConnectTimeoutMillis())
+                .streamResponseTimeoutMillis(properties.getRuntime().getStreamResponseTimeoutMillis())
                 .build();
     }
 

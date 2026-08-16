@@ -15,7 +15,7 @@ import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.request
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.request.OpenAiStreamMapRequestStep;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.request.OpenAiStreamSendRequestStep;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.step.response.*;
-import io.github.halcyonsong.liteagent.provider.openai.support.OpenAiAdvisorsSupport;
+import io.github.halcyonsong.liteagent.provider.openai.support.OpenAiAdvisorsExecutor;
 import io.github.halcyonsong.liteagent.provider.openai.request.mapper.OpenAiChatRequestMapper;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.stream.OpenAiStreamCompletionResponse;
 import io.github.halcyonsong.liteagent.provider.openai.response.mapper.OpenAiStreamResponseMapper;
@@ -30,14 +30,14 @@ import java.util.Objects;
 public class OpenAiStreamAgentExecutorFactory {
 
     private final OpenAiChatRequestMapper requestMapper;
-    private final OpenAiAdvisorsSupport clientSupport;
+    private final OpenAiAdvisorsExecutor clientSupport;
     private final OpenAiStreamTransport streamTransport;
     private final OpenAiStreamResponseMapper responseMapper;
     private final ToolExecutor toolExecutor;
 
     public OpenAiStreamAgentExecutorFactory(
             OpenAiChatRequestMapper requestMapper,
-            OpenAiAdvisorsSupport clientSupport,
+            OpenAiAdvisorsExecutor clientSupport,
             OpenAiStreamTransport streamTransport,
             OpenAiStreamResponseMapper responseMapper
     ) {
@@ -46,7 +46,7 @@ public class OpenAiStreamAgentExecutorFactory {
 
     public OpenAiStreamAgentExecutorFactory(
             OpenAiChatRequestMapper requestMapper,
-            OpenAiAdvisorsSupport clientSupport,
+            OpenAiAdvisorsExecutor clientSupport,
             OpenAiStreamTransport streamTransport,
             OpenAiStreamResponseMapper responseMapper,
             ToolExecutor toolExecutor
@@ -59,11 +59,24 @@ public class OpenAiStreamAgentExecutorFactory {
     }
 
     public StreamAgentExecutor<OpenAiStreamCompletionResponse> create() {
-        return create(List.of(), 1000);
+        return create(List.of(), 1000, 10);
     }
 
     public StreamAgentExecutor<OpenAiStreamCompletionResponse> create(List<StreamStepHook> hooks,
                                                                       int maxStepCount) {
+        return create(hooks, maxStepCount, 10);
+    }
+
+    /**
+     * 组装 OpenAI stream 步骤注册表并创建执行器，允许指定最大迭代轮次。
+     *
+     * @param hooks          步骤钩子列表
+     * @param maxStepCount   agent 编排最大步骤数（防止无限循环）
+     * @param maxIterations  最大模型调用轮次（防止无限工具调用循环）
+     */
+    public StreamAgentExecutor<OpenAiStreamCompletionResponse> create(List<StreamStepHook> hooks,
+                                                                      int maxStepCount,
+                                                                      int maxIterations) {
         Map<StreamStepKey, StreamSyncStep> syncSteps = new HashMap<>();
         syncSteps.put(StreamStepKey.BEGIN, new OpenAiStreamBeginStep());
         syncSteps.put(StreamStepKey.INIT_WORKING_MESSAGES, new OpenAiStreamInitWorkingMessagesStep());
@@ -74,7 +87,7 @@ public class OpenAiStreamAgentExecutorFactory {
         syncSteps.put(StreamStepKey.EXECUTE_TOOL, new OpenAiStreamExecuteToolStep(toolExecutor));
         syncSteps.put(StreamStepKey.APPEND_MESSAGES, new OpenAiStreamAppendMessagesStep());
         syncSteps.put(StreamStepKey.BUILD_RESULT, new OpenAiStreamBuildResultStep());
-        syncSteps.put(StreamStepKey.END, context -> StreamStepKey.END);
+        syncSteps.put(StreamStepKey.END, new OpenAiStreamEndStep());
 
         Map<StreamStepKey, StreamStep<Flux<OpenAiStreamCompletionResponse>>> streamSteps = new HashMap<>();
         streamSteps.put(StreamStepKey.SEND_REQUEST, new OpenAiStreamSendRequestStep(streamTransport, responseMapper));
@@ -82,7 +95,7 @@ public class OpenAiStreamAgentExecutorFactory {
         streamSteps.put(StreamStepKey.ACCUMULATE_CHUNK, new OpenAiStreamAccumulateChunkStep());
         streamSteps.put(StreamStepKey.ANALYZE_CHUNK, new OpenAiStreamAnalyzeChunkStep());
 
-        return new StreamAgentExecutor<>(syncSteps, streamSteps, hooks, maxStepCount);
+        return new StreamAgentExecutor<>(syncSteps, streamSteps, hooks, maxStepCount, maxIterations);
     }
 
     public StreamAgent<OpenAiStreamCompletionResponse> createAgent() {
@@ -92,5 +105,11 @@ public class OpenAiStreamAgentExecutorFactory {
     public StreamAgent<OpenAiStreamCompletionResponse> createAgent(List<StreamStepHook> hooks,
                                                                    int maxStepCount) {
         return new StreamAgent<>(create(hooks, maxStepCount));
+    }
+
+    public StreamAgent<OpenAiStreamCompletionResponse> createAgent(List<StreamStepHook> hooks,
+                                                                   int maxStepCount,
+                                                                   int maxIterations) {
+        return new StreamAgent<>(create(hooks, maxStepCount, maxIterations));
     }
 }

@@ -4,7 +4,7 @@ import io.github.halcyonsong.liteagent.agent.chat.context.ChatAgentContext;
 import io.github.halcyonsong.liteagent.agent.chat.executor.ChatAgentExecutor;
 import io.github.halcyonsong.liteagent.core.message.type.constructor.Messages;
 import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
-import io.github.halcyonsong.liteagent.provider.openai.support.OpenAiAdvisorsSupport;
+import io.github.halcyonsong.liteagent.provider.openai.support.OpenAiAdvisorsExecutor;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiBaseRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.mapper.OpenAiChatRequestMapper;
@@ -32,7 +32,7 @@ class OpenAiChatChatAgentExecutorFactoryTest {
     void create_should_build_executable_pipeline() {
         OpenAiChatAgentExecutorFactory factory = new OpenAiChatAgentExecutorFactory(
                 new OpenAiChatRequestMapper(),
-                new OpenAiAdvisorsSupport(),
+                new OpenAiAdvisorsExecutor(),
                 new OpenAiChatTransport(createStubWebClient()),
                 new OpenAiChatResponseMapper()
         );
@@ -49,7 +49,7 @@ class OpenAiChatChatAgentExecutorFactoryTest {
     @Test
     void constructor_should_validate_arguments() {
         OpenAiChatRequestMapper requestMapper = new OpenAiChatRequestMapper();
-        OpenAiAdvisorsSupport clientSupport = new OpenAiAdvisorsSupport();
+        OpenAiAdvisorsExecutor clientSupport = new OpenAiAdvisorsExecutor();
         OpenAiChatTransport transport = new OpenAiChatTransport(createStubWebClient());
         OpenAiChatResponseMapper responseMapper = new OpenAiChatResponseMapper();
 

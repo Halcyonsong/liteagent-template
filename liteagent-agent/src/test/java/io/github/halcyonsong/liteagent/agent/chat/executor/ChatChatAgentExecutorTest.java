@@ -11,7 +11,7 @@ import io.github.halcyonsong.liteagent.core.model.request.norm.Invocation;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -22,7 +22,7 @@ class ChatChatAgentExecutorTest {
     @Test
     void execute_should_run_registered_steps_in_order() {
         List<ChatStepKey> executionOrder = new ArrayList<>();
-        Map<ChatStepKey, ChatStep> steps = new EnumMap<>(ChatStepKey.class);
+        Map<ChatStepKey, ChatStep> steps = new HashMap<>();
         steps.put(ChatStepKey.BEGIN, context -> {
             executionOrder.add(ChatStepKey.BEGIN);
             return ChatStepKey.MAP_REQUEST;
@@ -51,33 +51,33 @@ class ChatChatAgentExecutorTest {
     @Test
     void execute_should_trigger_hooks() {
         List<String> events = new ArrayList<>();
-        Map<ChatStepKey, ChatStep> steps = new EnumMap<>(ChatStepKey.class);
+        Map<ChatStepKey, ChatStep> steps = new HashMap<>();
         steps.put(ChatStepKey.BEGIN, context -> ChatStepKey.END);
         steps.put(ChatStepKey.END, context -> ChatStepKey.END);
 
         StepHook hook = new StepHook() {
             @Override
             public void beforeStep(ChatStepKey key, ChatAgentContext context) {
-                events.add("before:" + key);
+                events.add("before:" + key.name());
             }
 
             @Override
             public void afterStep(ChatStepKey key, ChatAgentContext context, ChatStepKey nextKey) {
-                events.add("after:" + key + "->" + nextKey);
+                events.add("after:" + key.name() + "->" + nextKey.name());
             }
         };
 
         ChatAgentExecutor executor = new ChatAgentExecutor(steps, List.of(hook), 10);
         executor.execute(ChatAgentContext.create(new TestInvocation()));
 
-        assertEquals(List.of("before:BEGIN", "after:BEGIN->END"), events);
+        assertEquals(List.of("before:BEGIN", "after:BEGIN->END", "before:END", "after:END->END"), events);
     }
 
     @Test
     void execute_should_trigger_error_hook_and_rethrow() {
         List<String> events = new ArrayList<>();
         RuntimeException failure = new RuntimeException("boom");
-        Map<ChatStepKey, ChatStep> steps = new EnumMap<>(ChatStepKey.class);
+        Map<ChatStepKey, ChatStep> steps = new HashMap<>();
         steps.put(ChatStepKey.BEGIN, context -> {
             throw failure;
         });
@@ -85,7 +85,7 @@ class ChatChatAgentExecutorTest {
         StepHook hook = new StepHook() {
             @Override
             public void onStepError(ChatStepKey key, ChatAgentContext context, Throwable error) {
-                events.add(key + ":" + error.getMessage());
+                events.add(key.name() + ":" + error.getMessage());
             }
         };
 
@@ -100,18 +100,19 @@ class ChatChatAgentExecutorTest {
 
     @Test
     void execute_should_fail_when_step_missing() {
-        Map<ChatStepKey, ChatStep> steps = new EnumMap<>(ChatStepKey.class);
+        Map<ChatStepKey, ChatStep> steps = new HashMap<>();
         ChatAgentExecutor executor = new ChatAgentExecutor(steps, List.of(), 10);
 
         IllegalStateException exception = assertThrows(IllegalStateException.class,
                 () -> executor.execute(ChatAgentContext.create(new TestInvocation())));
 
-        assertTrue(exception.getMessage().contains("No agent step registered for key: BEGIN"));
+        assertTrue(exception.getMessage().contains("No agent step registered for key"));
+        assertTrue(exception.getMessage().contains("BEGIN"));
     }
 
     @Test
     void execute_should_fail_when_step_limit_exceeded() {
-        Map<ChatStepKey, ChatStep> steps = new EnumMap<>(ChatStepKey.class);
+        Map<ChatStepKey, ChatStep> steps = new HashMap<>();
         steps.put(ChatStepKey.BEGIN, context -> ChatStepKey.BEGIN);
 
         ChatAgentExecutor executor = new ChatAgentExecutor(steps, List.of(), 2);

@@ -10,6 +10,7 @@ import io.github.halcyonsong.liteagent.provider.openai.request.raw.OpenAiChatCom
 import io.github.halcyonsong.liteagent.provider.openai.response.config.stream.OpenAiStreamCompletionResponse;
 import io.github.halcyonsong.liteagent.provider.openai.response.mapper.OpenAiStreamResponseMapper;
 import io.github.halcyonsong.liteagent.provider.openai.transport.OpenAiStreamTransport;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 
 import java.util.Objects;
@@ -17,6 +18,7 @@ import java.util.Objects;
 /**
  * 发起 OpenAI-compatible 流式请求，并将 raw chunk 映射为 provider 输出对象。
  */
+@Slf4j
 public class OpenAiStreamSendRequestStep implements StreamStep<Flux<OpenAiStreamCompletionResponse>> {
 
     private final OpenAiStreamTransport transport;
@@ -44,6 +46,15 @@ public class OpenAiStreamSendRequestStep implements StreamStep<Flux<OpenAiStream
 
         String endpoint = OpenAiAgentRequestSupport.resolveEndpoint(providerRequest);
         String apiKey = OpenAiAgentRequestSupport.resolveApiKey(providerRequest);
+
+        log.debug(
+                "Starting stream round. executionId={}, roundIndex={}, iteration={}, endpoint={}, messageCount={}",
+                context.getExecutionId(),
+                context.currentRound().getRoundIndex(),
+                context.getIteration(),
+                endpoint,
+                rawRequest.getMessages() == null ? 0 : rawRequest.getMessages().size()
+        );
 
         Flux<OpenAiStreamCompletionResponse> stream = transport.send(endpoint, apiKey, rawRequest)
                 .map(responseMapper::fromRaw)

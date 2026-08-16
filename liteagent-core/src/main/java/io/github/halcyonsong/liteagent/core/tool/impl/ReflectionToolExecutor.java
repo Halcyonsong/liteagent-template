@@ -22,6 +22,8 @@ import java.util.Objects;
  */
 public class ReflectionToolExecutor implements ToolExecutor {
 
+    private static final int MAX_PREVIEW_LENGTH = 200;
+
     private final ObjectMapper objectMapper;
 
     public ReflectionToolExecutor() {
@@ -64,6 +66,7 @@ public class ReflectionToolExecutor implements ToolExecutor {
         }
     }
 
+
     private Map<String, Object> parseArguments(String argumentsJson) {
         if (argumentsJson == null || argumentsJson.isBlank()) {
             return Collections.emptyMap();
@@ -72,8 +75,25 @@ public class ReflectionToolExecutor implements ToolExecutor {
         try {
             return objectMapper.readValue(argumentsJson, new TypeReference<>() {});
         } catch (Exception e) {
-            throw new ToolExecutionException("Failed to parse tool arguments JSON: " + argumentsJson, e);
+            throw new ToolExecutionException(
+                    "Failed to parse tool arguments JSON (length: "
+                            + argumentsJson.length()
+                            + ", preview: "
+                            + truncateForPreview(argumentsJson)
+                            + ")",
+                    e
+            );
         }
+    }
+
+    /**
+     * 截取 JSON 前缀用于异常消息，避免完整暴露过大或敏感内容。
+     */
+    private static String truncateForPreview(String json) {
+        if (json.length() <= MAX_PREVIEW_LENGTH) {
+            return json;
+        }
+        return json.substring(0, MAX_PREVIEW_LENGTH) + "...(truncated)";
     }
 
     private Object[] bindArguments(Method method, Map<String, Object> arguments) {

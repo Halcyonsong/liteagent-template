@@ -40,11 +40,15 @@ public class OpenAiStreamTransport {
         Objects.requireNonNull(apiKey, "apiKey must not be null");
         Objects.requireNonNull(rawRequest, "rawRequest must not be null");
 
-        log.debug("Sending OpenAI-compatible streaming HTTP request. endpoint={}, model={}, stream={}, messageCount={}",
+        log.debug(
+                "Sending OpenAI-compatible streaming HTTP request. endpoint={}, model={}, stream={}, messageCount={}, toolCount={}, hasToolChoice={}",
                 endpoint,
                 rawRequest.getModel(),
                 rawRequest.getStream(),
-                rawRequest.getMessages() == null ? 0 : rawRequest.getMessages().size());
+                rawRequest.getMessages() == null ? 0 : rawRequest.getMessages().size(),
+                rawRequest.getTools() == null ? 0 : rawRequest.getTools().size(),
+                rawRequest.getToolChoice() != null
+        );
 
         return webClient.post()
                 .uri(endpoint)
@@ -54,13 +58,18 @@ public class OpenAiStreamTransport {
                 .bodyValue(rawRequest)
                 .retrieve()
                 .bodyToFlux(new org.springframework.core.ParameterizedTypeReference<ServerSentEvent<String>>() {})
+                .doOnSubscribe(subscription -> log.debug(
+                        "Subscribed OpenAI-compatible streaming response. endpoint={}, model={}",
+                        endpoint,
+                        rawRequest.getModel()
+                ))
                 .map(ServerSentEvent::data)
                 .filter(Objects::nonNull)
                 .map(String::trim)
                 .filter(data -> !data.isEmpty())
                 .filter(data -> !"[DONE]".equals(data))
                 .map(this::deserializeChunk)
-                .doOnNext(chunk -> log.debug(
+                .doOnNext(chunk -> log.trace(
                         "Received OpenAI-compatible streaming chunk. responseId={}, model={}, choiceCount={}",
                         chunk.getId(),
                         chunk.getModel(),
@@ -86,14 +95,22 @@ public class OpenAiStreamTransport {
                             rawRequest.getModel(),
                             e);
                     return new ModelException("Failed to call OpenAI-compatible streaming chat completion", e);
-                });
+                })
+                .doOnComplete(() -> log.debug(
+                        "Completed OpenAI-compatible streaming response. endpoint={}, model={}",
+                        endpoint,
+                        rawRequest.getModel()
+                ));
     }
 
     private OpenAiChatCompletionRawResponse deserializeChunk(String json) {
         try {
             return objectMapper.readValue(json, OpenAiChatCompletionRawResponse.class);
         } catch (Exception e) {
-            throw new ModelException("Failed to deserialize OpenAI-compatible streaming chunk: " + json, e);
+            throw new ModelException(
+                    "Failed to deserialize OpenAI-compatible streaming chunk, length=" + json.length(),
+                    e
+            );
         }
     }
 }

@@ -12,12 +12,9 @@ import io.github.halcyonsong.liteagent.core.tool.impl.ToolRegistries;
 import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistry;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.OpenAiStreamAgent;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.factory.OpenAiStreamAgents;
-import io.github.halcyonsong.liteagent.provider.openai.request.advisor.OpenAiRegistryToolsAdvisor;
+import io.github.halcyonsong.liteagent.provider.openai.advisor.OpenAiRegistryToolsAdvisor;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiCompletionOptions;
-import io.github.halcyonsong.liteagent.provider.openai.runtime.config.HttpRuntimeConfig;
-import io.github.halcyonsong.liteagent.provider.openai.runtime.register.WebClientFactory;
-import io.github.halcyonsong.liteagent.provider.openai.runtime.register.WebClientRegistry;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -30,16 +27,7 @@ class StreamAgentToolCallExampleTest extends OpenAiExampleSupport {
 
         ToolRegistry registry = ToolRegistries.inMemory(new WeatherTools());
 
-        WebClientRegistry webClientRegistry = new WebClientRegistry(new WebClientFactory());
-
-        OpenAiStreamAgent agent = OpenAiStreamAgents.create(
-                webClientRegistry,
-                HttpRuntimeConfig.builder()
-                        .maxInMemorySize(properties.getRuntime().getMaxInMemorySize())
-                        .connectTimeoutMillis(properties.getRuntime().getConnectTimeoutMillis())
-                        .streamResponseTimeoutMillis(properties.getRuntime().getStreamResponseTimeoutMillis())
-                        .build()
-        );
+        OpenAiStreamAgent agent = OpenAiStreamAgents.create(buildStreamRuntimeConfig());
 
         ChatRequest chatRequest = ChatRequest.builder()
                 .addMessage(Messages.system("你是一位助手，请使用提供的工具回答用户的问题。"))
@@ -56,26 +44,11 @@ class StreamAgentToolCallExampleTest extends OpenAiExampleSupport {
                 .requestAdvisor(new OpenAiRegistryToolsAdvisor(registry))
                 .build();
 
-        System.out.println("========== Stream Agent Tool Call ==========");
+        System.out.println("===== Stream Agent Tool Call =====");
         agent.execute(request)
-                .doOnNext(chunk -> {
-                    chunk.getChoices().forEach(choice -> {
-                        if (choice.getDelta() != null) {
-                            String content = choice.getDelta().getContent();
-                            if (content != null && !content.isBlank()) {
-                                System.out.print(content);
-                            }
-                            if (choice.getDelta().getToolCalls() != null && !choice.getDelta().getToolCalls().isEmpty()) {
-                                System.out.println("\n[tool_call delta] " + choice.getDelta().getToolCalls());
-                            }
-                        }
-                        if (choice.getFinishReason() != null) {
-                            System.out.println("\n[finish_reason] " + choice.getFinishReason());
-                        }
-                    });
-                })
+                .doOnNext(Printers::printStreamDeltaAll)
                 .blockLast();
-        System.out.println("\n========== Stream Agent End ==========");
+        System.out.println("\n===== Stream End =====");
     }
 
     @ToolComponent

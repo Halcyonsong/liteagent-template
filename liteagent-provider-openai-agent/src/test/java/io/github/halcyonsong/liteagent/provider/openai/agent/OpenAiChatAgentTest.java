@@ -18,7 +18,7 @@ import io.github.halcyonsong.liteagent.provider.openai.response.config.OpenAiUsa
 import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiChatCompletionResponse;
 import org.junit.jupiter.api.Test;
 
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -47,7 +47,7 @@ class OpenAiChatAgentTest {
     }
 
     private static Map<ChatStepKey, ChatStep> createSteps(OpenAiChatCompletionResponse response) {
-        Map<ChatStepKey, ChatStep> steps = new EnumMap<>(ChatStepKey.class);
+        Map<ChatStepKey, ChatStep> steps = new HashMap<>();
         steps.put(ChatStepKey.BEGIN, context -> {
             context.setResult(response);
             return ChatStepKey.END;

@@ -24,36 +24,47 @@ import java.util.Objects;
 public final class StreamAgentExecutor<T> {
 
     private final Map<StreamStepKey, StreamSyncStep> syncSteps;
-
     private final Map<StreamStepKey, StreamStep<Flux<T>>> streamSteps;
-
     private final List<StreamStepHook> hooks;
-
     private final int maxStepCount;
+    private final int maxIterations;
 
     public StreamAgentExecutor(Map<StreamStepKey, StreamSyncStep> syncSteps,
                                Map<StreamStepKey, StreamStep<Flux<T>>> streamSteps) {
-        this(syncSteps, streamSteps, List.of(), 1000);
+        this(syncSteps, streamSteps, List.of(), 1000, 10);
     }
 
     public StreamAgentExecutor(Map<StreamStepKey, StreamSyncStep> syncSteps,
                                Map<StreamStepKey, StreamStep<Flux<T>>> streamSteps,
                                List<StreamStepHook> hooks,
                                int maxStepCount) {
+        this(syncSteps, streamSteps, hooks, maxStepCount, 10);
+    }
+
+    public StreamAgentExecutor(Map<StreamStepKey, StreamSyncStep> syncSteps,
+                               Map<StreamStepKey, StreamStep<Flux<T>>> streamSteps,
+                               List<StreamStepHook> hooks,
+                               int maxStepCount,
+                               int maxIterations) {
         Objects.requireNonNull(syncSteps, "syncSteps must not be null");
         Objects.requireNonNull(streamSteps, "streamSteps must not be null");
         if (maxStepCount < 1) {
             throw new IllegalArgumentException("maxStepCount must be greater than zero");
+        }
+        if (maxIterations < 1) {
+            throw new IllegalArgumentException("maxIterations must be greater than zero");
         }
 
         this.syncSteps = new HashMap<>(syncSteps);
         this.streamSteps = new HashMap<>(streamSteps);
         this.hooks = hooks == null ? List.of() : List.copyOf(hooks);
         this.maxStepCount = maxStepCount;
+        this.maxIterations = maxIterations;
     }
 
     public StreamAgentContext<T> executeContext(StreamAgentContext<T> context) {
         Objects.requireNonNull(context, "context must not be null");
+        context.setMaxIterations(maxIterations);
         context.setOutput(buildFlow(context));
         return context;
     }
@@ -137,6 +148,7 @@ public final class StreamAgentExecutor<T> {
 
         if (afterCurrentRound.equals(StreamStepKey.BUILD_RESULT)) {
             invokeSyncStep(StreamStepKey.BUILD_RESULT, context);
+            invokeSyncStep(StreamStepKey.END, context);
             return Flux.empty();
         }
 
@@ -145,6 +157,7 @@ public final class StreamAgentExecutor<T> {
         }
 
         if (afterCurrentRound.equals(StreamStepKey.END)) {
+            invokeSyncStep(StreamStepKey.END, context);
             return Flux.empty();
         }
 

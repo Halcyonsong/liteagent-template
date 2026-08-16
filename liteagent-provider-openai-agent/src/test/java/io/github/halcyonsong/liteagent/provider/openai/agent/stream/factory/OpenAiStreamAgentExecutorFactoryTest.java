@@ -4,7 +4,7 @@ import io.github.halcyonsong.liteagent.agent.stream.context.StreamAgentContext;
 import io.github.halcyonsong.liteagent.agent.stream.executor.StreamAgentExecutor;
 import io.github.halcyonsong.liteagent.core.message.type.constructor.Messages;
 import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
-import io.github.halcyonsong.liteagent.provider.openai.support.OpenAiAdvisorsSupport;
+import io.github.halcyonsong.liteagent.provider.openai.support.OpenAiAdvisorsExecutor;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiBaseRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.mapper.OpenAiChatRequestMapper;
@@ -27,7 +27,7 @@ class OpenAiStreamAgentExecutorFactoryTest {
     void create_should_build_executable_stream_pipeline() {
         OpenAiStreamAgentExecutorFactory factory = new OpenAiStreamAgentExecutorFactory(
                 new OpenAiChatRequestMapper(),
-                new OpenAiAdvisorsSupport(),
+                new OpenAiAdvisorsExecutor(),
                 new OpenAiStreamTransport(createStubWebClient()),
                 new OpenAiStreamResponseMapper()
         );
@@ -48,7 +48,7 @@ class OpenAiStreamAgentExecutorFactoryTest {
     @Test
     void constructor_should_validate_arguments() {
         OpenAiChatRequestMapper requestMapper = new OpenAiChatRequestMapper();
-        OpenAiAdvisorsSupport clientSupport = new OpenAiAdvisorsSupport();
+        OpenAiAdvisorsExecutor clientSupport = new OpenAiAdvisorsExecutor();
         OpenAiStreamTransport transport = new OpenAiStreamTransport(createStubWebClient());
         OpenAiStreamResponseMapper responseMapper = new OpenAiStreamResponseMapper();
 

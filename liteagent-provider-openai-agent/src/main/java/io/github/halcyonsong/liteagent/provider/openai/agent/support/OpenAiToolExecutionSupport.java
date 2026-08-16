@@ -12,13 +12,9 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * OpenAI 工具执行结果转换辅助类。
- *
- * <p>该类负责将 core 层的 ToolExecutionRequest
- * 和 ToolExecutor 执行结果转换为 OpenAI 对话协议使用的 ToolMessage。</p>
- *
- * <p>工具调用 ID 始终来自 ToolExecutionRequest.id，
- * 业务方法返回值只会被序列化为 ToolMessage.content。</p>
+ * 工具执行结果转换辅助类。
+ * <p>
+ * 负责调用 ToolExecutor，并将结果转换为可回写到 workingMessages 的 ToolMessage。
  */
 public final class OpenAiToolExecutionSupport {
 
@@ -26,15 +22,7 @@ public final class OpenAiToolExecutionSupport {
     }
 
     /**
-     * 执行一组工具请求，并将结果转换为 ToolMessage。
-     *
-     * <p>当前按照请求顺序同步执行。任意一个工具执行失败时，
-     * 异常会直接向上抛出，由调用方决定如何设置终止原因。</p>
-     *
-     * @param requests  工具调用请求
-     * @param executor  工具执行器
-     * @param registry  工具注册表
-     * @return 按请求顺序生成的工具结果消息
+     * 执行一组工具请求，并按请求顺序转换为 ToolMessage。
      */
     public static List<ToolMessage> executeToMessages(
             List<ToolExecutionRequest> requests,
@@ -60,11 +48,6 @@ public final class OpenAiToolExecutionSupport {
 
     /**
      * 执行单个工具请求，并构造对应的 ToolMessage。
-     *
-     * @param request  工具调用请求
-     * @param executor 工具执行器
-     * @param registry 工具注册表
-     * @return 工具结果消息
      */
     public static ToolMessage executeToMessage(
             ToolExecutionRequest request,
@@ -82,10 +65,8 @@ public final class OpenAiToolExecutionSupport {
     }
 
     /**
-     * 将工具业务结果转换为消息 content。
-     *
-     * <p>字符串结果直接使用；
-     * 其他类型统一序列化为 JSON。</p>
+     * 将工具执行结果转换为消息 content。
+     * 字符串直接返回，其他类型统一序列化为 JSON。
      */
     public static String stringifyResult(Object result) {
         if (result == null) {

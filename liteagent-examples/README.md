@@ -1,7 +1,7 @@
 # liteagent-examples
 
-`liteagent-examples` 是示例和手工验证模块。
-它不属于框架核心打包内容，但可以使用 Spring Boot 配置能力做本地测试和 smoke test。
+`liteagent-examples` 是调用方式展示模块。
+它不承担框架功能断言，重点是展示请求构造、Agent 创建、工具接入、流式消费和结果打印等完整调用链路。
 
 ## 职责
 
@@ -18,24 +18,24 @@
 
 ## 当前范围
 
-当前 examples 覆盖 `liteagent-provider-openai` 的 provider 直调链路和 `liteagent-provider-openai-agent` 的编排入口。
+当前 examples 覆盖 `liteagent-provider-openai-agent` 的 agent 编排入口，统一通过 `OpenAiChatAgents` / `OpenAiStreamAgents` 工厂创建 agent。
 
-也就是说，这里的测试覆盖：
+也就是说，这里的示例覆盖：
 
-- `OpenAiChatClient` / `OpenAiStreamClient`（provider 直调）
 - `OpenAiChatAgent` / `OpenAiStreamAgent`（agent 编排，含工具调用回环）
 - `OpenAiQuickChatRequest`（快捷请求构造）
 - tools / tool_choice 请求增强
 - Step Hook（before / after）
+- 同步响应、流式 delta、reasoning、工具调用和 usage 的统一打印
 
 ## 当前主线流程
 
-### provider 直调
+### OpenAI 请求调用
 
 ```mermaid
 flowchart TD
     A1[构造 ChatRequest + OpenAiBaseRequest] --> A2[组装 OpenAiChatCompletionRequest]
-    A2 --> A3[OpenAiChatClient / OpenAiStreamClient]
+    A2 --> A3[OpenAiChatAgents / OpenAiStreamAgents]
     A3 --> A4[raw request 映射]
     A4 --> A5[advisor 增强]
     A5 --> A6[transport 发送]
@@ -108,10 +108,10 @@ liteagent:
 
 ## 示例定位
 
-这个模块更像一个"可运行文档"，不是最终业务代码。
+这个模块更像一个"可运行文档"，不是最终业务代码，也不是框架功能测试模块。
 
 适合做这些事：
 
-- 验证接口是否还能正常调用
-- 验证新特性是否按预期工作
-- 作为仓库的调用模板
+- 查找某种调用方式的最小完整示例
+- 复制请求构造、Agent 创建和结果消费代码
+- 观察普通输出、reasoning、工具调用和流式响应的打印效果

@@ -5,22 +5,18 @@ import io.github.halcyonsong.liteagent.agent.stream.context.StreamAgentContext;
 import io.github.halcyonsong.liteagent.agent.stream.state.StreamRoundState;
 import io.github.halcyonsong.liteagent.agent.stream.step.StreamStepKey;
 import io.github.halcyonsong.liteagent.agent.stream.step.StreamSyncStep;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
 
 /**
- * 将当前轮暂存消息统一写入 workingMessages。
- *
- * <p>写入顺序固定为：</p>
- *
- * <pre>
- * assistant(tool_calls)
- * tool(result)
- * </pre>
- *
- * <p>没有工具结果时，本轮结束；
- * 有工具结果时，进入下一轮模型请求。</p>
+ * 将当前轮 pending assistant/tool 消息写入 workingMessages。
+ * <p>
+ * 无工具结果时进入 BUILD_RESULT；
+ * 有工具结果时递增 iteration 并开始下一轮。
+ * 有工具结果但超过 maxIterations 时走 BUILD_RESULT。
  */
+@Slf4j
 public class OpenAiStreamAppendMessagesStep
         implements StreamSyncStep {
 
@@ -30,7 +26,9 @@ public class OpenAiStreamAppendMessagesStep
 
         StreamRoundState roundState = context.currentRound();
 
-        boolean hasToolMessages = !roundState.getPendingToolMessages().isEmpty();
+        int pendingAssistantCount = roundState.getPendingAssistantMessages().size();
+        int pendingToolCount = roundState.getPendingToolMessages().size();
+        boolean hasToolMessages = pendingToolCount > 0;
 
         context.appendWorkingMessages(roundState.getPendingAssistantMessages());
 
@@ -39,21 +37,71 @@ public class OpenAiStreamAppendMessagesStep
         roundState.clearPendingMessages();
 
         if (!hasToolMessages) {
+            log.debug(
+                    "Appended stream messages. " +
+                            "executionId={}, " +
+                            "roundIndex={}, " +
+                            "iteration={}, " +
+                            "appendedAssistantCount={}, " +
+                            "appendedToolCount={}, " +
+                            "workingMessageCount={}, " +
+                            "nextStep={}",
+                    context.getExecutionId(),
+                    roundState.getRoundIndex(),
+                    context.getIteration(),
+                    pendingAssistantCount,
+                    pendingToolCount,
+                    context.getWorkingMessages().size(),
+                    StreamStepKey.BUILD_RESULT.name()
+            );
             return StreamStepKey.BUILD_RESULT;
         }
 
-        /*
-         * iteration 表示已经完成的工具循环数量。
-         * 当前轮工具结果写入后，下一步准备发起下一轮模型请求。
-         */
         context.incrementIteration();
 
         if (context.getIteration() >= context.getMaxIterations()) {
             context.setTerminationReason(
                     AgentTerminationReason.MAX_ITERATIONS_REACHED
             );
+
+            log.debug(
+                    "Appended stream messages and reached max iterations. " +
+                            "executionId={}, " +
+                            "roundIndex={}, " +
+                            "iteration={}, " +
+                            "appendedAssistantCount={}, " +
+                            "appendedToolCount={}, " +
+                            "workingMessageCount={}, " +
+                            "nextStep={}",
+                    context.getExecutionId(),
+                    roundState.getRoundIndex(),
+                    context.getIteration(),
+                    pendingAssistantCount,
+                    pendingToolCount,
+                    context.getWorkingMessages().size(),
+                    StreamStepKey.BUILD_RESULT.name()
+            );
+
             return StreamStepKey.BUILD_RESULT;
         }
+
+        log.debug(
+                "Appended stream messages and continue next round. " +
+                            "executionId={}, " +
+                            "roundIndex={}, " +
+                            "iteration={}, " +
+                            "appendedAssistantCount={}, " +
+                            "appendedToolCount={}, " +
+                            "workingMessageCount={}, " +
+                            "nextStep={}",
+                context.getExecutionId(),
+                roundState.getRoundIndex(),
+                context.getIteration(),
+                pendingAssistantCount,
+                pendingToolCount,
+                context.getWorkingMessages().size(),
+                StreamStepKey.BEGIN.name()
+        );
 
         return StreamStepKey.BEGIN;
     }

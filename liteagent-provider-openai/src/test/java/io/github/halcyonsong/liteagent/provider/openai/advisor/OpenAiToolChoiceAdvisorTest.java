@@ -1,4 +1,4 @@
-package io.github.halcyonsong.liteagent.provider.openai.request.advisor;
+package io.github.halcyonsong.liteagent.provider.openai.advisor;
 
 import io.github.halcyonsong.liteagent.core.message.type.constructor.Messages;
 import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;

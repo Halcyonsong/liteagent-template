@@ -9,12 +9,14 @@ import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChat
 import io.github.halcyonsong.liteagent.provider.openai.request.raw.OpenAiChatCompletionRawRequest;
 import io.github.halcyonsong.liteagent.provider.openai.response.raw.OpenAiChatCompletionRawResponse;
 import io.github.halcyonsong.liteagent.provider.openai.transport.OpenAiChatTransport;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
 
 /**
  * 发送一轮普通 OpenAI chat 请求，并将 raw response 写入上下文。
  */
+@Slf4j
 public class OpenAiChatSendRequestStep implements ChatStep {
 
     private final OpenAiChatTransport transport;
@@ -32,9 +34,22 @@ public class OpenAiChatSendRequestStep implements ChatStep {
 
         String endpoint = OpenAiAgentRequestSupport.resolveEndpoint(providerRequest);
         String apiKey = OpenAiAgentRequestSupport.resolveApiKey(providerRequest);
+        log.debug(
+                "Sending chat round. executionId={}, iteration={}, endpoint={}, messageCount={}",
+                context.getExecutionId(),
+                context.getIteration(),
+                endpoint,
+                rawRequest.getMessages() == null ? 0 : rawRequest.getMessages().size()
+        );
 
         OpenAiChatCompletionRawResponse rawResponse = transport.send(endpoint, apiKey, rawRequest);
         context.setAttribute(OpenAiAgentAttributes.RAW_RESPONSE, rawResponse);
+        log.debug(
+                "Received raw chat response. executionId={}, iteration={}, responseId={}",
+                context.getExecutionId(),
+                context.getIteration(),
+                rawResponse.getId()
+        );
 
         return ChatStepKey.MAP_RESPONSE;
     }

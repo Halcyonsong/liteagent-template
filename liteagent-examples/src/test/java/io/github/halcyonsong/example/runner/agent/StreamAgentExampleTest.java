@@ -8,10 +8,6 @@ import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.OpenAiStreamAgent;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.factory.OpenAiStreamAgents;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
-import io.github.halcyonsong.liteagent.provider.openai.response.config.stream.OpenAiStreamCompletionResponse;
-import io.github.halcyonsong.liteagent.provider.openai.runtime.config.HttpRuntimeConfig;
-import io.github.halcyonsong.liteagent.provider.openai.runtime.register.WebClientFactory;
-import io.github.halcyonsong.liteagent.provider.openai.runtime.register.WebClientRegistry;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -22,16 +18,7 @@ class StreamAgentExampleTest extends OpenAiExampleSupport {
     void stream_agent_should_execute_and_return_chunks() {
         assumeConfigReady();
 
-        WebClientRegistry registry = new WebClientRegistry(new WebClientFactory());
-
-        OpenAiStreamAgent agent = OpenAiStreamAgents.create(
-                registry,
-                HttpRuntimeConfig.builder()
-                        .maxInMemorySize(properties.getRuntime().getMaxInMemorySize())
-                        .connectTimeoutMillis(properties.getRuntime().getConnectTimeoutMillis())
-                        .streamResponseTimeoutMillis(properties.getRuntime().getStreamResponseTimeoutMillis())
-                        .build()
-        );
+        OpenAiStreamAgent agent = OpenAiStreamAgents.create(buildStreamRuntimeConfig());
 
         ChatRequest chatRequest = ChatRequest.builder()
                 .addMessage(Messages.system("You are a helpful assistant."))
@@ -43,8 +30,10 @@ class StreamAgentExampleTest extends OpenAiExampleSupport {
                 .chatRequest(chatRequest)
                 .build();
 
+        System.out.println("===== Stream Agent =====");
         agent.execute(request)
-                .doOnNext(Printers::printStreamDeltaContentAndReasoning)
+                .doOnNext(Printers::printStreamDeltaAll)
                 .blockLast();
+        System.out.println("\n===== Stream End =====");
     }
 }

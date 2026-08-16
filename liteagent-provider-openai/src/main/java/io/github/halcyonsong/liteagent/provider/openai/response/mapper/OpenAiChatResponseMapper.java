@@ -8,23 +8,31 @@ import io.github.halcyonsong.liteagent.provider.openai.response.config.OpenAiBas
 import io.github.halcyonsong.liteagent.provider.openai.response.config.OpenAiUsage;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiChatCompletionResponse;
 import io.github.halcyonsong.liteagent.provider.openai.response.raw.OpenAiChatCompletionRawResponse;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 /**
- * OpenAI-compatible chat completion 响应包装对象。
+ * OpenAI-compatible chat completion 响应包装对象映射器。
  * <p>
  * 表示 provider 返回的一次完整响应，供上层编排消费。
  */
+@Slf4j
 public class OpenAiChatResponseMapper extends OpenAiResponseMappingSupport {
 
     public OpenAiChatCompletionResponse fromRaw(OpenAiChatCompletionRawResponse rawResponse) {
         List<ChatChoice> choices = mapChoices(rawResponse);
         OpenAiBaseResponse baseResponse = mapBaseResponse(rawResponse);
         OpenAiUsage usage = mapUsage(rawResponse.getUsage());
-
+        log.debug(
+                "Mapped OpenAI chat response. responseId={}, model={}, choiceCount={}, usagePresent={}",
+                baseResponse.getId(),
+                baseResponse.getModel(),
+                choices.size(),
+                usage != null
+        );
         return new OpenAiChatCompletionResponse(baseResponse, choices, usage);
     }
 

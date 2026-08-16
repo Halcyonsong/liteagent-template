@@ -12,16 +12,18 @@ import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistry;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.support.OpenAiStreamToolCallSupport;
 import io.github.halcyonsong.liteagent.provider.openai.agent.support.OpenAiToolExecutionSupport;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.stream.OpenAiStreamCompletionResponse;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Objects;
 
 /**
- * 流式工具执行步骤。
- *
- * <p>该步骤只执行工具并将结果放入当前轮暂存区，
- * 不直接修改 workingMessages。</p>
+ * 执行当前轮流式响应中的全部工具调用。
+ * <p>
+ * 该步骤只把工具结果写入当前轮 pending 区，
+ * 不直接修改 workingMessages。
  */
+@Slf4j
 public class OpenAiStreamExecuteToolStep implements StreamSyncStep {
 
     private final ToolExecutor toolExecutor;
@@ -43,6 +45,14 @@ public class OpenAiStreamExecuteToolStep implements StreamSyncStep {
 
         ToolRegistry registry = context.getToolRegistry();
         if (registry == null) {
+            log.warn(
+                    "Stream tool execution requested but tool registry is missing. " +
+                            "executionId={}, " +
+                            "roundIndex={}",
+                    context.getExecutionId(),
+                    context.currentRound().getRoundIndex()
+            );
+
             context.setTerminationReason(
                     AgentTerminationReason.TOOL_ERROR
             );
@@ -57,6 +67,13 @@ public class OpenAiStreamExecuteToolStep implements StreamSyncStep {
         List<ToolExecutionRequest> requests =
                 OpenAiStreamToolCallSupport.collectExecutionRequests(response);
 
+        log.debug(
+                "Collected stream tool execution requests. executionId={}, roundIndex={}, requestCount={}",
+                context.getExecutionId(),
+                context.currentRound().getRoundIndex(),
+                requests.size()
+        );
+
         if (requests.isEmpty()) {
             return StreamStepKey.APPEND_MESSAGES;
         }
@@ -67,11 +84,27 @@ public class OpenAiStreamExecuteToolStep implements StreamSyncStep {
             roundState.appendPendingToolMessages(
                     OpenAiToolExecutionSupport.executeToMessages(requests, toolExecutor, registry)
             );
-        } catch (Exception error) {
+        } catch (Exception e) {
             roundState.clearPendingMessages();
             context.setTerminationReason(AgentTerminationReason.TOOL_ERROR);
-            throw error;
+
+            log.error(
+                    "Failed to execute stream tools. executionId={}, roundIndex={}, toolRequestCount={}",
+                    context.getExecutionId(),
+                    roundState.getRoundIndex(),
+                    requests.size(),
+                    e
+            );
+
+            throw e;
         }
+
+        log.debug(
+                "Executed stream tools. executionId={}, roundIndex={}, toolMessageCount={}",
+                context.getExecutionId(),
+                context.currentRound().getRoundIndex(),
+                context.currentRound().getPendingToolMessages().size()
+        );
 
         return StreamStepKey.APPEND_MESSAGES;
     }

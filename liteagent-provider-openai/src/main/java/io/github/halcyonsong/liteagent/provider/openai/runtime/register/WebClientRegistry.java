@@ -57,9 +57,7 @@ public class WebClientRegistry {
 
     public WebClient get(HttpRuntimeKey key) {
         Objects.requireNonNull(key, "key must not be null");
-        WebClient client = clientCache.get(key);
-        log.debug("Get WebClient by key. found={}, runtimeKey={}", client != null, key);
-        return client;
+        return clientCache.get(key);
     }
 
     public void remove(HttpRuntimeConfig config, HttpRuntimeMode mode) {

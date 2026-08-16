@@ -67,12 +67,12 @@ public class StreamAgentContext<T> {
     /**
      * 当前已经进入的模型调用轮次。
      */
-    private int iteration;
+    private volatile int iteration;
 
     /**
      * 允许的最大模型调用轮次。
      */
-    private int maxIterations = 10;
+    private volatile int maxIterations = 10;
 
     /**
      * 本次执行的结束原因。

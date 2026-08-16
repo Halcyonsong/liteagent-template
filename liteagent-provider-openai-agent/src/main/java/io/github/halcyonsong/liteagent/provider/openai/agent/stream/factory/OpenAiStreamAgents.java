@@ -3,7 +3,7 @@ package io.github.halcyonsong.liteagent.provider.openai.agent.stream.factory;
 import io.github.halcyonsong.liteagent.agent.stream.hook.StreamStepHook;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.OpenAiStreamAgent;
 import io.github.halcyonsong.liteagent.provider.openai.runtime.register.OpenAiRuntime;
-import io.github.halcyonsong.liteagent.provider.openai.support.OpenAiAdvisorsSupport;
+import io.github.halcyonsong.liteagent.provider.openai.support.OpenAiAdvisorsExecutor;
 import io.github.halcyonsong.liteagent.provider.openai.request.mapper.OpenAiChatRequestMapper;
 import io.github.halcyonsong.liteagent.provider.openai.response.mapper.OpenAiStreamResponseMapper;
 import io.github.halcyonsong.liteagent.provider.openai.runtime.config.HttpRuntimeConfig;
@@ -39,7 +39,28 @@ public final class OpenAiStreamAgents {
      * @param webClient 已构建好的 WebClient 实例
      */
     public static OpenAiStreamAgent create(WebClient webClient) {
-        return create(webClient, List.of(), 1000);
+        return create(webClient, List.of(), 1000, 10);
+    }
+
+    /**
+     * 基于现成的 WebClient 创建 OpenAiStreamAgent，并指定最大步骤数。
+     *
+     * @param webClient    已构建好的 WebClient 实例
+     * @param maxStepCount agent 编排最大步骤数（防止无限循环）
+     */
+    public static OpenAiStreamAgent create(WebClient webClient, int maxStepCount) {
+        return create(webClient, List.of(), maxStepCount, 10);
+    }
+
+    /**
+     * 基于现成的 WebClient 创建 OpenAiStreamAgent，并指定最大步骤数与最大迭代轮次。
+     *
+     * @param webClient     已构建好的 WebClient 实例
+     * @param maxStepCount  agent 编排最大步骤数（防止无限循环）
+     * @param maxIterations 最大模型调用轮次（防止无限工具调用循环）
+     */
+    public static OpenAiStreamAgent create(WebClient webClient, int maxStepCount, int maxIterations) {
+        return create(webClient, List.of(), maxStepCount, maxIterations);
     }
 
     /**
@@ -52,8 +73,23 @@ public final class OpenAiStreamAgents {
     public static OpenAiStreamAgent create(WebClient webClient,
                                            List<StreamStepHook> hooks,
                                            int maxStepCount) {
+        return create(webClient, hooks, maxStepCount, 10);
+    }
+
+    /**
+     * 基于现成的 WebClient 创建 OpenAiStreamAgent，允许传入全部配置参数。
+     *
+     * @param webClient     已构建好的 WebClient 实例
+     * @param hooks         步骤钩子列表
+     * @param maxStepCount  agent 编排最大步骤数（防止无限循环）
+     * @param maxIterations 最大模型调用轮次（防止无限工具调用循环）
+     */
+    public static OpenAiStreamAgent create(WebClient webClient,
+                                           List<StreamStepHook> hooks,
+                                           int maxStepCount,
+                                           int maxIterations) {
         Objects.requireNonNull(webClient, "webClient must not be null");
-        return createAgent(webClient, hooks, maxStepCount);
+        return createAgent(webClient, hooks, maxStepCount, maxIterations);
     }
 
     // ─── HttpRuntimeConfig 入口（全局共享 registry）─────────────────
@@ -67,7 +103,7 @@ public final class OpenAiStreamAgents {
      * @param runtimeConfig HTTP 运行时配置
      */
     public static OpenAiStreamAgent create(HttpRuntimeConfig runtimeConfig) {
-        return create(OpenAiRuntime.sharedRegistry(), runtimeConfig, List.of(), 1000);
+        return create(OpenAiRuntime.sharedRegistry(), runtimeConfig, List.of(), 1000, 10);
     }
 
     /**
@@ -77,7 +113,20 @@ public final class OpenAiStreamAgents {
      * @param maxStepCount  agent 编排最大步骤数（防止无限循环）
      */
     public static OpenAiStreamAgent create(HttpRuntimeConfig runtimeConfig, int maxStepCount) {
-        return create(OpenAiRuntime.sharedRegistry(), runtimeConfig, List.of(), maxStepCount);
+        return create(OpenAiRuntime.sharedRegistry(), runtimeConfig, List.of(), maxStepCount, 10);
+    }
+
+    /**
+     * 基于运行时配置创建 OpenAiStreamAgent，并指定最大步骤数与最大迭代轮次。
+     *
+     * @param runtimeConfig HTTP 运行时配置
+     * @param maxStepCount  agent 编排最大步骤数（防止无限循环）
+     * @param maxIterations 最大模型调用轮次（防止无限工具调用循环）
+     */
+    public static OpenAiStreamAgent create(HttpRuntimeConfig runtimeConfig,
+                                           int maxStepCount,
+                                           int maxIterations) {
+        return create(OpenAiRuntime.sharedRegistry(), runtimeConfig, List.of(), maxStepCount, maxIterations);
     }
 
     /**
@@ -92,7 +141,24 @@ public final class OpenAiStreamAgents {
     public static OpenAiStreamAgent create(HttpRuntimeConfig runtimeConfig,
                                            List<StreamStepHook> hooks,
                                            int maxStepCount) {
-        return create(OpenAiRuntime.sharedRegistry(), runtimeConfig, hooks, maxStepCount);
+        return create(OpenAiRuntime.sharedRegistry(), runtimeConfig, hooks, maxStepCount, 10);
+    }
+
+    /**
+     * 基于运行时配置创建 OpenAiStreamAgent，允许传入全部配置参数。
+     * <p>
+     * 内部通过 {@link OpenAiRuntime#sharedRegistry()} 复用 WebClient。
+     *
+     * @param runtimeConfig HTTP 运行时配置
+     * @param hooks         步骤钩子列表
+     * @param maxStepCount  agent 编排最大步骤数（防止无限循环）
+     * @param maxIterations 最大模型调用轮次（防止无限工具调用循环）
+     */
+    public static OpenAiStreamAgent create(HttpRuntimeConfig runtimeConfig,
+                                           List<StreamStepHook> hooks,
+                                           int maxStepCount,
+                                           int maxIterations) {
+        return create(OpenAiRuntime.sharedRegistry(), runtimeConfig, hooks, maxStepCount, maxIterations);
     }
 
     // ─── 自定义 WebClientRegistry 入口 ────────────────────────────
@@ -106,7 +172,7 @@ public final class OpenAiStreamAgents {
      * @param runtimeConfig HTTP 运行时配置
      */
     public static OpenAiStreamAgent create(WebClientRegistry registry, HttpRuntimeConfig runtimeConfig) {
-        return create(registry, runtimeConfig, List.of(), 1000);
+        return create(registry, runtimeConfig, List.of(), 1000, 10);
     }
 
     /**
@@ -122,26 +188,45 @@ public final class OpenAiStreamAgents {
                                            HttpRuntimeConfig runtimeConfig,
                                            List<StreamStepHook> hooks,
                                            int maxStepCount) {
+        return create(registry, runtimeConfig, hooks, maxStepCount, 10);
+    }
+
+    /**
+     * 基于自定义 WebClientRegistry 和运行时配置创建 OpenAiStreamAgent，
+     * 允许传入全部配置参数。
+     *
+     * @param registry      自定义的 WebClientRegistry 实例
+     * @param runtimeConfig HTTP 运行时配置
+     * @param hooks         步骤钩子列表
+     * @param maxStepCount  agent 编排最大步骤数（防止无限循环）
+     * @param maxIterations 最大模型调用轮次（防止无限工具调用循环）
+     */
+    public static OpenAiStreamAgent create(WebClientRegistry registry,
+                                           HttpRuntimeConfig runtimeConfig,
+                                           List<StreamStepHook> hooks,
+                                           int maxStepCount,
+                                           int maxIterations) {
         Objects.requireNonNull(registry, "registry must not be null");
         Objects.requireNonNull(runtimeConfig, "runtimeConfig must not be null");
-        return createAgent(registry.getOrCreateStreamClient(runtimeConfig), hooks, maxStepCount);
+        return createAgent(registry.getOrCreateStreamClient(runtimeConfig), hooks, maxStepCount, maxIterations);
     }
 
     // ─── 内部实现 ─────────────────────────────────────────────────
 
     /**
-     * 组装底层组件并创建 StreamAgentExecutor。
+     * 组装默认 OpenAI stream 组件并创建 agent。
      */
     private static OpenAiStreamAgent createAgent(WebClient webClient,
                                                  List<StreamStepHook> hooks,
-                                                 int maxStepCount) {
+                                                 int maxStepCount,
+                                                 int maxIterations) {
         OpenAiStreamAgentExecutorFactory factory = new OpenAiStreamAgentExecutorFactory(
                 new OpenAiChatRequestMapper(),
-                new OpenAiAdvisorsSupport(),
+                new OpenAiAdvisorsExecutor(),
                 new OpenAiStreamTransport(webClient),
                 new OpenAiStreamResponseMapper()
         );
 
-        return new OpenAiStreamAgent(factory.createAgent(hooks, maxStepCount));
+        return new OpenAiStreamAgent(factory.createAgent(hooks, maxStepCount, maxIterations));
     }
 }

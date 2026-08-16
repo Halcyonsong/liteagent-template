@@ -12,7 +12,7 @@ import io.github.halcyonsong.liteagent.core.model.request.norm.Invocation;
 import io.github.halcyonsong.liteagent.core.model.response.chat.Result;
 import org.junit.jupiter.api.Test;
 
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -45,7 +45,7 @@ class ChatAgentTest {
     }
 
     private static Map<ChatStepKey, ChatStep> createSteps(TestResult result) {
-        Map<ChatStepKey, ChatStep> steps = new EnumMap<>(ChatStepKey.class);
+        Map<ChatStepKey, ChatStep> steps = new HashMap<>();
         steps.put(ChatStepKey.BEGIN, context -> {
             context.setResult(result);
             return ChatStepKey.END;

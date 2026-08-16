@@ -13,15 +13,12 @@ import io.github.halcyonsong.liteagent.core.tool.impl.ToolRegistries;
 import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistry;
 import io.github.halcyonsong.liteagent.provider.openai.agent.chat.OpenAiChatAgent;
 import io.github.halcyonsong.liteagent.provider.openai.agent.chat.factory.OpenAiChatAgents;
-import io.github.halcyonsong.liteagent.provider.openai.request.advisor.OpenAiRegistryToolsAdvisor;
+import io.github.halcyonsong.liteagent.provider.openai.advisor.OpenAiRegistryToolsAdvisor;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiCompletionOptions;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiChatCompletionResponse;
-import io.github.halcyonsong.liteagent.provider.openai.runtime.config.HttpRuntimeConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest(classes = OpenAiConfig.class)
 class ChatAgentToolCallExampleTest extends OpenAiExampleSupport {
@@ -32,13 +29,7 @@ class ChatAgentToolCallExampleTest extends OpenAiExampleSupport {
 
         ToolRegistry registry = ToolRegistries.inMemory(new WeatherTools());
 
-        OpenAiChatAgent agent = OpenAiChatAgents.create(
-                HttpRuntimeConfig.builder()
-                        .maxInMemorySize(properties.getRuntime().getMaxInMemorySize())
-                        .connectTimeoutMillis(properties.getRuntime().getConnectTimeoutMillis())
-                        .responseTimeoutMillis(properties.getRuntime().getResponseTimeoutMillis())
-                        .build()
-        );
+        OpenAiChatAgent agent = OpenAiChatAgents.create(buildRuntimeConfig());
 
         ChatRequest chatRequest = ChatRequest.builder()
                 .addMessage(Messages.system("你是一位助手，请使用提供的工具回答用户的问题。"))
@@ -56,9 +47,7 @@ class ChatAgentToolCallExampleTest extends OpenAiExampleSupport {
                 .build();
 
         OpenAiChatCompletionResponse response = agent.execute(request);
-
-        assertNotNull(response);
-        Printers.printProviderResponse(response);
+        Printers.printChatResponse(response);
 
         response.getChoices().forEach(choice ->
                 choice.getChatResponse().getMessages().forEach(message -> {

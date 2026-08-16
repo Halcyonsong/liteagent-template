@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,7 +25,7 @@ class StreamAgentExecutorTest {
 
     @Test
     void execute_should_build_single_round_stream() {
-        Map<StreamStepKey, StreamSyncStep> syncSteps = new EnumMap<>(StreamStepKey.class);
+        Map<StreamStepKey, StreamSyncStep> syncSteps = new HashMap<>();
         syncSteps.put(StreamStepKey.BEGIN, ctx -> StreamStepKey.SEND_REQUEST);
         syncSteps.put(StreamStepKey.DECIDE_NEXT_ACTION, ctx -> StreamStepKey.BUILD_RESULT);
         syncSteps.put(StreamStepKey.BUILD_RESULT, ctx -> {
@@ -34,7 +34,7 @@ class StreamAgentExecutorTest {
         });
         syncSteps.put(StreamStepKey.END, ctx -> StreamStepKey.END);
 
-        Map<StreamStepKey, StreamStep<Flux<String>>> streamSteps = new EnumMap<>(StreamStepKey.class);
+        Map<StreamStepKey, StreamStep<Flux<String>>> streamSteps = new HashMap<>();
         streamSteps.put(StreamStepKey.SEND_REQUEST, (upstream, ctx) -> {
             assertNotNull(ctx.currentRound());
             return new StreamApplyResult<>(Flux.just("chunk1", "chunk2"), StreamStepKey.ANALYZE_CHUNK);
@@ -59,7 +59,7 @@ class StreamAgentExecutorTest {
     void execute_should_run_sync_steps_in_order() {
         List<StreamStepKey> executionOrder = new ArrayList<>();
 
-        Map<StreamStepKey, StreamSyncStep> syncSteps = new EnumMap<>(StreamStepKey.class);
+        Map<StreamStepKey, StreamSyncStep> syncSteps = new HashMap<>();
         syncSteps.put(StreamStepKey.BEGIN, ctx -> {
             executionOrder.add(StreamStepKey.BEGIN);
             return StreamStepKey.MAP_REQUEST;
@@ -78,7 +78,7 @@ class StreamAgentExecutorTest {
         });
         syncSteps.put(StreamStepKey.END, ctx -> StreamStepKey.END);
 
-        Map<StreamStepKey, StreamStep<Flux<String>>> streamSteps = new EnumMap<>(StreamStepKey.class);
+        Map<StreamStepKey, StreamStep<Flux<String>>> streamSteps = new HashMap<>();
         streamSteps.put(StreamStepKey.SEND_REQUEST, (upstream, ctx) ->
                 new StreamApplyResult<>(Flux.just("data"), StreamStepKey.ANALYZE_CHUNK));
         streamSteps.put(StreamStepKey.ANALYZE_CHUNK, (upstream, ctx) -> {
@@ -101,7 +101,7 @@ class StreamAgentExecutorTest {
     void execute_should_trigger_hooks() {
         List<String> events = new ArrayList<>();
 
-        Map<StreamStepKey, StreamSyncStep> syncSteps = new EnumMap<>(StreamStepKey.class);
+        Map<StreamStepKey, StreamSyncStep> syncSteps = new HashMap<>();
         syncSteps.put(StreamStepKey.BEGIN, ctx -> StreamStepKey.SEND_REQUEST);
         syncSteps.put(StreamStepKey.DECIDE_NEXT_ACTION, ctx -> StreamStepKey.BUILD_RESULT);
         syncSteps.put(StreamStepKey.BUILD_RESULT, ctx -> {
@@ -110,7 +110,7 @@ class StreamAgentExecutorTest {
         });
         syncSteps.put(StreamStepKey.END, ctx -> StreamStepKey.END);
 
-        Map<StreamStepKey, StreamStep<Flux<String>>> streamSteps = new EnumMap<>(StreamStepKey.class);
+        Map<StreamStepKey, StreamStep<Flux<String>>> streamSteps = new HashMap<>();
         streamSteps.put(StreamStepKey.SEND_REQUEST, (upstream, ctx) ->
                 new StreamApplyResult<>(Flux.just("x"), StreamStepKey.ANALYZE_CHUNK));
         streamSteps.put(StreamStepKey.ANALYZE_CHUNK, (upstream, ctx) -> {
@@ -121,12 +121,12 @@ class StreamAgentExecutorTest {
         StreamStepHook hook = new StreamStepHook() {
             @Override
             public void beforeStep(StreamStepKey key, StreamAgentContext<?> context) {
-                events.add("before:" + key);
+                events.add("before:" + key.name());
             }
 
             @Override
             public void afterStep(StreamStepKey key, StreamAgentContext<?> context, StreamStepKey nextKey) {
-                events.add("after:" + key + "->" + nextKey);
+                events.add("after:" + key.name() + "->" + nextKey.name());
             }
         };
 
@@ -145,23 +145,24 @@ class StreamAgentExecutorTest {
 
     @Test
     void execute_should_fail_when_sync_step_missing() {
-        Map<StreamStepKey, StreamSyncStep> syncSteps = new EnumMap<>(StreamStepKey.class);
-        Map<StreamStepKey, StreamStep<Flux<String>>> streamSteps = new EnumMap<>(StreamStepKey.class);
+        Map<StreamStepKey, StreamSyncStep> syncSteps = new HashMap<>();
+        Map<StreamStepKey, StreamStep<Flux<String>>> streamSteps = new HashMap<>();
 
         StreamAgentExecutor<String> executor = new StreamAgentExecutor<>(syncSteps, streamSteps, List.of(), 10);
 
         IllegalStateException ex = assertThrows(IllegalStateException.class,
                 () -> executor.execute(StreamAgentContext.create(new TestInvocation())));
-        assertTrue(ex.getMessage().contains("No stream sync step registered for key: BEGIN"));
+        assertTrue(ex.getMessage().contains("No stream sync step registered for key"));
+        assertTrue(ex.getMessage().contains("BEGIN"));
     }
 
     @Test
     void execute_should_fail_when_stream_step_missing() {
-        Map<StreamStepKey, StreamSyncStep> syncSteps = new EnumMap<>(StreamStepKey.class);
+        Map<StreamStepKey, StreamSyncStep> syncSteps = new HashMap<>();
         syncSteps.put(StreamStepKey.BEGIN, ctx -> StreamStepKey.SEND_REQUEST);
         syncSteps.put(StreamStepKey.END, ctx -> StreamStepKey.END);
 
-        Map<StreamStepKey, StreamStep<Flux<String>>> streamSteps = new EnumMap<>(StreamStepKey.class);
+        Map<StreamStepKey, StreamStep<Flux<String>>> streamSteps = new HashMap<>();
 
         StreamAgentExecutor<String> executor = new StreamAgentExecutor<>(syncSteps, streamSteps, List.of(), 10);
 

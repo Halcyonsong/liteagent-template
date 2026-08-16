@@ -5,23 +5,22 @@ import io.github.halcyonsong.example.support.OpenAiExampleSupport;
 import io.github.halcyonsong.example.support.Printers;
 import io.github.halcyonsong.liteagent.core.message.type.constructor.Messages;
 import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
-import io.github.halcyonsong.liteagent.provider.openai.client.OpenAiChatClient;
+import io.github.halcyonsong.liteagent.provider.openai.agent.chat.OpenAiChatAgent;
+import io.github.halcyonsong.liteagent.provider.openai.agent.chat.factory.OpenAiChatAgents;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiCompletionOptions;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiChatCompletionResponse;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest(classes = OpenAiConfig.class)
 class ProviderChatExampleTest extends OpenAiExampleSupport {
 
-    @Autowired
-    private OpenAiChatClient client;
-
     @Test
-    void chat_by_invocation_should_return_provider_response() {
+    void chat_with_completion_options_should_return_response() {
         assumeConfigReady();
+
+        OpenAiChatAgent agent = OpenAiChatAgents.create(buildRuntimeConfig());
 
         ChatRequest chatRequest = ChatRequest.builder()
                 .addMessage(Messages.system("你是一位精通法律的助手。"))
@@ -37,7 +36,7 @@ class ProviderChatExampleTest extends OpenAiExampleSupport {
                         .build())
                 .build();
 
-        OpenAiChatCompletionResponse response = client.chatCompletion(request);
-        Printers.printProviderResponse(response);
+        OpenAiChatCompletionResponse response = agent.execute(request);
+        Printers.printChatResponse(response);
     }
 }

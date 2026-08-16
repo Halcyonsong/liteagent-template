@@ -49,8 +49,8 @@ public class ChatAgentContext {
      */
     private final List<ToolMessage> pendingToolMessages = new ArrayList<>();
 
-    private int iteration;
-    private int maxIterations = 10;
+    private volatile int iteration;
+    private volatile int maxIterations = 10;
 
     private volatile boolean cancelled = false;
 

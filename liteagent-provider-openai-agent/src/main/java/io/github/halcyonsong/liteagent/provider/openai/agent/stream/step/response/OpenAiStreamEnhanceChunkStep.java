@@ -5,7 +5,7 @@ import io.github.halcyonsong.liteagent.agent.stream.step.StreamApplyResult;
 import io.github.halcyonsong.liteagent.agent.stream.step.StreamStep;
 import io.github.halcyonsong.liteagent.agent.stream.step.StreamStepKey;
 import io.github.halcyonsong.liteagent.provider.openai.agent.support.OpenAiAgentRequestSupport;
-import io.github.halcyonsong.liteagent.provider.openai.support.OpenAiAdvisorsSupport;
+import io.github.halcyonsong.liteagent.provider.openai.support.OpenAiAdvisorsExecutor;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.stream.OpenAiStreamCompletionResponse;
 import reactor.core.publisher.Flux;
@@ -17,9 +17,9 @@ import java.util.Objects;
  */
 public class OpenAiStreamEnhanceChunkStep implements StreamStep<Flux<OpenAiStreamCompletionResponse>> {
 
-    private final OpenAiAdvisorsSupport clientSupport;
+    private final OpenAiAdvisorsExecutor clientSupport;
 
-    public OpenAiStreamEnhanceChunkStep(OpenAiAdvisorsSupport clientSupport) {
+    public OpenAiStreamEnhanceChunkStep(OpenAiAdvisorsExecutor clientSupport) {
         this.clientSupport = Objects.requireNonNull(clientSupport, "clientSupport must not be null");
     }
 

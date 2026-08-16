@@ -19,7 +19,7 @@ import io.github.halcyonsong.liteagent.provider.openai.response.config.stream.Op
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -57,7 +57,7 @@ class OpenAiStreamAgentTest {
 
     private static StreamAgentExecutor<OpenAiStreamCompletionResponse> createExecutor(
             OpenAiStreamCompletionResponse chunk) {
-        Map<StreamStepKey, StreamSyncStep> syncSteps = new EnumMap<>(StreamStepKey.class);
+        Map<StreamStepKey, StreamSyncStep> syncSteps = new HashMap<>();
         syncSteps.put(StreamStepKey.BEGIN, ctx -> StreamStepKey.INIT_WORKING_MESSAGES);
         syncSteps.put(StreamStepKey.INIT_WORKING_MESSAGES, ctx -> StreamStepKey.MAP_REQUEST);
         syncSteps.put(StreamStepKey.MAP_REQUEST, ctx -> StreamStepKey.ENHANCE_REQUEST);
@@ -66,7 +66,7 @@ class OpenAiStreamAgentTest {
         syncSteps.put(StreamStepKey.BUILD_RESULT, ctx -> StreamStepKey.END);
         syncSteps.put(StreamStepKey.END, ctx -> StreamStepKey.END);
 
-        Map<StreamStepKey, StreamStep<Flux<OpenAiStreamCompletionResponse>>> streamSteps = new EnumMap<>(StreamStepKey.class);
+        Map<StreamStepKey, StreamStep<Flux<OpenAiStreamCompletionResponse>>> streamSteps = new HashMap<>();
         streamSteps.put(StreamStepKey.SEND_REQUEST, (upstream, ctx) ->
                 new StreamApplyResult<>(Flux.just(chunk), StreamStepKey.ENHANCE_CHUNK));
         streamSteps.put(StreamStepKey.ENHANCE_CHUNK, (upstream, ctx) ->

@@ -7,23 +7,31 @@ import io.github.halcyonsong.liteagent.provider.openai.response.config.OpenAiBas
 import io.github.halcyonsong.liteagent.provider.openai.response.config.OpenAiUsage;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.stream.OpenAiStreamCompletionResponse;
 import io.github.halcyonsong.liteagent.provider.openai.response.raw.OpenAiChatCompletionRawResponse;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 /**
- * OpenAI-compatible 流式 completion 响应包装对象。
+ * OpenAI-compatible 流式 completion 响应包装对象映射器。
  * <p>
  * 表示一次流式返回中的单个 chunk，不负责跨 chunk 聚合。
  */
+@Slf4j
 public class OpenAiStreamResponseMapper extends OpenAiResponseMappingSupport {
 
     public OpenAiStreamCompletionResponse fromRaw(OpenAiChatCompletionRawResponse rawResponse) {
         List<StreamChoice> choices = mapChoices(rawResponse);
         OpenAiBaseResponse baseResponse = mapBaseResponse(rawResponse);
         OpenAiUsage usage = mapUsage(rawResponse.getUsage());
-
+        log.debug(
+                "Mapped OpenAI stream chunk. responseId={}, model={}, choiceCount={}, usagePresent={}",
+                baseResponse.getId(),
+                baseResponse.getModel(),
+                choices.size(),
+                usage != null
+        );
         return new OpenAiStreamCompletionResponse(baseResponse, choices, usage);
     }
 

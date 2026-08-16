@@ -5,8 +5,13 @@ import io.github.halcyonsong.liteagent.provider.openai.request.raw.OpenAiChatCom
 import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiChatCompletionResponse;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.stream.OpenAiStreamCompletionResponse;
 import io.github.halcyonsong.liteagent.provider.openai.response.raw.OpenAiChatCompletionRawResponse;
+import lombok.extern.slf4j.Slf4j;
 
-public class OpenAiAdvisorsSupport {
+/**
+ * OpenAI-compatible 增强器执行器。
+ */
+@Slf4j
+public class OpenAiAdvisorsExecutor {
 
     /**
      * 应用请求增强器。
@@ -16,6 +21,11 @@ public class OpenAiAdvisorsSupport {
         if (request.getRequestAdvisors() == null || request.getRequestAdvisors().isEmpty()) {
             return;
         }
+        log.debug(
+                "Applying OpenAI request advisors. advisorCount={}, model={}",
+                request.getRequestAdvisors().size(),
+                request.getBaseRequest().getModel()
+        );
         for (var advisor : request.getRequestAdvisors()) {
             advisor.enhance(request, rawRequest);
         }
@@ -30,6 +40,11 @@ public class OpenAiAdvisorsSupport {
         if (request.getChatResponseAdvisors() == null || request.getChatResponseAdvisors().isEmpty()) {
             return;
         }
+        log.debug(
+                "Applying OpenAI chat response advisors. advisorCount={}, responseId={}",
+                request.getChatResponseAdvisors().size(),
+                rawResponse == null ? null : rawResponse.getId()
+        );
         for (var advisor : request.getChatResponseAdvisors()) {
             advisor.enhance(rawResponse, response);
         }
@@ -44,6 +59,11 @@ public class OpenAiAdvisorsSupport {
         if (request.getStreamResponseAdvisors() == null || request.getStreamResponseAdvisors().isEmpty()) {
             return;
         }
+        log.debug(
+                "Applying OpenAI stream response advisors. advisorCount={}, responseId={}",
+                request.getStreamResponseAdvisors().size(),
+                rawResponse == null ? null : rawResponse.getId()
+        );
         for (var advisor : request.getStreamResponseAdvisors()) {
             advisor.enhance(rawResponse, response);
         }

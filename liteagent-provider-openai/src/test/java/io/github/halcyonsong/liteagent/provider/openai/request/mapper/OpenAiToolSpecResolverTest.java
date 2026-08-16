@@ -1,11 +1,11 @@
-package io.github.halcyonsong.liteagent.provider.openai.request.config.tool;
+package io.github.halcyonsong.liteagent.provider.openai.request.mapper;
 
 import io.github.halcyonsong.liteagent.core.tool.annotation.ToolComponent;
 import io.github.halcyonsong.liteagent.core.tool.annotation.ToolMethod;
 import io.github.halcyonsong.liteagent.core.tool.annotation.ToolParam;
 import io.github.halcyonsong.liteagent.core.tool.impl.ToolRegistries;
 import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistry;
-import io.github.halcyonsong.liteagent.provider.openai.request.mapper.OpenAiToolSpecResolver;
+import io.github.halcyonsong.liteagent.provider.openai.request.config.tool.OpenAiToolSpec;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

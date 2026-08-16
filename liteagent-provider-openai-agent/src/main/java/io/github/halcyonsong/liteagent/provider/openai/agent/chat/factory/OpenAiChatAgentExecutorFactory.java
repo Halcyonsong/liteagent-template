@@ -11,7 +11,7 @@ import io.github.halcyonsong.liteagent.provider.openai.agent.chat.step.request.O
 import io.github.halcyonsong.liteagent.provider.openai.agent.chat.step.request.OpenAiChatMapRequestStep;
 import io.github.halcyonsong.liteagent.provider.openai.agent.chat.step.request.OpenAiChatSendRequestStep;
 import io.github.halcyonsong.liteagent.provider.openai.agent.chat.step.response.*;
-import io.github.halcyonsong.liteagent.provider.openai.support.OpenAiAdvisorsSupport;
+import io.github.halcyonsong.liteagent.provider.openai.support.OpenAiAdvisorsExecutor;
 import io.github.halcyonsong.liteagent.provider.openai.request.mapper.OpenAiChatRequestMapper;
 import io.github.halcyonsong.liteagent.provider.openai.response.mapper.OpenAiChatResponseMapper;
 import io.github.halcyonsong.liteagent.provider.openai.transport.OpenAiChatTransport;
@@ -21,44 +21,63 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * OpenAI chat 编排执行器工厂。
+ * <p>
+ * 负责组装 chat 主链路所需的 step，并生成可执行的 ChatAgentExecutor。
+ */
 public class OpenAiChatAgentExecutorFactory {
 
     private final OpenAiChatRequestMapper requestMapper;
-    private final OpenAiAdvisorsSupport advisorsSupport;
+    private final OpenAiAdvisorsExecutor advisorsExecutor;
     private final OpenAiChatTransport chatTransport;
     private final OpenAiChatResponseMapper responseMapper;
 
     public OpenAiChatAgentExecutorFactory(OpenAiChatRequestMapper requestMapper,
-                                          OpenAiAdvisorsSupport advisorsSupport,
+                                          OpenAiAdvisorsExecutor advisorsExecutor,
                                           OpenAiChatTransport chatTransport,
                                           OpenAiChatResponseMapper responseMapper) {
         this.requestMapper = Objects.requireNonNull(requestMapper, "requestMapper must not be null");
-        this.advisorsSupport = Objects.requireNonNull(advisorsSupport, "clientSupport must not be null");
+        this.advisorsExecutor = Objects.requireNonNull(advisorsExecutor, "advisorsExecutor must not be null");
         this.chatTransport = Objects.requireNonNull(chatTransport, "chatTransport must not be null");
         this.responseMapper = Objects.requireNonNull(responseMapper, "responseMapper must not be null");
     }
 
     public ChatAgentExecutor create() {
-        return create(List.of(), 1000);
+        return create(List.of(), 1000, 10);
     }
 
+    /**
+     * 组装 OpenAI chat 步骤注册表并创建执行器。
+     */
     public ChatAgentExecutor create(List<StepHook> hooks, int maxStepCount) {
+        return create(hooks, maxStepCount, 10);
+    }
+
+    /**
+     * 组装 OpenAI chat 步骤注册表并创建执行器，允许指定最大迭代轮次。
+     *
+     * @param hooks          步骤钩子列表
+     * @param maxStepCount   agent 编排最大步骤数（防止无限循环）
+     * @param maxIterations  最大模型调用轮次（防止无限工具调用循环）
+     */
+    public ChatAgentExecutor create(List<StepHook> hooks, int maxStepCount, int maxIterations) {
         Map<ChatStepKey, ChatStep> steps = new HashMap<>();
 
         steps.put(ChatStepKey.BEGIN, new OpenAiChatBeginStep());
         steps.put(ChatStepKey.INIT_WORKING_MESSAGES, new OpenAiChatInitWorkingMessagesStep());
         steps.put(ChatStepKey.INIT_TOOL_REGISTRY, new OpenAiChatInitToolRegistryStep());
         steps.put(ChatStepKey.MAP_REQUEST, new OpenAiChatMapRequestStep(requestMapper));
-        steps.put(ChatStepKey.ENHANCE_REQUEST, new OpenAiChatEnhanceRequestStep(advisorsSupport));
+        steps.put(ChatStepKey.ENHANCE_REQUEST, new OpenAiChatEnhanceRequestStep(advisorsExecutor));
         steps.put(ChatStepKey.SEND_REQUEST, new OpenAiChatSendRequestStep(chatTransport));
         steps.put(ChatStepKey.MAP_RESPONSE, new OpenAiChatMapResponseStep(responseMapper));
-        steps.put(ChatStepKey.ENHANCE_RESPONSE, new OpenAiChatEnhanceResponseStep(advisorsSupport));
+        steps.put(ChatStepKey.ENHANCE_RESPONSE, new OpenAiChatEnhanceResponseStep(advisorsExecutor));
         steps.put(ChatStepKey.ANALYZE_RESPONSE, new OpenAiChatAnalyzeResponseStep());
         steps.put(ChatStepKey.EXECUTE_TOOL, new OpenAiChatExecuteToolStep());
         steps.put(ChatStepKey.APPEND_MESSAGES, new OpenAiChatAppendMessagesStep());
         steps.put(ChatStepKey.BUILD_RESULT, new OpenAiChatBuildResultStep());
-        steps.put(ChatStepKey.END, context -> ChatStepKey.END);
+        steps.put(ChatStepKey.END, new OpenAiChatEndStep());
 
-        return new ChatAgentExecutor(steps, hooks, maxStepCount);
+        return new ChatAgentExecutor(steps, hooks, maxStepCount, maxIterations);
     }
 }
