@@ -29,6 +29,10 @@ public final class OpenAiStreamAgents {
     private OpenAiStreamAgents() {
     }
 
+    public static OpenAiStreamAgentBuilder builder() {
+        return OpenAiStreamAgentBuilder.builder();
+    }
+
     // ─── WebClient 入口 ───────────────────────────────────────────
 
     /**

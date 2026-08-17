@@ -6,7 +6,7 @@ import io.github.halcyonsong.example.support.Printers;
 import io.github.halcyonsong.liteagent.provider.openai.agent.chat.OpenAiChatAgent;
 import io.github.halcyonsong.liteagent.provider.openai.agent.chat.factory.OpenAiChatAgents;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
-import io.github.halcyonsong.liteagent.provider.openai.request.quickrequest.OpenAiQuickChatRequest;
+import io.github.halcyonsong.liteagent.provider.openai.request.config.quickrequest.OpenAiQuickChatRequest;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiChatCompletionResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

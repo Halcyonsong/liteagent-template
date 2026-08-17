@@ -1,4 +1,4 @@
-package io.github.halcyonsong.liteagent.provider.openai.request.quickrequest;
+package io.github.halcyonsong.liteagent.provider.openai.request.config.quickrequest;
 
 import io.github.halcyonsong.liteagent.core.message.type.constructor.Messages;
 import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
@@ -18,6 +18,13 @@ import java.util.Objects;
 @Getter
 public class OpenAiQuickChatRequest {
 
+    /**
+     * 当前会话 ID。
+     * 作为会话的唯一标识，用于关联记忆窗口。
+     * 允许为空，不使用记忆窗口。
+     */
+    private final String sessionId;
+
     private final String baseUrl;
     private final String apiKey;
     private final String model;
@@ -25,6 +32,7 @@ public class OpenAiQuickChatRequest {
     private final String systemMessage;
 
     private OpenAiQuickChatRequest(Builder builder) {
+        this.sessionId = builder.sessionId;
         this.baseUrl = Objects.requireNonNull(builder.baseUrl, "baseUrl must not be null");
         this.apiKey = Objects.requireNonNull(builder.apiKey, "apiKey must not be null");
         this.model = Objects.requireNonNull(builder.model, "model must not be null");
@@ -47,7 +55,8 @@ public class OpenAiQuickChatRequest {
      * 转换为完整的聊天消息请求对象。
      */
     public ChatRequest toChatRequest() {
-        ChatRequest.Builder builder = ChatRequest.builder();
+        ChatRequest.Builder builder = ChatRequest.builder()
+                .sessionId(sessionId);
 
         if (systemMessage != null && !systemMessage.isBlank()) {
             builder.addMessage(Messages.system(systemMessage));
@@ -75,11 +84,17 @@ public class OpenAiQuickChatRequest {
     }
 
     public static class Builder {
+        private String sessionId;
         private String baseUrl;
         private String apiKey;
         private String model;
         private String userMessage;
         private String systemMessage;
+
+        public Builder sessionId(String sessionId) {
+            this.sessionId = sessionId;
+            return this;
+        }
 
         public Builder baseUrl(String baseUrl) {
             this.baseUrl = baseUrl;

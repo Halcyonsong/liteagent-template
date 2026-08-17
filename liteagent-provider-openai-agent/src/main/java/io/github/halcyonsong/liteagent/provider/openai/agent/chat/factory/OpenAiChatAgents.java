@@ -31,6 +31,10 @@ public final class OpenAiChatAgents {
     private OpenAiChatAgents() {
     }
 
+    public static OpenAiChatAgentBuilder builder() {
+        return OpenAiChatAgentBuilder.builder();
+    }
+
     // ─── WebClient 入口 ───────────────────────────────────────────
 
     /**

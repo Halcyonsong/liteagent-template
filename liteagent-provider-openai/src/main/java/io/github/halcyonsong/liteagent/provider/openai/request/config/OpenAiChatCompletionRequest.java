@@ -7,6 +7,9 @@ import io.github.halcyonsong.liteagent.core.model.response.norm.ResponseAdvisor;
 import io.github.halcyonsong.liteagent.core.support.JsonSupport;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.github.halcyonsong.liteagent.core.model.request.norm.RequestAdvisor;
+import io.github.halcyonsong.liteagent.core.tool.impl.ToolRegistries;
+import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistry;
+import io.github.halcyonsong.liteagent.provider.openai.advisor.OpenAiRegistryToolsAdvisor;
 import io.github.halcyonsong.liteagent.provider.openai.request.raw.OpenAiChatCompletionRawRequest;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiChatCompletionResponse;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.stream.OpenAiStreamCompletionResponse;
@@ -108,6 +111,27 @@ public class OpenAiChatCompletionRequest implements Invocation {
         public Builder requestAdvisors(List<RequestAdvisor<OpenAiChatCompletionRequest, OpenAiChatCompletionRawRequest>> advisors) {
             this.requestAdvisors = advisors;
             return this;
+        }
+
+        /**
+         * 使用已有工具注册表启用工具定义注入与 Agent 工具执行。
+         * <p>
+         * 推荐应用启动时创建并复用 ToolRegistry。
+         */
+        public Builder toolRegistry(ToolRegistry registry) {
+            return requestAdvisor(new OpenAiRegistryToolsAdvisor(
+                    Objects.requireNonNull(registry, "registry must not be null")
+            ));
+        }
+
+        /**
+         * 直接注册工具对象。
+         * <p>
+         * 适合示例、一次性调用或工具集较小的场景；
+         * 应用级 Agent 建议优先使用 {@link #toolRegistry(ToolRegistry)} 复用注册表。
+         */
+        public Builder tools(Object... toolObjects) {
+            return toolRegistry(ToolRegistries.inMemory(toolObjects));
         }
 
         public Builder chatResponseAdvisor(ResponseAdvisor<OpenAiChatCompletionRawResponse, OpenAiChatCompletionResponse> advisor) {

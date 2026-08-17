@@ -10,9 +10,11 @@
 <dependency>
     <groupId>io.github.halcyonsong</groupId>
     <artifactId>liteagent-provider-openai-agent</artifactId>
-    <version>0.8.0-SNAPSHOT</version>
+    <version>${revision}</version>
 </dependency>
 ```
+
+> `${revision}` 为 `liteagent-parent` POM 中定义的版本属性。若您的项目未继承 `liteagent-parent`，请替换为实际版本号。
 
 ## 1. 创建 Chat Agent（同步）
 
@@ -23,90 +25,136 @@ import io.github.halcyonsong.liteagent.provider.openai.agent.chat.factory.OpenAi
 import io.github.halcyonsong.liteagent.provider.openai.agent.chat.OpenAiChatAgent;
 import io.github.halcyonsong.liteagent.provider.openai.runtime.config.HttpRuntimeConfig;
 
-HttpRuntimeConfig config = HttpRuntimeConfig.builder().build();
-OpenAiChatAgent agent = OpenAiChatAgents.create(config);
+class ChatAgentCreateExample {
+    void demo() {
+        HttpRuntimeConfig config = HttpRuntimeConfig.builder().build();
+        OpenAiChatAgent agent = OpenAiChatAgents.create(config);
+    }
+}
 ```
 
 ### 指定 maxStepCount 和 maxIterations
 
 ```java
-// 仅指定 maxStepCount
-OpenAiChatAgent agent = OpenAiChatAgents.create(config, 500);
+import io.github.halcyonsong.liteagent.provider.openai.agent.chat.factory.OpenAiChatAgents;
+import io.github.halcyonsong.liteagent.provider.openai.agent.chat.OpenAiChatAgent;
+import io.github.halcyonsong.liteagent.provider.openai.runtime.config.HttpRuntimeConfig;
 
-// 同时指定 maxStepCount 和 maxIterations
-OpenAiChatAgent agent = OpenAiChatAgents.create(config, 500, 5);
+class ChatAgentMaxExample {
+    void demo(HttpRuntimeConfig config) {
+        // 仅指定 maxStepCount
+        OpenAiChatAgent agent1 = OpenAiChatAgents.create(config, 500);
+
+        // 同时指定 maxStepCount 和 maxIterations
+        OpenAiChatAgent agent2 = OpenAiChatAgents.create(config, 500, 5);
+    }
+}
 ```
 
 ### 传入 StepHook
 
 ```java
+import io.github.halcyonsong.liteagent.provider.openai.agent.chat.factory.OpenAiChatAgents;
+import io.github.halcyonsong.liteagent.provider.openai.agent.chat.OpenAiChatAgent;
+import io.github.halcyonsong.liteagent.provider.openai.runtime.config.HttpRuntimeConfig;
 import io.github.halcyonsong.liteagent.agent.chat.hook.StepHook;
+import io.github.halcyonsong.liteagent.agent.chat.step.ChatStepKey;
+import io.github.halcyonsong.liteagent.agent.chat.context.ChatAgentContext;
 
-StepHook logHook = new StepHook() {
-    @Override
-    public void beforeStep(ChatStepKey key, ChatAgentContext context) {
-        System.out.println("[before] " + key.name());
+import java.util.List;
+
+class ChatAgentHookExample {
+    void demo(HttpRuntimeConfig config) {
+        StepHook logHook = new StepHook() {
+            @Override
+            public void beforeStep(ChatStepKey key, ChatAgentContext context) {
+                System.out.println("[before] " + key.name());
+            }
+
+            @Override
+            public void afterStep(ChatStepKey key, ChatAgentContext context, ChatStepKey nextKey) {
+                System.out.println("[after] " + key.name() + " -> " + nextKey.name());
+            }
+        };
+
+        OpenAiChatAgent agent = OpenAiChatAgents.create(config, List.of(logHook), 500, 5);
     }
-
-    @Override
-    public void afterStep(ChatStepKey key, ChatAgentContext context, ChatStepKey nextKey) {
-        System.out.println("[after] " + key.name() + " -> " + nextKey.name());
-    }
-};
-
-OpenAiChatAgent agent = OpenAiChatAgents.create(config, List.of(logHook), 500, 5);
+}
 ```
 
 ### 直接传入 WebClient
 
 ```java
+import io.github.halcyonsong.liteagent.provider.openai.agent.chat.factory.OpenAiChatAgents;
+import io.github.halcyonsong.liteagent.provider.openai.agent.chat.OpenAiChatAgent;
 import org.springframework.web.reactive.function.client.WebClient;
 
-WebClient webClient = WebClient.builder()
-        .baseUrl("https://api.siliconflow.cn")
-        .build();
+class ChatAgentWebClientExample {
+    void demo() {
+        WebClient webClient = WebClient.builder()
+                .baseUrl("https://api.siliconflow.cn")
+                .build();
 
-OpenAiChatAgent agent = OpenAiChatAgents.create(webClient);
-OpenAiChatAgent agent2 = OpenAiChatAgents.create(webClient, 500, 5);
+        OpenAiChatAgent agent1 = OpenAiChatAgents.create(webClient);
+        OpenAiChatAgent agent2 = OpenAiChatAgents.create(webClient, 500, 5);
+    }
+}
 ```
 
 ### 自定义 WebClientRegistry
 
 ```java
+import io.github.halcyonsong.liteagent.provider.openai.agent.chat.factory.OpenAiChatAgents;
+import io.github.halcyonsong.liteagent.provider.openai.agent.chat.OpenAiChatAgent;
+import io.github.halcyonsong.liteagent.provider.openai.runtime.config.HttpRuntimeConfig;
 import io.github.halcyonsong.liteagent.provider.openai.runtime.register.WebClientRegistry;
 import io.github.halcyonsong.liteagent.provider.openai.runtime.register.WebClientFactory;
 
-WebClientRegistry registry = new WebClientRegistry(new WebClientFactory());
-OpenAiChatAgent agent = OpenAiChatAgents.create(registry, config, List.of(), 500, 5);
+import java.util.List;
+
+class ChatAgentRegistryExample {
+    void demo(HttpRuntimeConfig config) {
+        WebClientRegistry registry = new WebClientRegistry(new WebClientFactory());
+        OpenAiChatAgent agent = OpenAiChatAgents.create(registry, config, List.of(), 500, 5);
+    }
+}
 ```
 
 ## 2. 执行 Chat Agent
 
 ```java
+import io.github.halcyonsong.liteagent.provider.openai.agent.chat.OpenAiChatAgent;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiBaseRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
+import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiChatCompletionResponse;
+import io.github.halcyonsong.liteagent.agent.chat.context.ChatAgentContext;
+import io.github.halcyonsong.liteagent.agent.state.AgentTerminationReason;
 import io.github.halcyonsong.liteagent.core.message.type.constructor.Messages;
 import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
 
-OpenAiChatCompletionRequest request = OpenAiChatCompletionRequest.builder()
-        .baseRequest(OpenAiBaseRequest.builder()
-                .baseUrl("https://api.siliconflow.cn")
-                .apiKey("sk-xxx")
-                .model("Qwen/Qwen2.5-7B-Instruct")
-                .build())
-        .chatRequest(ChatRequest.builder()
-                .addMessage(Messages.user("你好"))
-                .build())
-        .build();
+class ExecuteChatExample {
+    void demo(OpenAiChatAgent agent) {
+        OpenAiChatCompletionRequest request = OpenAiChatCompletionRequest.builder()
+                .baseRequest(OpenAiBaseRequest.builder()
+                        .baseUrl("https://api.siliconflow.cn")
+                        .apiKey("sk-xxx")
+                        .model("Qwen/Qwen2.5-7B-Instruct")
+                        .build())
+                .chatRequest(ChatRequest.builder()
+                        .addMessage(Messages.user("你好"))
+                        .build())
+                .build();
 
-// 方式一：直接获取最终响应
-OpenAiChatCompletionResponse response = agent.execute(request);
-String content = response.getChoices().get(0).getMessage().getContent();
+        // 方式一：直接获取最终响应
+        OpenAiChatCompletionResponse response = agent.execute(request);
+        String content = response.getChoices().get(0).getMessage().getContent();
 
-// 方式二：获取完整上下文（含中间态、终止原因）
-ChatAgentContext context = agent.executeContext(request);
-OpenAiChatCompletionResponse response2 = (OpenAiChatCompletionResponse) context.getResult();
-AgentTerminationReason reason = context.getTerminationReason();
+        // 方式二：获取完整上下文（含中间态、终止原因）
+        ChatAgentContext context = agent.executeContext(request);
+        OpenAiChatCompletionResponse response2 = (OpenAiChatCompletionResponse) context.getResult();
+        AgentTerminationReason reason = context.getTerminationReason();
+    }
+}
 ```
 
 ## 3. 创建 Stream Agent（流式）
@@ -116,37 +164,58 @@ AgentTerminationReason reason = context.getTerminationReason();
 ```java
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.factory.OpenAiStreamAgents;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.OpenAiStreamAgent;
+import io.github.halcyonsong.liteagent.provider.openai.runtime.config.HttpRuntimeConfig;
+import io.github.halcyonsong.liteagent.agent.stream.hook.StreamStepHook;
 
-// 最简创建
-OpenAiStreamAgent agent = OpenAiStreamAgents.create(config);
+import java.util.List;
 
-// 指定 maxStepCount 和 maxIterations
-OpenAiStreamAgent agent = OpenAiStreamAgents.create(config, 500, 5);
+class StreamAgentCreateExample {
+    void demo(HttpRuntimeConfig config, WebClient webClient, StreamStepHook streamHook) {
+        // 最简创建
+        OpenAiStreamAgent agent1 = OpenAiStreamAgents.create(config);
 
-// 传入 Hook
-OpenAiStreamAgent agent = OpenAiStreamAgents.create(config, List.of(streamHook), 500, 5);
+        // 指定 maxStepCount 和 maxIterations
+        OpenAiStreamAgent agent2 = OpenAiStreamAgents.create(config, 500, 5);
 
-// 直接传入 WebClient
-OpenAiStreamAgent agent = OpenAiStreamAgents.create(webClient);
+        // 传入 Hook
+        OpenAiStreamAgent agent3 = OpenAiStreamAgents.create(config, List.of(streamHook), 500, 5);
+
+        // 直接传入 WebClient
+        OpenAiStreamAgent agent4 = OpenAiStreamAgents.create(webClient);
+    }
+}
 ```
 
 ## 4. 执行 Stream Agent
 
 ```java
-// 方式一：直接获取输出流
-Flux<OpenAiStreamCompletionResponse> stream = agent.execute(request);
-stream.doOnNext(chunk -> {
-            String delta = chunk.getChoices().get(0).getDelta().getContent();
-            if (delta != null) {
-                System.out.print(delta);
-            }
-        })
-        .blockLast();
+import io.github.halcyonsong.liteagent.provider.openai.agent.stream.OpenAiStreamAgent;
+import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
+import io.github.halcyonsong.liteagent.provider.openai.response.config.stream.OpenAiStreamCompletionResponse;
+import io.github.halcyonsong.liteagent.agent.stream.context.StreamAgentContext;
+import io.github.halcyonsong.liteagent.agent.stream.state.StreamRoundState;
+import reactor.core.publisher.Flux;
 
-// 方式二：获取完整上下文
-StreamAgentContext<OpenAiStreamCompletionResponse> context = agent.executeContext(request);
-Flux<OpenAiStreamCompletionResponse> output = context.getOutput();
-List<StreamRoundState> rounds = context.getRounds();
+import java.util.List;
+
+class ExecuteStreamExample {
+    void demo(OpenAiStreamAgent agent, OpenAiChatCompletionRequest request) {
+        // 方式一：直接获取输出流
+        Flux<OpenAiStreamCompletionResponse> stream = agent.execute(request);
+        stream.doOnNext(chunk -> {
+                    String delta = chunk.getChoices().get(0).getDelta().getContent();
+                    if (delta != null) {
+                        System.out.print(delta);
+                    }
+                })
+                .blockLast();
+
+        // 方式二：获取完整上下文
+        StreamAgentContext<OpenAiStreamCompletionResponse> context = agent.executeContext(request);
+        Flux<OpenAiStreamCompletionResponse> output = context.getOutput();
+        List<StreamRoundState> rounds = context.getRounds();
+    }
+}
 ```
 
 ## 5. 工具调用
@@ -176,115 +245,187 @@ public class WeatherTools {
 import io.github.halcyonsong.liteagent.core.tool.impl.ToolRegistries;
 import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistry;
 import io.github.halcyonsong.liteagent.provider.openai.advisor.OpenAiRegistryToolsAdvisor;
+import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiBaseRequest;
+import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
+import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiChatCompletionResponse;
+import io.github.halcyonsong.liteagent.provider.openai.agent.chat.OpenAiChatAgent;
+import io.github.halcyonsong.liteagent.core.message.type.constructor.Messages;
+import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
 
-ToolRegistry registry = ToolRegistries.inMemory(new WeatherTools());
-OpenAiRegistryToolsAdvisor toolsAdvisor = new OpenAiRegistryToolsAdvisor(registry);
+class RegisterToolsExample {
+    void demo(OpenAiChatAgent agent, OpenAiBaseRequest baseRequest) {
+        ToolRegistry registry = ToolRegistries.inMemory(new WeatherTools());
+        OpenAiRegistryToolsAdvisor toolsAdvisor = new OpenAiRegistryToolsAdvisor(registry);
 
-OpenAiChatCompletionRequest request = OpenAiChatCompletionRequest.builder()
-        .baseRequest(baseRequest)
-        .chatRequest(chatRequest)
-        .requestAdvisor(toolsAdvisor)
-        .build();
+        ChatRequest chatRequest = ChatRequest.builder()
+                .addMessage(Messages.user("你好"))
+                .build();
 
-// 执行时自动多轮工具调用
-OpenAiChatCompletionResponse response = agent.execute(request);
+        OpenAiChatCompletionRequest request = OpenAiChatCompletionRequest.builder()
+                .baseRequest(baseRequest)
+                .chatRequest(chatRequest)
+                .requestAdvisor(toolsAdvisor)
+                .build();
+
+        // 执行时自动多轮工具调用
+        OpenAiChatCompletionResponse response = agent.execute(request);
+    }
+}
 ```
 
 ### 指定 tool_choice
 
 ```java
 import io.github.halcyonsong.liteagent.provider.openai.advisor.OpenAiToolChoiceAdvisor;
+import io.github.halcyonsong.liteagent.provider.openai.advisor.OpenAiRegistryToolsAdvisor;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.tool.OpenAiToolChoice;
+import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiBaseRequest;
+import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
+import io.github.halcyonsong.liteagent.core.tool.impl.ToolRegistries;
+import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistry;
+import io.github.halcyonsong.liteagent.core.message.type.constructor.Messages;
+import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
 
-// 必须调用指定函数
-OpenAiToolChoiceAdvisor choiceAdvisor = new OpenAiToolChoiceAdvisor(
-        OpenAiToolChoice.function("get_weather")
-);
+class ToolChoiceExample {
+    void demo(OpenAiBaseRequest baseRequest) {
+        ToolRegistry registry = ToolRegistries.inMemory(new WeatherTools());
+        OpenAiRegistryToolsAdvisor toolsAdvisor = new OpenAiRegistryToolsAdvisor(registry);
 
-OpenAiChatCompletionRequest request = OpenAiChatCompletionRequest.builder()
-        .baseRequest(baseRequest)
-        .chatRequest(chatRequest)
-        .requestAdvisor(toolsAdvisor)
-        .requestAdvisor(choiceAdvisor)
-        .build();
+        // 必须调用指定函数
+        OpenAiToolChoiceAdvisor choiceAdvisor = new OpenAiToolChoiceAdvisor(
+                OpenAiToolChoice.function("get_weather")
+        );
+
+        ChatRequest chatRequest = ChatRequest.builder()
+                .addMessage(Messages.user("你好"))
+                .build();
+
+        OpenAiChatCompletionRequest request = OpenAiChatCompletionRequest.builder()
+                .baseRequest(baseRequest)
+                .chatRequest(chatRequest)
+                .requestAdvisor(toolsAdvisor)
+                .requestAdvisor(choiceAdvisor)
+                .build();
+    }
+}
 ```
 
 ## 6. QuickRequest 快速构造
 
 ```java
-import io.github.halcyonsong.liteagent.provider.openai.request.quickrequest.OpenAiQuickChatRequest;
+import io.github.halcyonsong.liteagent.provider.openai.request.config.quickrequest.OpenAiQuickChatRequest;
+import io.github.halcyonsong.liteagent.provider.openai.agent.chat.OpenAiChatAgent;
+import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiChatCompletionResponse;
 
-OpenAiQuickChatRequest quick = OpenAiQuickChatRequest.builder()
-        .baseUrl("https://api.siliconflow.cn")
-        .apiKey("sk-xxx")
-        .model("Qwen/Qwen2.5-7B-Instruct")
-        .systemMessage("你是一位助手")
-        .userMessage("你好")
-        .build();
+class QuickRequestExample {
+    void demo(OpenAiChatAgent agent) {
+        OpenAiQuickChatRequest quick = OpenAiQuickChatRequest.builder()
+                .baseUrl("https://api.siliconflow.cn")
+                .apiKey("sk-xxx")
+                .model("Qwen/Qwen2.5-7B-Instruct")
+                .systemMessage("你是一位助手")
+                .userMessage("你好")
+                .build();
 
-// 转换为标准请求后执行
-OpenAiChatCompletionResponse response = agent.execute(quick.toChatCompletion());
+        // 转换为标准请求后执行
+        OpenAiChatCompletionResponse response = agent.execute(quick.toChatCompletion());
+    }
+}
 ```
 
 ## 7. 快捷请求 + 工具调用完整示例
 
 ```java
-// 1. 创建工具注册表
-ToolRegistry registry = ToolRegistries.inMemory(new WeatherTools());
+import io.github.halcyonsong.liteagent.provider.openai.agent.chat.factory.OpenAiChatAgents;
+import io.github.halcyonsong.liteagent.provider.openai.agent.chat.OpenAiChatAgent;
+import io.github.halcyonsong.liteagent.provider.openai.runtime.config.HttpRuntimeConfig;
+import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiBaseRequest;
+import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
+import io.github.halcyonsong.liteagent.provider.openai.advisor.OpenAiRegistryToolsAdvisor;
+import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.OpenAiChatCompletionResponse;
+import io.github.halcyonsong.liteagent.core.tool.impl.ToolRegistries;
+import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistry;
+import io.github.halcyonsong.liteagent.core.message.type.constructor.Messages;
+import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
 
-// 2. 创建 agent
-HttpRuntimeConfig config = HttpRuntimeConfig.builder().build();
-OpenAiChatAgent agent = OpenAiChatAgents.create(config, 500, 5);
+public class QuickRequestWithToolsExample {
 
-// 3. 构造带工具的请求
-OpenAiChatCompletionRequest request = OpenAiChatCompletionRequest.builder()
-        .baseRequest(OpenAiBaseRequest.builder()
-                .baseUrl("https://api.siliconflow.cn")
-                .apiKey("sk-xxx")
-                .model("Qwen/Qwen2.5-7B-Instruct")
-                .build())
-        .chatRequest(ChatRequest.builder()
-                .addMessage(Messages.user("北京天气怎么样？"))
-                .build())
-        .requestAdvisor(new OpenAiRegistryToolsAdvisor(registry))
-        .build();
+    public void run() {
+        // 1. 创建工具注册表
+        ToolRegistry registry = ToolRegistries.inMemory(new WeatherTools());
 
-// 4. 执行（自动多轮工具调用）
-OpenAiChatCompletionResponse response = agent.execute(request);
+        // 2. 创建 agent
+        HttpRuntimeConfig config = HttpRuntimeConfig.builder().build();
+        OpenAiChatAgent agent = OpenAiChatAgents.create(config, 500, 5);
 
-// 5. 读取最终结果
-String content = response.getChoices().get(0).getMessage().getContent();
-System.out.println(content);  // 例如："北京 晴 32度"
+        // 3. 构造带工具的请求
+        OpenAiChatCompletionRequest request = OpenAiChatCompletionRequest.builder()
+                .baseRequest(OpenAiBaseRequest.builder()
+                        .baseUrl("https://api.siliconflow.cn")
+                        .apiKey("sk-xxx")
+                        .model("Qwen/Qwen2.5-7B-Instruct")
+                        .build())
+                .chatRequest(ChatRequest.builder()
+                        .addMessage(Messages.user("北京天气怎么样？"))
+                        .build())
+                .requestAdvisor(new OpenAiRegistryToolsAdvisor(registry))
+                .build();
+
+        // 4. 执行（自动多轮工具调用）
+        OpenAiChatCompletionResponse response = agent.execute(request);
+
+        // 5. 读取最终结果
+        String content = response.getChoices().get(0).getMessage().getContent();
+        System.out.println(content);  // 例如："北京 晴 32度"
+    }
+}
 ```
 
 ## 8. 流式 + 工具调用完整示例
 
 ```java
-ToolRegistry registry = ToolRegistries.inMemory(new WeatherTools());
+import io.github.halcyonsong.liteagent.provider.openai.agent.stream.factory.OpenAiStreamAgents;
+import io.github.halcyonsong.liteagent.provider.openai.agent.stream.OpenAiStreamAgent;
+import io.github.halcyonsong.liteagent.provider.openai.runtime.config.HttpRuntimeConfig;
+import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiBaseRequest;
+import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
+import io.github.halcyonsong.liteagent.provider.openai.advisor.OpenAiRegistryToolsAdvisor;
+import io.github.halcyonsong.liteagent.provider.openai.response.config.stream.OpenAiStreamCompletionResponse;
+import io.github.halcyonsong.liteagent.core.tool.impl.ToolRegistries;
+import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistry;
+import io.github.halcyonsong.liteagent.core.message.type.constructor.Messages;
+import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
 
-HttpRuntimeConfig config = HttpRuntimeConfig.builder().build();
-OpenAiStreamAgent agent = OpenAiStreamAgents.create(config, 500, 5);
+public class StreamWithToolsExample {
 
-OpenAiChatCompletionRequest request = OpenAiChatCompletionRequest.builder()
-        .baseRequest(OpenAiBaseRequest.builder()
-                .baseUrl("https://api.siliconflow.cn")
-                .apiKey("sk-xxx")
-                .model("Qwen/Qwen2.5-7B-Instruct")
-                .build())
-        .chatRequest(ChatRequest.builder()
-                .addMessage(Messages.user("北京天气怎么样？"))
-                .build())
-        .requestAdvisor(new OpenAiRegistryToolsAdvisor(registry))
-        .build();
+    public void run() {
+        ToolRegistry registry = ToolRegistries.inMemory(new WeatherTools());
 
-agent.execute(request)
-        .doOnNext(chunk -> {
-            String delta = chunk.getChoices().get(0).getDelta().getContent();
-            if (delta != null) {
-                System.out.print(delta);
-            }
-        })
-        .blockLast();
+        HttpRuntimeConfig config = HttpRuntimeConfig.builder().build();
+        OpenAiStreamAgent agent = OpenAiStreamAgents.create(config, 500, 5);
+
+        OpenAiChatCompletionRequest request = OpenAiChatCompletionRequest.builder()
+                .baseRequest(OpenAiBaseRequest.builder()
+                        .baseUrl("https://api.siliconflow.cn")
+                        .apiKey("sk-xxx")
+                        .model("Qwen/Qwen2.5-7B-Instruct")
+                        .build())
+                .chatRequest(ChatRequest.builder()
+                        .addMessage(Messages.user("北京天气怎么样？"))
+                        .build())
+                .requestAdvisor(new OpenAiRegistryToolsAdvisor(registry))
+                .build();
+
+        agent.execute(request)
+                .doOnNext(chunk -> {
+                    String delta = chunk.getChoices().get(0).getDelta().getContent();
+                    if (delta != null) {
+                        System.out.print(delta);
+                    }
+                })
+                .blockLast();
+    }
+}
 ```
 
 ## 9. 参数默认值

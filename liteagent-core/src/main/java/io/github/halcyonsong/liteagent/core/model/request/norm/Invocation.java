@@ -10,4 +10,11 @@ import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
 public interface Invocation {
     BaseRequest getBaseRequest();
     ChatRequest getChatRequest();
+
+    /**
+     * 会话标识，随请求传递。null 表示本次调用不关联会话。
+     */
+    default String getSessionId() {
+        return getChatRequest().getSessionId();
+    }
 }

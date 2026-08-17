@@ -8,9 +8,11 @@
 <dependency>
     <groupId>io.github.halcyonsong</groupId>
     <artifactId>liteagent-core</artifactId>
-    <version>0.8.0-SNAPSHOT</version>
+    <version>${revision}</version>
 </dependency>
 ```
+
+> `${revision}` 为 `liteagent-parent` POM 中定义的版本属性。若您的项目未继承 `liteagent-parent`，请替换为实际版本号。
 
 ## 1. 消息构造
 
@@ -24,35 +26,46 @@ import io.github.halcyonsong.liteagent.core.message.type.AssistantMessage;
 import io.github.halcyonsong.liteagent.core.message.type.AssistantResponseMessage;
 import io.github.halcyonsong.liteagent.core.message.type.ToolMessage;
 
-// 系统消息
-SystemMessage system = Messages.system("你是一位助手");
+import java.util.List;
 
-// 用户消息
-UserMessage user = Messages.user("你好");
+class MessageExample {
+    void build() {
+        // 系统消息
+        SystemMessage system = Messages.system("你是一位助手");
 
-// 助手消息（普通）
-AssistantMessage assistant = Messages.assistant("你好，有什么可以帮你的？");
+        // 用户消息
+        UserMessage user = Messages.user("你好");
 
-// 助手响应消息（含 reasoning 和 toolCalls）
-AssistantResponseMessage response = Messages.assistantResponse(
-        "北京今天晴，28°C",
-        "用户询问天气，需要调用工具",
-        List.of()
-);
+        // 助手消息（普通）
+        AssistantMessage assistant = Messages.assistant("你好，有什么可以帮你的？");
 
-// 工具结果消息
-ToolMessage toolResult = Messages.tool("{\"temperature\": 28}", "call_001");
+        // 助手响应消息（含 reasoning 和 toolCalls）
+        AssistantResponseMessage response = Messages.assistantResponse(
+                "北京今天晴，28°C",
+                "用户询问天气，需要调用工具",
+                List.of()
+        );
+
+        // 工具结果消息
+        ToolMessage toolResult = Messages.tool("{\"temperature\": 28}", "call_001");
+    }
+}
 ```
 
 ## 2. 构造聊天请求
 
 ```java
 import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
+import io.github.halcyonsong.liteagent.core.message.type.constructor.Messages;
 
-ChatRequest chatRequest = ChatRequest.builder()
-        .addMessage(Messages.system("你是一位助手"))
-        .addMessage(Messages.user("你好"))
-        .build();
+class ChatRequestExample {
+    void build() {
+        ChatRequest chatRequest = ChatRequest.builder()
+                .addMessage(Messages.system("你是一位助手"))
+                .addMessage(Messages.user("你好"))
+                .build();
+    }
+}
 ```
 
 ## 3. 工具定义
@@ -98,68 +111,92 @@ public class WeatherTools {
 ```java
 import io.github.halcyonsong.liteagent.core.tool.impl.ToolRegistries;
 import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistry;
+import io.github.halcyonsong.liteagent.core.tool.norm.ToolDefinition;
 
-// 空注册表
-ToolRegistry empty = ToolRegistries.inMemory();
+import java.util.List;
+import java.util.Map;
 
-// 单个工具类
-ToolRegistry registry1 = ToolRegistries.inMemory(new WeatherTools());
+class ToolRegistryExample {
+    void demo() {
+        // 空注册表
+        ToolRegistry empty = ToolRegistries.inMemory();
 
-// 多个工具类（varargs）
-ToolRegistry registry2 = ToolRegistries.inMemory(new WeatherTools(), new TimeTools());
+        // 单个工具类
+        ToolRegistry registry1 = ToolRegistries.inMemory(new WeatherTools());
 
-// 从列表注册
-ToolRegistry registry3 = ToolRegistries.inMemory(List.of(new WeatherTools(), new TimeTools()));
-```
+        // 多个工具类（varargs）
+        ToolRegistry registry2 = ToolRegistries.inMemory(new WeatherTools(), new TimeTools());
 
-注册表操作：
+        // 从列表注册
+        ToolRegistry registry3 = ToolRegistries.inMemory(List.of(new WeatherTools(), new TimeTools()));
 
-```java
-// 查询
-boolean exists = registry.contains("get_weather");
-ToolDefinition tool = registry.get("get_weather");
-List<ToolDefinition> all = registry.getAll();
+        // 查询
+        ToolRegistry registry = registry1;
+        boolean exists = registry.contains("get_weather");
+        ToolDefinition tool = registry.get("get_weather");
+        List<ToolDefinition> all = registry.getAll();
 
-// 工具定义信息
-String name = tool.getName();           // "get_weather"
-String desc = tool.getDescription();    // "获取指定城市的当前天气信息"
-Map<String, Object> params = tool.getParameters();  // JSON Schema
+        // 工具定义信息
+        String name = tool.getName();           // "get_weather"
+        String desc = tool.getDescription();    // "获取指定城市的当前天气信息"
+        Map<String, Object> params = tool.getParameters();  // JSON Schema
+    }
+}
 ```
 
 ## 5. 工具执行
 
 ```java
 import io.github.halcyonsong.liteagent.core.tool.impl.ReflectionToolExecutor;
+import io.github.halcyonsong.liteagent.core.tool.impl.ToolRegistries;
 import io.github.halcyonsong.liteagent.core.tool.model.ToolExecutionRequest;
+import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistry;
 import io.github.halcyonsong.liteagent.core.model.tool.FunctionCall;
 import io.github.halcyonsong.liteagent.core.model.tool.ToolCall;
 
-// 从模型返回的 ToolCall 构造执行请求
-ToolCall toolCall = new ToolCall(
-        0,
-        "call_001",
-        "function",
-        new FunctionCall("get_weather", "{\"city\":\"北京\"}")
-);
-ToolExecutionRequest request = ToolExecutionRequest.from(toolCall);
+class ToolExecutionExample {
+    void demo() {
+        // 从模型返回的 ToolCall 构造执行请求
+        ToolCall toolCall = new ToolCall(
+                0,
+                "call_001",
+                "function",
+                new FunctionCall("get_weather", "{\"city\":\"北京\"}")
+        );
+        ToolExecutionRequest request = ToolExecutionRequest.from(toolCall);
 
-// 执行
-ReflectionToolExecutor executor = new ReflectionToolExecutor();
-Object result = executor.execute(request, registry);
-// result = "北京：晴，28°C"
+        // 执行
+        ReflectionToolExecutor executor = new ReflectionToolExecutor();
+        ToolRegistry registry = ToolRegistries.inMemory(new WeatherTools());
+        Object result = executor.execute(request, registry);
+        // result = "北京：晴，28°C"
+    }
+}
 ```
 
 ## 6. ToolExecutionRequest 便捷访问
 
 ```java
-ToolExecutionRequest request = ToolExecutionRequest.from(toolCall);
+import io.github.halcyonsong.liteagent.core.tool.model.ToolExecutionRequest;
+import io.github.halcyonsong.liteagent.core.model.tool.FunctionCall;
+import io.github.halcyonsong.liteagent.core.model.tool.ToolCall;
 
-// 直接获取工具名和参数 JSON
-String toolName = request.getToolName();        // "get_weather"
-String arguments = request.getArgumentsJson();  // "{\"city\":\"北京\"}"
+class ToolRequestAccessExample {
+    void demo() {
+        ToolCall toolCall = new ToolCall(
+                0, "call_001", "function",
+                new FunctionCall("get_weather", "{\"city\":\"北京\"}")
+        );
+        ToolExecutionRequest request = ToolExecutionRequest.from(toolCall);
 
-// 序列化为 JSON
-String json = request.toCompactJson();
+        // 直接获取工具名和参数 JSON
+        String toolName = request.getToolName();        // "get_weather"
+        String arguments = request.getArgumentsJson();  // "{\"city\":\"北京\"}"
+
+        // 序列化为 JSON
+        String json = request.toCompactJson();
+    }
+}
 ```
 
 ## 7. 自定义 ObjectMapper
@@ -167,12 +204,17 @@ String json = request.toCompactJson();
 `ReflectionToolExecutor` 支持传入自定义 ObjectMapper：
 
 ```java
+import io.github.halcyonsong.liteagent.core.tool.impl.ReflectionToolExecutor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-ObjectMapper customMapper = new ObjectMapper();
-// ... 配置 customMapper ...
+class CustomMapperExample {
+    void demo() {
+        ObjectMapper customMapper = new ObjectMapper();
+        // ... 配置 customMapper ...
 
-ReflectionToolExecutor executor = new ReflectionToolExecutor(customMapper);
+        ReflectionToolExecutor executor = new ReflectionToolExecutor(customMapper);
+    }
+}
 ```
 
 ## 8. JSON 序列化
@@ -181,14 +223,21 @@ ReflectionToolExecutor executor = new ReflectionToolExecutor(customMapper);
 
 ```java
 import io.github.halcyonsong.liteagent.core.message.type.AssistantResponseMessage;
+import io.github.halcyonsong.liteagent.core.message.type.constructor.Messages;
 
-AssistantResponseMessage msg = Messages.assistantResponse("结果", "推理", List.of());
+import java.util.List;
 
-// 格式化 JSON
-String pretty = msg.toJson();
+class JsonSerializeExample {
+    void demo() {
+        AssistantResponseMessage msg = Messages.assistantResponse("结果", "推理", List.of());
 
-// 紧凑 JSON
-String compact = msg.toCompactJson();
+        // 格式化 JSON
+        String pretty = msg.toJson();
+
+        // 紧凑 JSON
+        String compact = msg.toCompactJson();
+    }
+}
 ```
 
 ## 9. 异常体系
@@ -204,17 +253,21 @@ import io.github.halcyonsong.liteagent.core.tool.model.ToolExecutionRequest;
 import io.github.halcyonsong.liteagent.core.model.tool.FunctionCall;
 import io.github.halcyonsong.liteagent.core.model.tool.ToolCall;
 
-ToolCall toolCall = new ToolCall(0, "call_1", "function",
-        new FunctionCall("get_weather", "invalid-json"));
-ToolExecutionRequest request = ToolExecutionRequest.from(toolCall);
+class ExceptionExample {
+    void demo() {
+        ToolCall toolCall = new ToolCall(0, "call_1", "function",
+                new FunctionCall("get_weather", "invalid-json"));
+        ToolExecutionRequest request = ToolExecutionRequest.from(toolCall);
 
-ReflectionToolExecutor executor = new ReflectionToolExecutor();
+        ReflectionToolExecutor executor = new ReflectionToolExecutor();
 
-try {
-    executor.execute(request, ToolRegistries.inMemory(new WeatherTools()));
-} catch (ToolExecutionException e) {
-    System.err.println("工具执行失败: " + e.getMessage());
-    System.err.println("错误码: " + e.getErrorCode());
+        try {
+            executor.execute(request, ToolRegistries.inMemory(new WeatherTools()));
+        } catch (ToolExecutionException e) {
+            System.err.println("工具执行失败: " + e.getMessage());
+            System.err.println("错误码: " + e.getErrorCode());
+        }
+    }
 }
 ```
 

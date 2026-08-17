@@ -14,10 +14,11 @@
         <module>liteagent-provider-openai</module>
         <module>liteagent-agent</module>
         <module>liteagent-provider-openai-agent</module>
+        <module>liteagent-memory</module>
     </modules>
 
     <properties>
-        <revision>0.8.0-SNAPSHOT</revision>
+        <revision>0.9.0-SNAPSHOT</revision>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <maven.compiler.parameters>true</maven.compiler.parameters>
