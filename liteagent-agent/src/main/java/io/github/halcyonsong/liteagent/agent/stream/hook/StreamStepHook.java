@@ -18,4 +18,13 @@ public interface StreamStepHook {
 
     default void onStepError(StreamStepKey key, StreamAgentContext<?> context, Throwable error) {
     }
+
+    default void onStreamError(StreamAgentContext<?> context, Throwable error) {
+    }
+
+    default void onStreamComplete(StreamAgentContext<?> context) {
+    }
+
+    default void onStreamCancel(StreamAgentContext<?> context) {
+    }
 }

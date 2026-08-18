@@ -65,10 +65,7 @@ public final class MemoryHookSupport {
         }
         MemoryWindow window = store.getOrCreate(sessionId);
         List<Message> folded = foldMessages(workingMessages);
-        window.clear();
-        if (!folded.isEmpty()) {
-            window.appendAll(folded);
-        }
+        window.replaceAll(folded);
         while (window.size() > maxSize) {
             window.removeEarliest();
         }

@@ -1,7 +1,7 @@
 package io.github.halcyonsong.liteagent.core.model.response.stream;
 
 import io.github.halcyonsong.liteagent.core.model.tool.ToolCall;
-import io.github.halcyonsong.liteagent.core.support.JsonSupport;
+import io.github.halcyonsong.liteagent.core.support.JsonSerializable;
 import lombok.Getter;
 import lombok.ToString;
 
@@ -16,7 +16,7 @@ import java.util.List;
  */
 @Getter
 @ToString
-public class StreamDelta {
+public class StreamDelta implements JsonSerializable {
 
     /**
      * 当前增量片段的消息角色。
@@ -51,14 +51,6 @@ public class StreamDelta {
         this.content = content;
         this.reasoningContent = reasoningContent;
         this.toolCalls = toolCalls == null ? Collections.emptyList() : List.copyOf(toolCalls);
-    }
-
-    public String toJson() {
-        return JsonSupport.toJson(this);
-    }
-
-    public String toCompactJson() {
-        return JsonSupport.toCompactJson(this);
     }
 
 }

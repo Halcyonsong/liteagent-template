@@ -2,7 +2,7 @@ package io.github.halcyonsong.liteagent.provider.openai.response.raw;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.github.halcyonsong.liteagent.core.support.JsonSupport;
+import io.github.halcyonsong.liteagent.core.support.JsonSerializable;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -21,7 +21,7 @@ import java.util.Map;
 @Getter
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class OpenAiChatCompletionRawResponse {
+public class OpenAiChatCompletionRawResponse implements JsonSerializable {
 
     @JsonProperty("id")
     private String id;
@@ -51,14 +51,6 @@ public class OpenAiChatCompletionRawResponse {
     @JsonProperty("base_resp")
     private Map<String, Object> baseResp;
 
-    public String toJson() {
-        return JsonSupport.toJson(this);
-    }
-
-    public String toCompactJson() {
-        return JsonSupport.toCompactJson(this);
-    }
-
     @Override
     public String toString() {
         return "OpenAiChatCompletionRawResponse{" +
@@ -81,7 +73,7 @@ public class OpenAiChatCompletionRawResponse {
     @ToString
     @NoArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class RawChoice {
+    public static class RawChoice implements JsonSerializable {
 
         @JsonProperty("index")
         private Integer index;
@@ -95,14 +87,6 @@ public class OpenAiChatCompletionRawResponse {
         @JsonProperty("finish_reason")
         private String finishReason;
 
-        public String toJson() {
-            return JsonSupport.toJson(this);
-        }
-
-        public String toCompactJson() {
-            return JsonSupport.toCompactJson(this);
-        }
-
     }
 
     /**
@@ -115,7 +99,7 @@ public class OpenAiChatCompletionRawResponse {
     @ToString
     @NoArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class RawMessage {
+    public static class RawMessage implements JsonSerializable {
 
         @JsonProperty("role")
         private String role;
@@ -129,14 +113,6 @@ public class OpenAiChatCompletionRawResponse {
         @JsonProperty("tool_calls")
         private List<RawToolCall> toolCalls;
 
-        public String toJson() {
-            return JsonSupport.toJson(this);
-        }
-
-        public String toCompactJson() {
-            return JsonSupport.toCompactJson(this);
-        }
-
     }
 
     @Setter
@@ -144,7 +120,7 @@ public class OpenAiChatCompletionRawResponse {
     @ToString
     @NoArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class RawToolCall {
+    public static class RawToolCall implements JsonSerializable {
 
         @JsonProperty("index")
         private Integer index;
@@ -158,14 +134,6 @@ public class OpenAiChatCompletionRawResponse {
         @JsonProperty("function")
         private RawFunction function;
 
-        public String toJson() {
-            return JsonSupport.toJson(this);
-        }
-
-        public String toCompactJson() {
-            return JsonSupport.toCompactJson(this);
-        }
-
     }
 
     @Setter
@@ -173,21 +141,13 @@ public class OpenAiChatCompletionRawResponse {
     @ToString
     @NoArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class RawFunction {
+    public static class RawFunction implements JsonSerializable {
 
         @JsonProperty("name")
         private String name;
 
         @JsonProperty("arguments")
         private String arguments;
-
-        public String toJson() {
-            return JsonSupport.toJson(this);
-        }
-
-        public String toCompactJson() {
-            return JsonSupport.toCompactJson(this);
-        }
 
     }
 
@@ -199,7 +159,7 @@ public class OpenAiChatCompletionRawResponse {
     @ToString
     @NoArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class RawUsage {
+    public static class RawUsage implements JsonSerializable {
 
         @JsonProperty("prompt_tokens")
         private Integer promptTokens;
@@ -221,14 +181,6 @@ public class OpenAiChatCompletionRawResponse {
 
         @JsonProperty("prompt_cache_miss_tokens")
         private Integer promptCacheMissTokens;
-
-        public String toJson() {
-            return JsonSupport.toJson(this);
-        }
-
-        public String toCompactJson() {
-            return JsonSupport.toCompactJson(this);
-        }
 
     }
 }

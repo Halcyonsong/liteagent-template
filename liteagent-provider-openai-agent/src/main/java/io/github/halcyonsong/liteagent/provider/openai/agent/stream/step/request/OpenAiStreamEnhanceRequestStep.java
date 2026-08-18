@@ -9,6 +9,7 @@ import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChat
 import io.github.halcyonsong.liteagent.provider.openai.request.raw.OpenAiChatCompletionRawRequest;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -32,6 +33,7 @@ public class OpenAiStreamEnhanceRequestStep implements StreamSyncStep {
 
         clientSupport.applyRequestAdvisors(providerRequest, rawRequest);
         rawRequest.setStream(true);
+        rawRequest.setStreamOptions(Map.of("include_usage", true));
 
         log.debug(
                 "Enhanced stream request. executionId={}, iteration={}, requestAdvisorCount={}, stream={}",

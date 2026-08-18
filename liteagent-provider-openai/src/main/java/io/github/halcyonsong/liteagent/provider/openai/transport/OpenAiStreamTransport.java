@@ -25,7 +25,7 @@ public class OpenAiStreamTransport {
     private final ObjectMapper objectMapper;
 
     public OpenAiStreamTransport(WebClient webClient) {
-        this(webClient, JsonSupport.getObjectMapper());
+        this(webClient, JsonSupport.createObjectMapper());
     }
 
     public OpenAiStreamTransport(WebClient webClient, ObjectMapper objectMapper) {
@@ -82,11 +82,7 @@ public class OpenAiStreamTransport {
                             e.getResponseBodyAsString(),
                             e);
 
-                    return new ModelException(
-                            "OpenAI-compatible streaming API error: status=" + e.getStatusCode()
-                                    + ", body=" + e.getResponseBodyAsString(),
-                            e
-                    );
+                    return OpenAiErrorClassifier.classify(e, endpoint);
                 })
                 .onErrorMap(ModelException.class, e -> e)
                 .onErrorMap(e -> {
@@ -94,7 +90,7 @@ public class OpenAiStreamTransport {
                             endpoint,
                             rawRequest.getModel(),
                             e);
-                    return new ModelException("Failed to call OpenAI-compatible streaming chat completion", e);
+                    return OpenAiErrorClassifier.classify((Exception) e, endpoint);
                 })
                 .doOnComplete(() -> log.debug(
                         "Completed OpenAI-compatible streaming response. endpoint={}, model={}",

@@ -68,11 +68,7 @@ public class OpenAiChatTransport {
                     e.getResponseBodyAsString(),
                     e);
 
-            throw new ModelException(
-                    "OpenAI-compatible API error: status=" + e.getStatusCode()
-                            + ", body=" + e.getResponseBodyAsString(),
-                    e
-            );
+            throw OpenAiErrorClassifier.classify(e, endpoint);
         } catch (ModelException e) {
             log.error("Model exception occurred while calling OpenAI-compatible API. endpoint={}, message={}",
                     endpoint,
@@ -84,7 +80,7 @@ public class OpenAiChatTransport {
                     endpoint,
                     rawRequest.getModel(),
                     e);
-            throw new ModelException("Failed to call OpenAI-compatible chat completion", e);
+            throw OpenAiErrorClassifier.classify(e, endpoint);
         }
     }
 }

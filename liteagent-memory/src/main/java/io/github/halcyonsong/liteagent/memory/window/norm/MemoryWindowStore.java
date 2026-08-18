@@ -32,6 +32,11 @@ public interface MemoryWindowStore {
     void delete(String sessionId);
 
     /**
+     * 清空所有会话的记忆窗口。
+     */
+    void clear();
+
+    /**
      * 从持久化存储加载指定会话的历史消息。
      * <p>
      * 内存场景无需重写，返回空列表。

@@ -4,6 +4,8 @@ import io.github.halcyonsong.liteagent.agent.chat.executor.ChatAgentExecutor;
 import io.github.halcyonsong.liteagent.agent.chat.hook.StepHook;
 import io.github.halcyonsong.liteagent.agent.chat.step.ChatStep;
 import io.github.halcyonsong.liteagent.agent.chat.step.ChatStepKey;
+import io.github.halcyonsong.liteagent.core.tool.impl.ReflectionToolExecutor;
+import io.github.halcyonsong.liteagent.core.tool.norm.ToolExecutor;
 import io.github.halcyonsong.liteagent.provider.openai.agent.chat.step.request.OpenAiChatBeginStep;
 import io.github.halcyonsong.liteagent.provider.openai.agent.chat.step.request.OpenAiChatEnhanceRequestStep;
 import io.github.halcyonsong.liteagent.provider.openai.agent.chat.step.request.OpenAiChatInitToolRegistryStep;
@@ -32,15 +34,27 @@ public class OpenAiChatAgentExecutorFactory {
     private final OpenAiAdvisorsExecutor advisorsExecutor;
     private final OpenAiChatTransport chatTransport;
     private final OpenAiChatResponseMapper responseMapper;
+    private final ToolExecutor toolExecutor;
+
+    public OpenAiChatAgentExecutorFactory(
+            OpenAiChatRequestMapper requestMapper,
+            OpenAiAdvisorsExecutor advisorsExecutor,
+            OpenAiChatTransport chatTransport,
+            OpenAiChatResponseMapper responseMapper
+    ) {
+        this(requestMapper, advisorsExecutor, chatTransport, responseMapper, new ReflectionToolExecutor());
+    }
 
     public OpenAiChatAgentExecutorFactory(OpenAiChatRequestMapper requestMapper,
                                           OpenAiAdvisorsExecutor advisorsExecutor,
                                           OpenAiChatTransport chatTransport,
-                                          OpenAiChatResponseMapper responseMapper) {
+                                          OpenAiChatResponseMapper responseMapper,
+                                          ToolExecutor toolExecutor) {
         this.requestMapper = Objects.requireNonNull(requestMapper, "requestMapper must not be null");
         this.advisorsExecutor = Objects.requireNonNull(advisorsExecutor, "advisorsExecutor must not be null");
         this.chatTransport = Objects.requireNonNull(chatTransport, "chatTransport must not be null");
         this.responseMapper = Objects.requireNonNull(responseMapper, "responseMapper must not be null");
+        this.toolExecutor = Objects.requireNonNull(toolExecutor, "toolExecutor must not be null");
     }
 
     public ChatAgentExecutor create() {
@@ -73,7 +87,7 @@ public class OpenAiChatAgentExecutorFactory {
         steps.put(ChatStepKey.MAP_RESPONSE, new OpenAiChatMapResponseStep(responseMapper));
         steps.put(ChatStepKey.ENHANCE_RESPONSE, new OpenAiChatEnhanceResponseStep(advisorsExecutor));
         steps.put(ChatStepKey.ANALYZE_RESPONSE, new OpenAiChatAnalyzeResponseStep());
-        steps.put(ChatStepKey.EXECUTE_TOOL, new OpenAiChatExecuteToolStep());
+        steps.put(ChatStepKey.EXECUTE_TOOL, new OpenAiChatExecuteToolStep(toolExecutor));
         steps.put(ChatStepKey.APPEND_MESSAGES, new OpenAiChatAppendMessagesStep());
         steps.put(ChatStepKey.BUILD_RESULT, new OpenAiChatBuildResultStep());
         steps.put(ChatStepKey.END, new OpenAiChatEndStep());

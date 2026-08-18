@@ -84,6 +84,16 @@ public final class InMemoryMemoryWindow implements MemoryWindow {
     }
 
     @Override
+    public synchronized void replaceAll(List<? extends Message> messages) {
+        Objects.requireNonNull(messages, "messages must not be null");
+        messages.forEach(message ->
+                Objects.requireNonNull(message, "message must not be null")
+        );
+        this.messages.clear();
+        this.messages.addAll(messages);
+    }
+
+    @Override
     public synchronized int size() {
         return messages.size();
     }

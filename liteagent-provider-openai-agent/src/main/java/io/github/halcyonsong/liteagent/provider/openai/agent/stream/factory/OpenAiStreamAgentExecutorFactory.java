@@ -30,7 +30,7 @@ import java.util.Objects;
 public class OpenAiStreamAgentExecutorFactory {
 
     private final OpenAiChatRequestMapper requestMapper;
-    private final OpenAiAdvisorsExecutor clientSupport;
+    private final OpenAiAdvisorsExecutor advisorsExecutor;
     private final OpenAiStreamTransport streamTransport;
     private final OpenAiStreamResponseMapper responseMapper;
     private final ToolExecutor toolExecutor;
@@ -46,13 +46,13 @@ public class OpenAiStreamAgentExecutorFactory {
 
     public OpenAiStreamAgentExecutorFactory(
             OpenAiChatRequestMapper requestMapper,
-            OpenAiAdvisorsExecutor clientSupport,
+            OpenAiAdvisorsExecutor advisorsExecutor,
             OpenAiStreamTransport streamTransport,
             OpenAiStreamResponseMapper responseMapper,
             ToolExecutor toolExecutor
     ) {
         this.requestMapper = Objects.requireNonNull(requestMapper, "requestMapper must not be null");
-        this.clientSupport = Objects.requireNonNull(clientSupport, "clientSupport must not be null");
+        this.advisorsExecutor = Objects.requireNonNull(advisorsExecutor, "advisorsExecutor must not be null");
         this.streamTransport = Objects.requireNonNull(streamTransport, "streamTransport must not be null");
         this.responseMapper = Objects.requireNonNull(responseMapper, "responseMapper must not be null");
         this.toolExecutor = Objects.requireNonNull(toolExecutor, "toolExecutor must not be null");
@@ -82,7 +82,7 @@ public class OpenAiStreamAgentExecutorFactory {
         syncSteps.put(StreamStepKey.INIT_WORKING_MESSAGES, new OpenAiStreamInitWorkingMessagesStep());
         syncSteps.put(StreamStepKey.INIT_TOOL_REGISTRY, new OpenAiStreamInitToolRegistryStep());
         syncSteps.put(StreamStepKey.MAP_REQUEST, new OpenAiStreamMapRequestStep(requestMapper));
-        syncSteps.put(StreamStepKey.ENHANCE_REQUEST, new OpenAiStreamEnhanceRequestStep(clientSupport));
+        syncSteps.put(StreamStepKey.ENHANCE_REQUEST, new OpenAiStreamEnhanceRequestStep(advisorsExecutor));
         syncSteps.put(StreamStepKey.DECIDE_NEXT_ACTION, new OpenAiStreamDecideNextActionStep());
         syncSteps.put(StreamStepKey.EXECUTE_TOOL, new OpenAiStreamExecuteToolStep(toolExecutor));
         syncSteps.put(StreamStepKey.APPEND_MESSAGES, new OpenAiStreamAppendMessagesStep());
@@ -91,7 +91,7 @@ public class OpenAiStreamAgentExecutorFactory {
 
         Map<StreamStepKey, StreamStep<Flux<OpenAiStreamCompletionResponse>>> streamSteps = new HashMap<>();
         streamSteps.put(StreamStepKey.SEND_REQUEST, new OpenAiStreamSendRequestStep(streamTransport, responseMapper));
-        streamSteps.put(StreamStepKey.ENHANCE_CHUNK, new OpenAiStreamEnhanceChunkStep(clientSupport));
+        streamSteps.put(StreamStepKey.ENHANCE_CHUNK, new OpenAiStreamEnhanceChunkStep(advisorsExecutor));
         streamSteps.put(StreamStepKey.ACCUMULATE_CHUNK, new OpenAiStreamAccumulateChunkStep());
         streamSteps.put(StreamStepKey.ANALYZE_CHUNK, new OpenAiStreamAnalyzeChunkStep());
 

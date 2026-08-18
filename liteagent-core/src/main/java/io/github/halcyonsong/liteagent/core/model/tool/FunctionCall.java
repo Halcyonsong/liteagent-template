@@ -1,6 +1,6 @@
 package io.github.halcyonsong.liteagent.core.model.tool;
 
-import io.github.halcyonsong.liteagent.core.support.JsonSupport;
+import io.github.halcyonsong.liteagent.core.support.JsonSerializable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
@@ -13,17 +13,9 @@ import lombok.ToString;
 @Getter
 @ToString
 @AllArgsConstructor
-public class FunctionCall {
+public class FunctionCall implements JsonSerializable {
 
     private final String name;
     private final String arguments;
-
-    public String toJson() {
-        return JsonSupport.toJson(this);
-    }
-
-    public String toCompactJson() {
-        return JsonSupport.toCompactJson(this);
-    }
 
 }

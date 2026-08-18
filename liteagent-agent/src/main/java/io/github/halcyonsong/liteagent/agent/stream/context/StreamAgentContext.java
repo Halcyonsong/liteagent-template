@@ -11,6 +11,7 @@ import reactor.core.publisher.Flux;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 单次流式编排调用的上下文。
@@ -67,12 +68,17 @@ public class StreamAgentContext<T> {
     /**
      * 当前已经进入的模型调用轮次。
      */
-    private volatile int iteration;
+    private final AtomicInteger iteration = new AtomicInteger(0);
 
     /**
      * 允许的最大模型调用轮次。
      */
     private volatile int maxIterations = 10;
+
+    /**
+     * 已执行的步骤计数器。
+     */
+    private final AtomicInteger executedSteps = new AtomicInteger(0);
 
     /**
      * 本次执行的结束原因。
@@ -191,8 +197,12 @@ public class StreamAgentContext<T> {
     /**
      * 将当前执行轮次加一。
      */
-    public void incrementIteration() {
-        this.iteration++;
+    public int incrementIteration() {
+        return iteration.incrementAndGet();
+    }
+
+    public int getIteration() {
+        return iteration.get();
     }
 
     /**
@@ -207,6 +217,14 @@ public class StreamAgentContext<T> {
 
     public void cancel() {
         this.cancelled = true;
+    }
+
+    public int incrementExecutedSteps() {
+        return executedSteps.incrementAndGet();
+    }
+
+    public int getExecutedSteps() {
+        return executedSteps.get();
     }
 
 }

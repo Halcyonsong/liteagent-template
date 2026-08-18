@@ -1,7 +1,7 @@
 package io.github.halcyonsong.liteagent.core.model.response.chat;
 
 import io.github.halcyonsong.liteagent.core.model.enums.FinishReason;
-import io.github.halcyonsong.liteagent.core.support.JsonSupport;
+import io.github.halcyonsong.liteagent.core.support.JsonSerializable;
 import lombok.Getter;
 
 import java.util.Objects;
@@ -13,7 +13,7 @@ import java.util.Objects;
  * 包含其在结果列表中的索引、实际聊天响应内容以及结束原因。
  */
 @Getter
-public class ChatChoice {
+public class ChatChoice implements JsonSerializable {
 
     /**
      * 当前候选结果在响应 choices 中的索引位置。
@@ -34,14 +34,6 @@ public class ChatChoice {
         this.index = index;
         this.chatResponse = Objects.requireNonNull(chatResponse, "chatResponse must not be null");
         this.finishReason = finishReason;
-    }
-
-    public String toJson() {
-        return JsonSupport.toJson(this);
-    }
-
-    public String toCompactJson() {
-        return JsonSupport.toCompactJson(this);
     }
 
     @Override

@@ -1,6 +1,8 @@
 package io.github.halcyonsong.liteagent.provider.openai.agent.chat.factory;
 
 import io.github.halcyonsong.liteagent.agent.chat.hook.StepHook;
+import io.github.halcyonsong.liteagent.core.tool.impl.ReflectionToolExecutor;
+import io.github.halcyonsong.liteagent.core.tool.norm.ToolExecutor;
 import io.github.halcyonsong.liteagent.provider.openai.agent.chat.OpenAiChatAgent;
 import io.github.halcyonsong.liteagent.provider.openai.runtime.config.HttpRuntimeConfig;
 import io.github.halcyonsong.liteagent.provider.openai.runtime.register.WebClientRegistry;
@@ -17,13 +19,17 @@ import java.util.Objects;
  */
 public final class OpenAiChatAgentBuilder {
 
+    private static final int DEFAULT_MAX_STEP_COUNT = 1000;
+    private static final int DEFAULT_MAX_ITERATIONS = 10;
+
     private WebClient webClient;
     private HttpRuntimeConfig runtimeConfig;
     private WebClientRegistry registry;
+    private ToolExecutor toolExecutor;
     private final List<StepHook> hooks = new ArrayList<>();
 
-    private int maxStepCount = 1000;
-    private int maxIterations = 10;
+    private int maxStepCount = DEFAULT_MAX_STEP_COUNT;
+    private int maxIterations = DEFAULT_MAX_ITERATIONS;
 
     private OpenAiChatAgentBuilder() {
     }
@@ -57,6 +63,18 @@ public final class OpenAiChatAgentBuilder {
      */
     public OpenAiChatAgentBuilder registry(WebClientRegistry registry) {
         this.registry = Objects.requireNonNull(registry, "registry must not be null");
+        return this;
+    }
+
+    /**
+     * 指定自定义工具执行器。
+     * 未设置时使用默认的 ReflectionToolExecutor。
+     *
+     * @param toolExecutor 工具执行器实例
+     * @return 当前构造器
+     */
+    public OpenAiChatAgentBuilder toolExecutor(ToolExecutor toolExecutor) {
+        this.toolExecutor = Objects.requireNonNull(toolExecutor, "toolExecutor must not be null");
         return this;
     }
 
@@ -107,6 +125,7 @@ public final class OpenAiChatAgentBuilder {
 
     public OpenAiChatAgent build() {
         List<StepHook> configuredHooks = List.copyOf(hooks);
+        ToolExecutor executor = toolExecutor != null ? toolExecutor : new ReflectionToolExecutor();
 
         if (webClient != null) {
             if (runtimeConfig != null || registry != null) {
@@ -118,7 +137,8 @@ public final class OpenAiChatAgentBuilder {
                     webClient,
                     configuredHooks,
                     maxStepCount,
-                    maxIterations
+                    maxIterations,
+                    executor
             );
         }
 
@@ -134,7 +154,8 @@ public final class OpenAiChatAgentBuilder {
                     runtimeConfig,
                     configuredHooks,
                     maxStepCount,
-                    maxIterations
+                    maxIterations,
+                    executor
             );
         }
 
@@ -142,7 +163,8 @@ public final class OpenAiChatAgentBuilder {
                 runtimeConfig,
                 configuredHooks,
                 maxStepCount,
-                maxIterations
+                maxIterations,
+                executor
         );
     }
 }

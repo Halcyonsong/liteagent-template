@@ -15,7 +15,7 @@ public abstract class AbstractMessage implements Message {
 
     protected AbstractMessage(MessageRole role, String content) {
         this.role = Objects.requireNonNull(role, "role must not be null");
-        this.content = Objects.requireNonNull(content, "content must not be null");
+        this.content = content;
     }
 
 }

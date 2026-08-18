@@ -2,7 +2,7 @@ package io.github.halcyonsong.liteagent.provider.openai.request.raw;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.github.halcyonsong.liteagent.core.support.JsonSupport;
+import io.github.halcyonsong.liteagent.core.support.JsonSerializable;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -20,7 +20,7 @@ import java.util.Map;
 @Getter
 @ToString
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class OpenAiChatCompletionRawRequest {
+public class OpenAiChatCompletionRawRequest implements JsonSerializable {
 
     @JsonProperty("model")
     private String model;
@@ -30,6 +30,15 @@ public class OpenAiChatCompletionRawRequest {
 
     @JsonProperty("stream")
     private Boolean stream;
+
+    /**
+     * 流式请求选项。
+     * <p>
+     * 仅在 stream=true 时生效，用于控制流式响应的附加行为。
+     * 目前用于开启 usage 统计返回。
+     */
+    @JsonProperty("stream_options")
+    private Map<String, Object> streamOptions;
 
     @JsonProperty("temperature")
     private Double temperature;
@@ -74,14 +83,6 @@ public class OpenAiChatCompletionRawRequest {
     private Object toolChoice;
 
     public OpenAiChatCompletionRawRequest() {
-    }
-
-    public String toJson() {
-        return JsonSupport.toJson(this);
-    }
-
-    public String toCompactJson() {
-        return JsonSupport.toCompactJson(this);
     }
 
 }

@@ -1,6 +1,7 @@
 package io.github.halcyonsong.liteagent.agent.chat.executor;
 
 import io.github.halcyonsong.liteagent.agent.chat.context.ChatAgentContext;
+import io.github.halcyonsong.liteagent.agent.chat.hook.ChatHookDispatcher;
 import io.github.halcyonsong.liteagent.agent.chat.hook.StepHook;
 import io.github.halcyonsong.liteagent.agent.chat.step.ChatStep;
 import io.github.halcyonsong.liteagent.agent.chat.step.ChatStepKey;
@@ -13,18 +14,11 @@ import java.util.Objects;
 
 /**
  * 基于 step key 顺序推进的同步 chat 执行器。
- * <p>
- * 执行器维护步骤注册表，并从 BEGIN 开始逐步执行。
- * 每个步骤返回下一个要执行的 ChatStepKey，
- * 执行器据此推进整个 chat 编排流程，直到 END。
- * <p>
- * 步骤注册表支持内置 key 和自定义 key，
- * 调用方可在构建注册表时插入自定义步骤。
  */
 public final class ChatAgentExecutor {
 
     private final Map<ChatStepKey, ChatStep> steps;
-    private final List<StepHook> hooks;
+    private final ChatHookDispatcher hookDispatcher;
     private final int maxStepCount;
     private final int maxIterations;
 
@@ -32,11 +26,16 @@ public final class ChatAgentExecutor {
         this(steps, List.of(), 1000, 10);
     }
 
-    public ChatAgentExecutor(Map<ChatStepKey, ChatStep> steps, List<StepHook> hooks, int maxStepCount) {
+    public ChatAgentExecutor(Map<ChatStepKey, ChatStep> steps,
+                             List<StepHook> hooks,
+                             int maxStepCount) {
         this(steps, hooks, maxStepCount, 10);
     }
 
-    public ChatAgentExecutor(Map<ChatStepKey, ChatStep> steps, List<StepHook> hooks, int maxStepCount, int maxIterations) {
+    public ChatAgentExecutor(Map<ChatStepKey, ChatStep> steps,
+                             List<StepHook> hooks,
+                             int maxStepCount,
+                             int maxIterations) {
         Objects.requireNonNull(steps, "steps must not be null");
         if (maxStepCount < 1) {
             throw new IllegalArgumentException("maxStepCount must be greater than zero");
@@ -45,7 +44,7 @@ public final class ChatAgentExecutor {
             throw new IllegalArgumentException("maxIterations must be greater than zero");
         }
         this.steps = new HashMap<>(steps);
-        this.hooks = hooks == null ? List.of() : List.copyOf(hooks);
+        this.hookDispatcher = new ChatHookDispatcher(hooks);
         this.maxStepCount = maxStepCount;
         this.maxIterations = maxIterations;
     }
@@ -67,37 +66,55 @@ public final class ChatAgentExecutor {
                 throw new IllegalStateException("ChatAgent step limit exceeded: " + maxStepCount);
             }
 
-            ChatStepKey stepKey = currentKey;
-            ChatStep step = steps.get(stepKey);
-            if (step == null) {
-                throw new IllegalStateException("No agent step registered for key: " + stepKey);
-            }
-
-            try {
-                hooks.forEach(hook -> hook.beforeStep(stepKey, context));
-
-                ChatStepKey nextKey = Objects.requireNonNull(
-                        step.invoke(context),
-                        "agent step must return a next step"
-                );
-
-                hooks.forEach(hook -> hook.afterStep(stepKey, context, nextKey));
-                currentKey = nextKey;
-            } catch (Throwable error) {
-                hooks.forEach(hook -> hook.onStepError(stepKey, context, error));
-                throw error;
-            }
+            currentKey = invokeStep(currentKey, context);
         }
+
+        invokeEndStep(context);
+        return context;
+    }
+
+    private ChatStepKey invokeStep(ChatStepKey key, ChatAgentContext context) {
+        ChatStep step = steps.get(key);
+        if (step == null) {
+            throw new IllegalStateException("No agent step registered for key: " + key);
+        }
+
 
         try {
-            hooks.forEach(hook -> hook.beforeStep(ChatStepKey.END, context));
-            steps.get(ChatStepKey.END).invoke(context);
-            hooks.forEach(hook -> hook.afterStep(ChatStepKey.END, context, ChatStepKey.END));
+            hookDispatcher.beforeStep(key, context);
+
+            ChatStepKey nextKey = Objects.requireNonNull(
+                    step.invoke(context),
+                    "agent step must return a next step"
+            );
+
+            hookDispatcher.afterStep(key, context, nextKey);
+            return nextKey;
         } catch (Throwable error) {
-            hooks.forEach(hook -> hook.onStepError(ChatStepKey.END, context, error));
+            hookDispatcher.onStepError(key, context, error);
             throw error;
         }
+    }
 
-        return context;
+    private void invokeEndStep(ChatAgentContext context) {
+        ChatStep endStep = steps.get(ChatStepKey.END);
+        if (endStep == null) {
+            throw new IllegalStateException("No agent step registered for key: " + ChatStepKey.END);
+        }
+
+
+        try {
+            hookDispatcher.beforeStep(ChatStepKey.END, context);
+
+            ChatStepKey nextKey = Objects.requireNonNull(
+                    endStep.invoke(context),
+                    "agent step must return a next step"
+            );
+
+            hookDispatcher.afterStep(ChatStepKey.END, context, nextKey);
+        } catch (Throwable error) {
+            hookDispatcher.onStepError(ChatStepKey.END, context, error);
+            throw error;
+        }
     }
 }

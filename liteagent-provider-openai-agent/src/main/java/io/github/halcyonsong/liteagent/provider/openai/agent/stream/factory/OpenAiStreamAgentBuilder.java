@@ -1,6 +1,8 @@
 package io.github.halcyonsong.liteagent.provider.openai.agent.stream.factory;
 
 import io.github.halcyonsong.liteagent.agent.stream.hook.StreamStepHook;
+import io.github.halcyonsong.liteagent.core.tool.impl.ReflectionToolExecutor;
+import io.github.halcyonsong.liteagent.core.tool.norm.ToolExecutor;
 import io.github.halcyonsong.liteagent.provider.openai.agent.stream.OpenAiStreamAgent;
 import io.github.halcyonsong.liteagent.provider.openai.runtime.config.HttpRuntimeConfig;
 import io.github.halcyonsong.liteagent.provider.openai.runtime.register.WebClientRegistry;
@@ -24,6 +26,7 @@ public final class OpenAiStreamAgentBuilder {
     private WebClient webClient;
     private HttpRuntimeConfig runtimeConfig;
     private WebClientRegistry registry;
+    private ToolExecutor toolExecutor;
     private final List<StreamStepHook> hooks = new ArrayList<>();
 
     private int maxStepCount = DEFAULT_MAX_STEP_COUNT;
@@ -82,6 +85,18 @@ public final class OpenAiStreamAgentBuilder {
      */
     public OpenAiStreamAgentBuilder registry(WebClientRegistry registry) {
         this.registry = Objects.requireNonNull(registry, "registry must not be null");
+        return this;
+    }
+
+    /**
+     * 指定自定义工具执行器。
+     * 未设置时使用默认的 ReflectionToolExecutor。
+     *
+     * @param toolExecutor 工具执行器实例
+     * @return 当前构造器
+     */
+    public OpenAiStreamAgentBuilder toolExecutor(ToolExecutor toolExecutor) {
+        this.toolExecutor = Objects.requireNonNull(toolExecutor, "toolExecutor must not be null");
         return this;
     }
 
@@ -169,6 +184,7 @@ public final class OpenAiStreamAgentBuilder {
      */
     public OpenAiStreamAgent build() {
         List<StreamStepHook> configuredHooks = List.copyOf(hooks);
+        ToolExecutor executor = toolExecutor != null ? toolExecutor : new ReflectionToolExecutor();
 
         if (webClient != null) {
             if (runtimeConfig != null || registry != null) {
@@ -180,7 +196,8 @@ public final class OpenAiStreamAgentBuilder {
                     webClient,
                     configuredHooks,
                     maxStepCount,
-                    maxIterations
+                    maxIterations,
+                    executor
             );
         }
 
@@ -196,7 +213,8 @@ public final class OpenAiStreamAgentBuilder {
                     runtimeConfig,
                     configuredHooks,
                     maxStepCount,
-                    maxIterations
+                    maxIterations,
+                    executor
             );
         }
 
@@ -204,7 +222,8 @@ public final class OpenAiStreamAgentBuilder {
                 runtimeConfig,
                 configuredHooks,
                 maxStepCount,
-                maxIterations
+                maxIterations,
+                executor
         );
     }
 }

@@ -3,7 +3,7 @@ package io.github.halcyonsong.liteagent.core.tool.model;
 import io.github.halcyonsong.liteagent.core.exception.ToolExecutionException;
 import io.github.halcyonsong.liteagent.core.model.tool.FunctionCall;
 import io.github.halcyonsong.liteagent.core.model.tool.ToolCall;
-import io.github.halcyonsong.liteagent.core.support.JsonSupport;
+import io.github.halcyonsong.liteagent.core.support.JsonSerializable;
 import lombok.Getter;
 import lombok.ToString;
 
@@ -16,7 +16,7 @@ import java.util.Objects;
  */
 @Getter
 @ToString
-public class ToolExecutionRequest {
+public class ToolExecutionRequest implements JsonSerializable {
 
     private final Integer index;
     private final String id;
@@ -55,14 +55,6 @@ public class ToolExecutionRequest {
 
     public String getArgumentsJson() {
         return function.getArguments();
-    }
-
-    public String toJson() {
-        return JsonSupport.toJson(this);
-    }
-
-    public String toCompactJson() {
-        return JsonSupport.toCompactJson(this);
     }
 
 }

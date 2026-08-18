@@ -13,6 +13,8 @@ import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistry;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
@@ -143,7 +145,10 @@ public class ReflectionToolExecutor implements ToolExecutor {
 
         try {
             if (targetType == String.class) {
-                return String.valueOf(rawValue);
+                if (rawValue instanceof String stringValue) {
+                    return stringValue;
+                }
+                return objectMapper.writeValueAsString(rawValue);
             }
 
             if (targetType == Integer.class || targetType == int.class) {
@@ -170,7 +175,7 @@ public class ReflectionToolExecutor implements ToolExecutor {
              * 基础类型走显式转换，复杂类型统一交给 Jackson。
              */
             return objectMapper.convertValue(rawValue, targetType);
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             throw new ToolExecutionException(
                     "Failed to convert argument to "
                             + targetType.getName()
@@ -182,73 +187,127 @@ public class ReflectionToolExecutor implements ToolExecutor {
     }
 
     private Integer toInteger(Object rawValue, String parameterName) {
-        if (rawValue instanceof Integer i) {
-            return i;
+        try {
+            return toBigDecimal(rawValue, parameterName).intValueExact();
+        } catch (ArithmeticException e) {
+            throw new ToolExecutionException(
+                    "Invalid Integer argument: " + parameterName
+                            + ". Value must be an integer within ["
+                            + Integer.MIN_VALUE + ", " + Integer.MAX_VALUE + "]",
+                    e
+            );
         }
-        if (rawValue instanceof Number number) {
-            return number.intValue();
-        }
-        if (rawValue instanceof String s) {
-            try {
-                return Integer.parseInt(s);
-            } catch (NumberFormatException e) {
-                throw new ToolExecutionException("Failed to convert argument to Integer: " + parameterName, e);
-            }
-        }
-        throw new ToolExecutionException("Unsupported Integer argument type: " + parameterName);
     }
 
     private Long toLong(Object rawValue, String parameterName) {
-        if (rawValue instanceof Long l) {
-            return l;
+        try {
+            return toBigDecimal(rawValue, parameterName).longValueExact();
+        } catch (ArithmeticException e) {
+            throw new ToolExecutionException(
+                    "Invalid Long argument: " + parameterName
+                            + ". Value must be an integer within ["
+                            + Long.MIN_VALUE + ", " + Long.MAX_VALUE + "]",
+                    e
+            );
         }
-        if (rawValue instanceof Number number) {
-            return number.longValue();
-        }
-        if (rawValue instanceof String s) {
-            try {
-                return Long.parseLong(s);
-            } catch (NumberFormatException e) {
-                throw new ToolExecutionException("Failed to convert argument to Long: " + parameterName, e);
-            }
-        }
-        throw new ToolExecutionException("Unsupported Long argument type: " + parameterName);
     }
 
     private Double toDouble(Object rawValue, String parameterName) {
-        if (rawValue instanceof Double d) {
-            return d;
-        }
-        if (rawValue instanceof Number number) {
-            return number.doubleValue();
-        }
-        if (rawValue instanceof String s) {
-            try {
-                return Double.parseDouble(s);
-            } catch (NumberFormatException e) {
-                throw new ToolExecutionException("Failed to convert argument to Double: " + parameterName, e);
+        double value;
+        try {
+            if (rawValue instanceof Number number) {
+                value = number.doubleValue();
+            } else if (rawValue instanceof String stringValue) {
+                value = Double.parseDouble(stringValue);
+            } else {
+                throw unsupportedNumberType("Double", parameterName, rawValue);
             }
+        } catch (NumberFormatException e) {
+            throw new ToolExecutionException(
+                    "Failed to convert argument to Double: " + parameterName,
+                    e
+            );
         }
-        throw new ToolExecutionException("Unsupported Double argument type: " + parameterName);
+
+        if (!Double.isFinite(value)) {
+            throw new ToolExecutionException(
+                    "Invalid Double argument: " + parameterName + ". Value must be finite"
+            );
+        }
+        return value;
     }
 
     private Float toFloat(Object rawValue, String parameterName) {
-        if (rawValue instanceof Float f) {
-            return f;
-        }
-        if (rawValue instanceof Number number) {
-            return number.floatValue();
-        }
-        if (rawValue instanceof String s) {
-            try {
-                return Float.parseFloat(s);
-            } catch (NumberFormatException e) {
-                throw new ToolExecutionException("Failed to convert argument to Float: " + parameterName, e);
+        float value;
+        try {
+            if (rawValue instanceof Number number) {
+                value = number.floatValue();
+            } else if (rawValue instanceof String stringValue) {
+                value = Float.parseFloat(stringValue);
+            } else {
+                throw unsupportedNumberType("Float", parameterName, rawValue);
             }
+        } catch (NumberFormatException e) {
+            throw new ToolExecutionException(
+                    "Failed to convert argument to Float: " + parameterName,
+                    e
+            );
         }
-        throw new ToolExecutionException("Unsupported Float argument type: " + parameterName);
+
+        if (!Float.isFinite(value)) {
+            throw new ToolExecutionException(
+                    "Invalid Float argument: " + parameterName + ". Value must be finite"
+            );
+        }
+        return value;
     }
 
+    private BigDecimal toBigDecimal(Object rawValue, String parameterName) {
+        try {
+            if (rawValue instanceof BigDecimal decimal) {
+                return decimal;
+            }
+            if (rawValue instanceof BigInteger integer) {
+                return new BigDecimal(integer);
+            }
+            if (rawValue instanceof Byte
+                    || rawValue instanceof Short
+                    || rawValue instanceof Integer
+                    || rawValue instanceof Long) {
+                return BigDecimal.valueOf(((Number) rawValue).longValue());
+            }
+            if (rawValue instanceof Float || rawValue instanceof Double) {
+                double value = ((Number) rawValue).doubleValue();
+                if (!Double.isFinite(value)) {
+                    throw new ToolExecutionException(
+                            "Invalid numeric argument: " + parameterName + ". Value must be finite"
+                    );
+                }
+                return BigDecimal.valueOf(value);
+            }
+            if (rawValue instanceof String stringValue) {
+                return new BigDecimal(stringValue);
+            }
+        } catch (NumberFormatException e) {
+            throw new ToolExecutionException(
+                    "Failed to convert argument to number: " + parameterName,
+                    e
+            );
+        }
+
+        throw unsupportedNumberType("numeric", parameterName, rawValue);
+    }
+
+    private ToolExecutionException unsupportedNumberType(
+            String targetType,
+            String parameterName,
+            Object rawValue
+    ) {
+        return new ToolExecutionException(
+                "Unsupported " + targetType + " argument type for "
+                        + parameterName + ": " + rawValue.getClass().getName()
+        );
+    }
     private Boolean toBoolean(Object rawValue, String parameterName) {
         if (rawValue instanceof Boolean b) {
             return b;

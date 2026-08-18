@@ -10,8 +10,13 @@ public final class JsonSupport {
     private JsonSupport() {
     }
 
-    public static ObjectMapper getObjectMapper() {
-        return OBJECT_MAPPER;
+    /**
+     * 创建一个继承默认配置、可由调用方独立定制的 ObjectMapper。
+     *
+     * @return 独立的 ObjectMapper 副本
+     */
+    public static ObjectMapper createObjectMapper() {
+        return OBJECT_MAPPER.copy();
     }
 
     /**

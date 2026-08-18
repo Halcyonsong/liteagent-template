@@ -1,7 +1,7 @@
 package io.github.halcyonsong.liteagent.core.message.type;
 
 import io.github.halcyonsong.liteagent.core.model.tool.ToolCall;
-import io.github.halcyonsong.liteagent.core.support.JsonSupport;
+import io.github.halcyonsong.liteagent.core.support.JsonSerializable;
 import lombok.Getter;
 import lombok.ToString;
 
@@ -16,7 +16,7 @@ import java.util.List;
  */
 @Getter
 @ToString(callSuper = true)
-public class AssistantResponseMessage extends AssistantMessage {
+public class AssistantResponseMessage extends AssistantMessage implements JsonSerializable {
 
     private final String reasoningContent;
     private final List<ToolCall> toolCalls;
@@ -35,14 +35,6 @@ public class AssistantResponseMessage extends AssistantMessage {
         this.toolCalls = toolCalls == null
                 ? Collections.emptyList()
                 : List.copyOf(toolCalls);
-    }
-
-    public String toJson() {
-        return JsonSupport.toJson(this);
-    }
-
-    public String toCompactJson() {
-        return JsonSupport.toCompactJson(this);
     }
 
 }

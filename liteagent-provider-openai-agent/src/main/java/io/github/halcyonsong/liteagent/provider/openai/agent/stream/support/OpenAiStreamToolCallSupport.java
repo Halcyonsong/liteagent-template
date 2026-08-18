@@ -93,17 +93,14 @@ public final class OpenAiStreamToolCallSupport {
     /**
      * 将当前轮聚合结果转换为工具执行请求。
      */
-    public static List<ToolExecutionRequest> collectExecutionRequests(
-            OpenAiStreamCompletionResponse response
-    ) {
+    public static List<ToolExecutionRequest> collectExecutionRequests(OpenAiStreamCompletionResponse response) {
         List<ToolCall> toolCalls = collectToolCalls(response);
 
         if (toolCalls.isEmpty()) {
             return Collections.emptyList();
         }
 
-        List<ToolExecutionRequest> result =
-                new ArrayList<>(toolCalls.size());
+        List<ToolExecutionRequest> result = new ArrayList<>(toolCalls.size());
 
         for (ToolCall toolCall : toolCalls) {
             result.add(ToolExecutionRequest.from(toolCall));
@@ -118,9 +115,7 @@ public final class OpenAiStreamToolCallSupport {
      * <p>工具调用轮次必须先写入 assistant tool_calls，
      * 然后再写入对应的 tool 消息。</p>
      */
-    public static List<AssistantResponseMessage> collectAssistantMessages(
-            OpenAiStreamCompletionResponse response
-    ) {
+    public static List<AssistantResponseMessage> collectAssistantMessages(OpenAiStreamCompletionResponse response) {
         if (response == null
                 || response.getChoices() == null
                 || response.getChoices().isEmpty()) {

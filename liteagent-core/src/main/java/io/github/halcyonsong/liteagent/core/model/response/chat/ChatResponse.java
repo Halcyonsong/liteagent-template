@@ -1,7 +1,7 @@
 package io.github.halcyonsong.liteagent.core.model.response.chat;
 
 import io.github.halcyonsong.liteagent.core.message.norm.Message;
-import io.github.halcyonsong.liteagent.core.support.JsonSupport;
+import io.github.halcyonsong.liteagent.core.support.JsonSerializable;
 import lombok.Getter;
 import lombok.ToString;
 
@@ -17,7 +17,7 @@ import java.util.Objects;
  */
 @Getter
 @ToString
-public class ChatResponse {
+public class ChatResponse implements JsonSerializable {
 
     /**
      * 当前响应内容包含的消息集合。
@@ -27,14 +27,6 @@ public class ChatResponse {
     public ChatResponse(List<Message> messages) {
         Objects.requireNonNull(messages, "messages must not be null");
         this.messages = List.copyOf(messages);
-    }
-
-    public String toJson() {
-        return JsonSupport.toJson(this);
-    }
-
-    public String toCompactJson() {
-        return JsonSupport.toCompactJson(this);
     }
 
 }

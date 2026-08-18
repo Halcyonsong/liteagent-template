@@ -1,6 +1,6 @@
 package io.github.halcyonsong.liteagent.core.model.response.norm;
 
-import io.github.halcyonsong.liteagent.core.support.JsonSupport;
+import io.github.halcyonsong.liteagent.core.support.JsonSerializable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
@@ -13,18 +13,10 @@ import lombok.ToString;
 @Getter
 @ToString
 @AllArgsConstructor
-public class Usage {
+public class Usage implements JsonSerializable {
 
     private final Integer promptTokens;
     private final Integer completionTokens;
     private final Integer totalTokens;
-
-    public String toJson() {
-        return JsonSupport.toJson(this);
-    }
-
-    public String toCompactJson() {
-        return JsonSupport.toCompactJson(this);
-    }
 
 }

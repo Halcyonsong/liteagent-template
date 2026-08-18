@@ -2,7 +2,7 @@ package io.github.halcyonsong.liteagent.provider.openai.request.config.quickrequ
 
 import io.github.halcyonsong.liteagent.core.message.type.constructor.Messages;
 import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
-import io.github.halcyonsong.liteagent.core.support.JsonSupport;
+import io.github.halcyonsong.liteagent.core.support.JsonSerializable;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiBaseRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import lombok.Getter;
@@ -16,7 +16,7 @@ import java.util.Objects;
  * 最终通过 toChatCompletion() 转换为标准的 OpenAiChatCompletionRequest。
  */
 @Getter
-public class OpenAiQuickChatRequest {
+public class OpenAiQuickChatRequest implements JsonSerializable {
 
     /**
      * 当前会话 ID。
@@ -124,14 +124,6 @@ public class OpenAiQuickChatRequest {
         public OpenAiQuickChatRequest build() {
             return new OpenAiQuickChatRequest(this);
         }
-    }
-
-    public String toJson() {
-        return JsonSupport.toJson(this);
-    }
-
-    public String toCompactJson() {
-        return JsonSupport.toCompactJson(this);
     }
 
     @Override

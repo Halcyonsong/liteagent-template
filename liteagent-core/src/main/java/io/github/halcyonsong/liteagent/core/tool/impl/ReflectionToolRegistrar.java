@@ -81,8 +81,7 @@ public class ReflectionToolRegistrar implements ToolRegistrar {
             String description = resolveParameterDescription(parameter);
             boolean isRequired = resolveParameterRequired(parameter);
 
-            Map<String, Object> schema = new LinkedHashMap<>();
-            schema.put("type", resolveJsonType(parameter.getType()));
+            Map<String, Object> schema = resolveJsonSchema(parameter, parameter.getType());
             if (!description.isBlank()) {
                 schema.put("description", description);
             }
@@ -128,21 +127,63 @@ public class ReflectionToolRegistrar implements ToolRegistrar {
         return toolParam == null || toolParam.required();
     }
 
-    private String resolveJsonType(Class<?> type) {
+    private Map<String, Object> resolveJsonSchema(Parameter parameter, Class<?> type) {
+        Map<String, Object> schema = new LinkedHashMap<>();
+
+        // 基本类型
         if (type == String.class) {
-            return "string";
-        }
-        if (type == Integer.class || type == int.class
+            schema.put("type", "string");
+        } else if (type == Integer.class || type == int.class
                 || type == Long.class || type == long.class) {
-            return "integer";
-        }
-        if (type == Double.class || type == double.class
+            schema.put("type", "integer");
+        } else if (type == Double.class || type == double.class
                 || type == Float.class || type == float.class) {
-            return "number";
+            schema.put("type", "number");
+        } else if (type == Boolean.class || type == boolean.class) {
+            schema.put("type", "boolean");
         }
-        if (type == Boolean.class || type == boolean.class) {
-            return "boolean";
+        // 数组类型
+        else if (type.isArray()) {
+            schema.put("type", "array");
+            schema.put("items", resolveJsonSchema(parameter, type.getComponentType()));
         }
-        return "string";
+        // List / Collection（泛型擦除后取第一个泛型参数）
+        else if (List.class.isAssignableFrom(type) || Iterable.class.isAssignableFrom(type)) {
+            schema.put("type", "array");
+            schema.put("items", resolveListItemSchema(parameter)); // 无法可靠推断泛型，默认 string
+        }
+        // Map
+        else if (Map.class.isAssignableFrom(type)) {
+            schema.put("type", "object");
+        }
+        // 枚举
+        else if (type.isEnum()) {
+            schema.put("type", "string");
+            Object[] constants = type.getEnumConstants();
+            List<String> enumValues = new ArrayList<>(constants.length);
+            for (Object constant : constants) {
+                enumValues.add(((Enum<?>) constant).name());
+            }
+            schema.put("enum", enumValues);
+        }
+        // 其他自定义结构体：暂不展开，退化为 string
+        else {
+            schema.put("type", "string");
+        }
+
+        return schema;
     }
+
+    private Map<String, Object> resolveListItemSchema(Parameter parameter) {
+        java.lang.reflect.Type genericType = parameter.getParameterizedType();
+        if (genericType instanceof java.lang.reflect.ParameterizedType pt) {
+            java.lang.reflect.Type[] typeArgs = pt.getActualTypeArguments();
+            if (typeArgs.length > 0 && typeArgs[0] instanceof Class<?> itemClass) {
+                return resolveJsonSchema(parameter, itemClass);
+            }
+        }
+        // 无法推断时退化为 string
+        return Map.of("type", "string");
+    }
+
 }

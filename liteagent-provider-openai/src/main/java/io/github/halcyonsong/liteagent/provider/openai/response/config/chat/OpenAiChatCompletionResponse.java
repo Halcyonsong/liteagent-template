@@ -2,7 +2,7 @@ package io.github.halcyonsong.liteagent.provider.openai.response.config.chat;
 
 import io.github.halcyonsong.liteagent.core.model.response.chat.ChatChoice;
 import io.github.halcyonsong.liteagent.core.model.response.chat.Result;
-import io.github.halcyonsong.liteagent.core.support.JsonSupport;
+import io.github.halcyonsong.liteagent.core.support.JsonSerializable;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.OpenAiBaseResponse;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.OpenAiUsage;
 import lombok.Getter;
@@ -16,7 +16,7 @@ import java.util.Objects;
  * 该对象保留 provider 层语义，封装基础响应信息、候选结果列表以及 token 用量，
  */
 @Getter
-public class OpenAiChatCompletionResponse implements Result {
+public class OpenAiChatCompletionResponse implements Result, JsonSerializable {
 
     private final OpenAiBaseResponse baseResponse;
     private final List<ChatChoice> choices;
@@ -29,14 +29,6 @@ public class OpenAiChatCompletionResponse implements Result {
         Objects.requireNonNull(choices, "choices must not be null");
         this.choices = List.copyOf(choices);
         this.usage = usage;
-    }
-
-    public String toJson() {
-        return JsonSupport.toJson(this);
-    }
-
-    public String toCompactJson() {
-        return JsonSupport.toCompactJson(this);
     }
 
     @Override

@@ -57,9 +57,7 @@ public class OpenAiStreamAppendMessagesStep
             return StreamStepKey.BUILD_RESULT;
         }
 
-        context.incrementIteration();
-
-        if (context.getIteration() >= context.getMaxIterations()) {
+        if (context.incrementIteration() >= context.getMaxIterations()) {
             context.setTerminationReason(
                     AgentTerminationReason.MAX_ITERATIONS_REACHED
             );

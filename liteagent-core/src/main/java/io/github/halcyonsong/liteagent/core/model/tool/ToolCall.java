@@ -1,6 +1,6 @@
 package io.github.halcyonsong.liteagent.core.model.tool;
 
-import io.github.halcyonsong.liteagent.core.support.JsonSupport;
+import io.github.halcyonsong.liteagent.core.support.JsonSerializable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
@@ -14,19 +14,11 @@ import lombok.ToString;
 @Getter
 @ToString
 @AllArgsConstructor
-public class ToolCall {
+public class ToolCall implements JsonSerializable {
 
     private final Integer index;
     private final String id;
     private final String type;
     private final FunctionCall function;
-
-    public String toJson() {
-        return JsonSupport.toJson(this);
-    }
-
-    public String toCompactJson() {
-        return JsonSupport.toCompactJson(this);
-    }
 
 }

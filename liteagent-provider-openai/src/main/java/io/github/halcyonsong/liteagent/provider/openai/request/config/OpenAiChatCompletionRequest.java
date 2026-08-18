@@ -4,7 +4,7 @@ import io.github.halcyonsong.liteagent.core.model.request.norm.BaseRequest;
 import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
 import io.github.halcyonsong.liteagent.core.model.request.norm.Invocation;
 import io.github.halcyonsong.liteagent.core.model.response.norm.ResponseAdvisor;
-import io.github.halcyonsong.liteagent.core.support.JsonSupport;
+import io.github.halcyonsong.liteagent.core.support.JsonSerializable;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.github.halcyonsong.liteagent.core.model.request.norm.RequestAdvisor;
 import io.github.halcyonsong.liteagent.core.tool.impl.ToolRegistries;
@@ -29,7 +29,7 @@ import java.util.Objects;
  * 它不是直接发送的 JSON 请求体。
  */
 @Getter
-public class OpenAiChatCompletionRequest implements Invocation {
+public class OpenAiChatCompletionRequest implements Invocation, JsonSerializable {
 
     private final BaseRequest baseRequest;
     private final ChatRequest chatRequest;
@@ -163,14 +163,6 @@ public class OpenAiChatCompletionRequest implements Invocation {
         public OpenAiChatCompletionRequest build() {
             return new OpenAiChatCompletionRequest(this);
         }
-    }
-
-    public String toJson() {
-        return JsonSupport.toJson(this);
-    }
-
-    public String toCompactJson() {
-        return JsonSupport.toCompactJson(this);
     }
 
     @Override

@@ -12,7 +12,7 @@ class HttpRuntimeConfigTest {
 
         assertEquals(16 * 1024 * 1024, config.getMaxInMemorySize());
         assertEquals(5000, config.getConnectTimeoutMillis());
-        assertEquals(60000L, config.getResponseTimeoutMillis());
+        assertEquals(60000L, config.getChatResponseTimeoutMillis());
         assertNull(config.getStreamResponseTimeoutMillis());
     }
 
@@ -27,7 +27,7 @@ class HttpRuntimeConfigTest {
 
         assertEquals(8 * 1024 * 1024, config.getMaxInMemorySize());
         assertEquals(3000, config.getConnectTimeoutMillis());
-        assertEquals(45000L, config.getResponseTimeoutMillis());
+        assertEquals(45000L, config.getChatResponseTimeoutMillis());
         assertEquals(300000L, config.getStreamResponseTimeoutMillis());
     }
 

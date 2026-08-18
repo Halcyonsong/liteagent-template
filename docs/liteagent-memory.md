@@ -112,7 +112,7 @@ class StreamHookExample {
         // 指定窗口上限
         MemoryStreamStepHook hook1 = new MemoryStreamStepHook(store, 100);
 
-        // 默认上限 100
+        // 默认上限 40
         MemoryStreamStepHook hook2 = new MemoryStreamStepHook(store);
     }
 }

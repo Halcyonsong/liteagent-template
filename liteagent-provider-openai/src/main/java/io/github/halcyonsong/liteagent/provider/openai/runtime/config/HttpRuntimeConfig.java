@@ -34,7 +34,7 @@ public class HttpRuntimeConfig {
      * 该值控制请求发出后等待响应完成的最大时间，
      * 默认值为 60000 毫秒。
      */
-    private final Long responseTimeoutMillis;
+    private final Long chatResponseTimeoutMillis;
 
 
     /**
@@ -45,26 +45,30 @@ public class HttpRuntimeConfig {
      */
     private final Long streamResponseTimeoutMillis;
 
+    /** 连接池最大连接数，默认 50。 */
+    private final Integer maxConnections;
+
+    /** 连接最大空闲时间（毫秒），默认 30000。 */
+    private final Long maxIdleTimeMillis;
+
+    /** 连接最大生命周期（毫秒），默认 300000。 */
+    private final Long maxLifeTimeMillis;
+
     private HttpRuntimeConfig(Builder builder) {
-        this.maxInMemorySize = builder.maxInMemorySize == null
-                ? 16 * 1024 * 1024
-                : builder.maxInMemorySize;
-
-        this.connectTimeoutMillis = builder.connectTimeoutMillis == null
-                ? 5000
-                : builder.connectTimeoutMillis;
-
-        this.responseTimeoutMillis = builder.responseTimeoutMillis == null
-                ? 60000L
-                : builder.responseTimeoutMillis;
+        this.maxInMemorySize = builder.maxInMemorySize == null ? 16 * 1024 * 1024 : builder.maxInMemorySize;
+        this.connectTimeoutMillis = builder.connectTimeoutMillis == null ? 5000 : builder.connectTimeoutMillis;
+        this.chatResponseTimeoutMillis = builder.responseTimeoutMillis == null ? 60000L : builder.responseTimeoutMillis;
         this.streamResponseTimeoutMillis = builder.streamResponseTimeoutMillis;
+        this.maxConnections = builder.maxConnections == null ? 50 : builder.maxConnections;
+        this.maxIdleTimeMillis = builder.maxIdleTimeMillis == null ? 30000L : builder.maxIdleTimeMillis;
+        this.maxLifeTimeMillis = builder.maxLifeTimeMillis == null ? 300000L : builder.maxLifeTimeMillis;
     }
 
     public HttpRuntimeKey toKey(HttpRuntimeMode mode) {
         return new HttpRuntimeKey(
                 maxInMemorySize,
                 connectTimeoutMillis,
-                responseTimeoutMillis,
+                chatResponseTimeoutMillis,
                 streamResponseTimeoutMillis,
                 mode
         );
@@ -87,6 +91,9 @@ public class HttpRuntimeConfig {
         private Integer connectTimeoutMillis;
         private Long responseTimeoutMillis;
         private Long streamResponseTimeoutMillis;
+        private Long maxIdleTimeMillis;
+        private Long maxLifeTimeMillis;
+        private Integer maxConnections;
 
         public Builder maxInMemorySize(Integer maxInMemorySize) {
             this.maxInMemorySize = maxInMemorySize;
@@ -105,6 +112,21 @@ public class HttpRuntimeConfig {
 
         public Builder streamResponseTimeoutMillis(Long streamResponseTimeoutMillis) {
             this.streamResponseTimeoutMillis = streamResponseTimeoutMillis;
+            return this;
+        }
+
+        public Builder maxIdleTimeMillis(Long maxIdleTimeMillis) {
+            this.maxIdleTimeMillis = maxIdleTimeMillis;
+            return this;
+        }
+
+        public Builder maxLifeTimeMillis(Long maxLifeTimeMillis) {
+            this.maxLifeTimeMillis = maxLifeTimeMillis;
+            return this;
+        }
+
+        public Builder maxConnections(Integer maxConnections) {
+            this.maxConnections = maxConnections;
             return this;
         }
 

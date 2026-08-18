@@ -81,6 +81,16 @@ public interface MemoryWindow {
     void appendAll(List<? extends Message> messages);
 
     /**
+     * 原子地替换窗口内的全部消息。
+     * <p>
+     * 等效于 clear + appendAll，但作为单次原子操作执行，
+     * 不会产生中间状态（空窗口）。
+     *
+     * @param messages 新的消息列表，按从早到晚排序
+     */
+    void replaceAll(List<? extends Message> messages);
+
+    /**
      * 当前窗口内的消息数量。
      */
     int size();

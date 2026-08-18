@@ -2,6 +2,7 @@ package io.github.halcyonsong.liteagent.agent.stream.executor;
 
 import io.github.halcyonsong.liteagent.agent.state.AgentTerminationReason;
 import io.github.halcyonsong.liteagent.agent.stream.context.StreamAgentContext;
+import io.github.halcyonsong.liteagent.agent.stream.hook.StreamHookDispatcher;
 import io.github.halcyonsong.liteagent.agent.stream.hook.StreamStepHook;
 import io.github.halcyonsong.liteagent.agent.stream.state.StreamRoundState;
 import io.github.halcyonsong.liteagent.agent.stream.step.StreamApplyResult;
@@ -9,6 +10,8 @@ import io.github.halcyonsong.liteagent.agent.stream.step.StreamStep;
 import io.github.halcyonsong.liteagent.agent.stream.step.StreamStepKey;
 import io.github.halcyonsong.liteagent.agent.stream.step.StreamSyncStep;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.HashMap;
 import java.util.List;
@@ -17,15 +20,12 @@ import java.util.Objects;
 
 /**
  * 基于 step key 驱动的流式执行器。
- * <p>
- * 通过 expand 处理轮次展开；每次 buildNext 只消费一个已完成的 round，
- * 决定是否进入下一轮、追加消息或结束执行。
  */
 public final class StreamAgentExecutor<T> {
 
     private final Map<StreamStepKey, StreamSyncStep> syncSteps;
     private final Map<StreamStepKey, StreamStep<Flux<T>>> streamSteps;
-    private final List<StreamStepHook> hooks;
+    private final StreamHookDispatcher hookDispatcher;
     private final int maxStepCount;
     private final int maxIterations;
 
@@ -57,7 +57,7 @@ public final class StreamAgentExecutor<T> {
 
         this.syncSteps = new HashMap<>(syncSteps);
         this.streamSteps = new HashMap<>(streamSteps);
-        this.hooks = hooks == null ? List.of() : List.copyOf(hooks);
+        this.hookDispatcher = new StreamHookDispatcher(hooks);
         this.maxStepCount = maxStepCount;
         this.maxIterations = maxIterations;
     }
@@ -74,10 +74,15 @@ public final class StreamAgentExecutor<T> {
     }
 
     private Flux<T> buildFlow(StreamAgentContext<T> context) {
-        return buildRound(context)
+        return Flux.defer(() -> buildRound(context))
                 .expand(chunk -> buildNext(context))
                 .filter(chunk -> !context.isControlSignal(chunk))
-                .doOnCancel(() -> context.setTerminationReason(AgentTerminationReason.CANCELLED));
+                .doOnError(error -> hookDispatcher.onStreamError(context, error))
+                .doOnComplete(() -> hookDispatcher.onStreamComplete(context))
+                .doOnCancel(() -> {
+                    context.setTerminationReason(AgentTerminationReason.CANCELLED);
+                    hookDispatcher.onStreamCancel(context);
+                });
     }
 
     private Flux<T> buildRound(StreamAgentContext<T> context) {
@@ -90,10 +95,13 @@ public final class StreamAgentExecutor<T> {
         context.addRound(roundState);
 
         StreamStepKey syncKey = StreamStepKey.BEGIN;
-        int executedSteps = 0;
 
         while (!syncKey.equals(StreamStepKey.SEND_REQUEST)) {
-            if (++executedSteps > maxStepCount) {
+            if (context.isCancelled()) {
+                context.setTerminationReason(AgentTerminationReason.CANCELLED);
+                return Flux.empty();
+            }
+            if (context.incrementExecutedSteps() > maxStepCount) {
                 throw new IllegalStateException("StreamAgent step limit exceeded: " + maxStepCount);
             }
             syncKey = invokeSyncStep(syncKey, context);
@@ -103,7 +111,11 @@ public final class StreamAgentExecutor<T> {
         StreamStepKey streamKey = StreamStepKey.SEND_REQUEST;
 
         while (!streamKey.equals(StreamStepKey.STREAM_END)) {
-            if (++executedSteps > maxStepCount) {
+            if (context.isCancelled()) {
+                context.setTerminationReason(AgentTerminationReason.CANCELLED);
+                return Flux.empty();
+            }
+            if (context.incrementExecutedSteps() > maxStepCount) {
                 throw new IllegalStateException("StreamAgent step limit exceeded: " + maxStepCount);
             }
             StreamApplyResult<Flux<T>> result = invokeStreamStep(streamKey, stream, context);
@@ -115,6 +127,11 @@ public final class StreamAgentExecutor<T> {
     }
 
     private Flux<T> buildNext(StreamAgentContext<T> context) {
+        if (context.isCancelled()) {
+            context.setTerminationReason(AgentTerminationReason.CANCELLED);
+            return Flux.empty();
+        }
+
         StreamRoundState roundState = context.currentRound();
 
         if (!roundState.isRoundComplete()) {
@@ -123,27 +140,37 @@ public final class StreamAgentExecutor<T> {
 
         roundState.setRoundComplete(false);
 
-        StreamStepKey nextAction = invokeSyncStep(
-                StreamStepKey.DECIDE_NEXT_ACTION,
-                context
-        );
+        StreamStepKey nextAction = invokeSyncStep(StreamStepKey.DECIDE_NEXT_ACTION, context);
 
-        StreamStepKey afterCurrentRound;
+        if (context.isCancelled()) {
+            context.setTerminationReason(AgentTerminationReason.CANCELLED);
+            return Flux.empty();
+        }
 
-        if (nextAction.equals(StreamStepKey.EXECUTE_TOOL)) {
-            afterCurrentRound = invokeSyncStep(
-                    StreamStepKey.EXECUTE_TOOL,
-                    context
-            );
-        } else {
-            afterCurrentRound = nextAction;
+        if (!nextAction.equals(StreamStepKey.EXECUTE_TOOL)) {
+            // 无需工具执行，直接走后续逻辑（纯内存操作）
+            return buildNextAfterTool(context, nextAction);
+        }
+
+        // 工具执行可能阻塞，隔离到 boundedElastic 线程池
+        return Mono.fromCallable(() -> invokeSyncStep(StreamStepKey.EXECUTE_TOOL, context))
+                .subscribeOn(Schedulers.boundedElastic())
+                .flatMapMany(afterTool -> buildNextAfterTool(context, afterTool));
+    }
+
+    private Flux<T> buildNextAfterTool(StreamAgentContext<T> context, StreamStepKey afterCurrentRound) {
+        if (context.isCancelled()) {
+            context.setTerminationReason(AgentTerminationReason.CANCELLED);
+            return Flux.empty();
         }
 
         if (afterCurrentRound.equals(StreamStepKey.APPEND_MESSAGES)) {
-            afterCurrentRound = invokeSyncStep(
-                    StreamStepKey.APPEND_MESSAGES,
-                    context
-            );
+            afterCurrentRound = invokeSyncStep(StreamStepKey.APPEND_MESSAGES, context);
+        }
+
+        if (context.isCancelled()) {
+            context.setTerminationReason(AgentTerminationReason.CANCELLED);
+            return Flux.empty();
         }
 
         if (afterCurrentRound.equals(StreamStepKey.BUILD_RESULT)) {
@@ -161,10 +188,7 @@ public final class StreamAgentExecutor<T> {
             return Flux.empty();
         }
 
-        throw new IllegalStateException(
-                "Unsupported next action after stream round: "
-                        + afterCurrentRound
-        );
+        throw new IllegalStateException("Unsupported next action after stream round: " + afterCurrentRound);
     }
 
     private StreamStepKey invokeSyncStep(StreamStepKey key, StreamAgentContext<T> context) {
@@ -173,18 +197,19 @@ public final class StreamAgentExecutor<T> {
             throw new IllegalStateException("No stream sync step registered for key: " + key);
         }
 
+
         try {
-            hooks.forEach(hook -> hook.beforeStep(key, context));
+            hookDispatcher.beforeStep(key, context);
 
             StreamStepKey nextKey = Objects.requireNonNull(
                     step.invoke(context),
                     "stream sync step must return a next step"
             );
 
-            hooks.forEach(hook -> hook.afterStep(key, context, nextKey));
+            hookDispatcher.afterStep(key, context, nextKey);
             return nextKey;
         } catch (Throwable error) {
-            hooks.forEach(hook -> hook.onStepError(key, context, error));
+            hookDispatcher.onStepError(key, context, error);
             throw error;
         }
     }
@@ -198,17 +223,17 @@ public final class StreamAgentExecutor<T> {
         }
 
         try {
-            hooks.forEach(hook -> hook.beforeStep(key, context));
+            hookDispatcher.beforeStep(key, context);
 
             StreamApplyResult<Flux<T>> result = Objects.requireNonNull(
                     step.apply(upstream, context),
                     "stream step must return StreamApplyResult"
             );
 
-            hooks.forEach(hook -> hook.afterStep(key, context, result.getNextKey()));
+            hookDispatcher.afterStep(key, context, result.getNextKey());
             return result;
         } catch (Throwable error) {
-            hooks.forEach(hook -> hook.onStepError(key, context, error));
+            hookDispatcher.onStepError(key, context, error);
             throw error;
         }
     }

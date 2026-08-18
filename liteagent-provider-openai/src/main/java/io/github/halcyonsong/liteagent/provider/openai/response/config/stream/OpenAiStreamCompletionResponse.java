@@ -1,7 +1,7 @@
 package io.github.halcyonsong.liteagent.provider.openai.response.config.stream;
 
 import io.github.halcyonsong.liteagent.core.model.response.stream.StreamChoice;
-import io.github.halcyonsong.liteagent.core.support.JsonSupport;
+import io.github.halcyonsong.liteagent.core.support.JsonSerializable;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.OpenAiBaseResponse;
 import io.github.halcyonsong.liteagent.provider.openai.response.config.OpenAiUsage;
 import lombok.Getter;
@@ -16,7 +16,7 @@ import java.util.Objects;
  * 顶层保留 provider 响应语义，内部复用 core 流式结构。
  */
 @Getter
-public class OpenAiStreamCompletionResponse {
+public class OpenAiStreamCompletionResponse implements JsonSerializable {
 
     private final OpenAiBaseResponse baseResponse;
     private final List<StreamChoice> choices;
@@ -31,14 +31,6 @@ public class OpenAiStreamCompletionResponse {
         Objects.requireNonNull(choices, "choices must not be null");
         this.choices = List.copyOf(choices);
         this.usage = usage;
-    }
-
-    public String toJson() {
-        return JsonSupport.toJson(this);
-    }
-
-    public String toCompactJson() {
-        return JsonSupport.toCompactJson(this);
     }
 
     @Override

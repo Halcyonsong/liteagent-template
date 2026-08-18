@@ -3,6 +3,7 @@ package io.github.halcyonsong.liteagent.provider.openai.agent.chat.factory;
 import io.github.halcyonsong.liteagent.agent.chat.ChatAgent;
 import io.github.halcyonsong.liteagent.agent.chat.executor.ChatAgentExecutor;
 import io.github.halcyonsong.liteagent.agent.chat.hook.StepHook;
+import io.github.halcyonsong.liteagent.core.tool.norm.ToolExecutor;
 import io.github.halcyonsong.liteagent.provider.openai.agent.chat.OpenAiChatAgent;
 import io.github.halcyonsong.liteagent.provider.openai.runtime.register.OpenAiRuntime;
 import io.github.halcyonsong.liteagent.provider.openai.support.OpenAiAdvisorsExecutor;
@@ -96,6 +97,25 @@ public final class OpenAiChatAgents {
         return createAgent(webClient, hooks, maxStepCount, maxIterations);
     }
 
+    /**
+     * 基于现成的 WebClient 创建 OpenAiChatAgent，允许传入全部配置参数及自定义工具执行器。
+     *
+     * @param webClient     已构建好的 WebClient 实例
+     * @param hooks         步骤钩子列表
+     * @param maxStepCount  agent 编排最大步骤数（防止无限循环）
+     * @param maxIterations 最大模型调用轮次（防止无限工具调用循环）
+     * @param toolExecutor  自定义工具执行器
+     */
+    public static OpenAiChatAgent create(WebClient webClient,
+                                         List<StepHook> hooks,
+                                         int maxStepCount,
+                                         int maxIterations,
+                                         ToolExecutor toolExecutor) {
+        Objects.requireNonNull(webClient, "webClient must not be null");
+        Objects.requireNonNull(toolExecutor, "toolExecutor must not be null");
+        return createAgent(webClient, hooks, maxStepCount, maxIterations, toolExecutor);
+    }
+
     // ─── HttpRuntimeConfig 入口（全局共享 registry）─────────────────
 
     /**
@@ -165,6 +185,23 @@ public final class OpenAiChatAgents {
         return create(OpenAiRuntime.sharedRegistry(), runtimeConfig, hooks, maxStepCount, maxIterations);
     }
 
+    /**
+     * 基于运行时配置创建 OpenAiChatAgent，并使用自定义工具执行器。
+     *
+     * @param runtimeConfig HTTP 运行时配置
+     * @param hooks         步骤钩子列表
+     * @param maxStepCount  agent 编排最大步骤数
+     * @param maxIterations 最大模型调用轮次
+     * @param toolExecutor  自定义工具执行器
+     */
+    public static OpenAiChatAgent create(HttpRuntimeConfig runtimeConfig,
+                                         List<StepHook> hooks,
+                                         int maxStepCount,
+                                         int maxIterations,
+                                         ToolExecutor toolExecutor) {
+        return create(OpenAiRuntime.sharedRegistry(), runtimeConfig, hooks, maxStepCount, maxIterations, toolExecutor);
+    }
+
     // ─── 自定义 WebClientRegistry 入口 ────────────────────────────
 
     /**
@@ -177,6 +214,35 @@ public final class OpenAiChatAgents {
      */
     public static OpenAiChatAgent create(WebClientRegistry registry, HttpRuntimeConfig runtimeConfig) {
         return create(registry, runtimeConfig, List.of(), 1000, 10);
+    }
+
+    /**
+     * 基于自定义 WebClientRegistry 和运行时配置创建 OpenAiChatAgent，并指定最大步骤数。
+     *
+     * @param registry      自定义的 WebClientRegistry 实例
+     * @param runtimeConfig HTTP 运行时配置
+     * @param maxStepCount  agent 编排最大步骤数（防止无限循环）
+     */
+    public static OpenAiChatAgent create(WebClientRegistry registry,
+                                         HttpRuntimeConfig runtimeConfig,
+                                         int maxStepCount) {
+        return create(registry, runtimeConfig, List.of(), maxStepCount, 10);
+    }
+
+    /**
+     * 基于自定义 WebClientRegistry 和运行时配置创建 OpenAiChatAgent，
+     * 并指定最大步骤数与最大迭代轮次。
+     *
+     * @param registry      自定义的 WebClientRegistry 实例
+     * @param runtimeConfig HTTP 运行时配置
+     * @param maxStepCount  agent 编排最大步骤数（防止无限循环）
+     * @param maxIterations 最大模型调用轮次（防止无限工具调用循环）
+     */
+    public static OpenAiChatAgent create(WebClientRegistry registry,
+                                         HttpRuntimeConfig runtimeConfig,
+                                         int maxStepCount,
+                                         int maxIterations) {
+        return create(registry, runtimeConfig, List.of(), maxStepCount, maxIterations);
     }
 
     /**
@@ -222,6 +288,32 @@ public final class OpenAiChatAgents {
         return create(webClient, hooks, maxStepCount, maxIterations);
     }
 
+    /**
+     * 基于自定义 WebClientRegistry 和运行时配置创建 OpenAiChatAgent，
+     * 并使用自定义工具执行器。
+     *
+     * @param registry      自定义的 WebClientRegistry 实例
+     * @param runtimeConfig HTTP 运行时配置
+     * @param hooks         步骤钩子列表
+     * @param maxStepCount  agent 编排最大步骤数
+     * @param maxIterations 最大模型调用轮次
+     * @param toolExecutor  自定义工具执行器
+     */
+    public static OpenAiChatAgent create(
+            WebClientRegistry registry,
+            HttpRuntimeConfig runtimeConfig,
+            List<StepHook> hooks,
+            int maxStepCount,
+            int maxIterations,
+            ToolExecutor toolExecutor
+    ) {
+        Objects.requireNonNull(registry, "registry must not be null");
+        Objects.requireNonNull(runtimeConfig, "runtimeConfig must not be null");
+        Objects.requireNonNull(toolExecutor, "toolExecutor must not be null");
+
+        return create(registry.getOrCreateChatClient(runtimeConfig), hooks, maxStepCount, maxIterations, toolExecutor);
+    }
+
     // ─── 内部实现 ─────────────────────────────────────────────────
 
     /**
@@ -231,18 +323,22 @@ public final class OpenAiChatAgents {
                                                List<StepHook> hooks,
                                                int maxStepCount,
                                                int maxIterations) {
+        return createAgent(webClient, hooks, maxStepCount, maxIterations, null);
+    }
+
+    private static OpenAiChatAgent createAgent(WebClient webClient,
+                                               List<StepHook> hooks,
+                                               int maxStepCount,
+                                               int maxIterations,
+                                               ToolExecutor toolExecutor) {
         OpenAiChatRequestMapper requestMapper = new OpenAiChatRequestMapper();
         OpenAiAdvisorsExecutor clientSupport = new OpenAiAdvisorsExecutor();
         OpenAiChatTransport chatTransport = new OpenAiChatTransport(webClient);
         OpenAiChatResponseMapper responseMapper = new OpenAiChatResponseMapper();
 
-        OpenAiChatAgentExecutorFactory executorFactory =
-                new OpenAiChatAgentExecutorFactory(
-                        requestMapper,
-                        clientSupport,
-                        chatTransport,
-                        responseMapper
-                );
+        OpenAiChatAgentExecutorFactory executorFactory = (toolExecutor != null)
+                ? new OpenAiChatAgentExecutorFactory(requestMapper, clientSupport, chatTransport, responseMapper, toolExecutor)
+                : new OpenAiChatAgentExecutorFactory(requestMapper, clientSupport, chatTransport, responseMapper);
 
         ChatAgentExecutor executor = executorFactory.create(hooks, maxStepCount, maxIterations);
 
