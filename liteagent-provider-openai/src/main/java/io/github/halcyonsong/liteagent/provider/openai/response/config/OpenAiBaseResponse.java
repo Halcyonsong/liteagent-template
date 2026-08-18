@@ -7,10 +7,7 @@ import lombok.Getter;
 import lombok.ToString;
 
 /**
- * OpenAI-compatible 响应的基础元信息实现。
- * <p>
- * 该类实现 core 层 {@link BaseResponse} 接口，
- * 用于承载当前 provider 映射后的基础响应元数据。
+ * OpenAI-compatible 响应基础元信息，实现 core 层 {@link BaseResponse}。
  */
 @Getter
 @ToString

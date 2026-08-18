@@ -10,9 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * 基于内存 ConcurrentHashMap 的记忆窗口存储实现。
- * <p>
- * 使用实例字段 Map，支持创建多个独立隔离的 Store 实例。
+ * 基于内存 ConcurrentHashMap 的记忆窗口存储实现。使用实例字段 Map，支持多实例隔离。
  */
 @Slf4j
 public class InMemoryMemoryWindowStore implements MemoryWindowStore {
@@ -42,12 +40,7 @@ public class InMemoryMemoryWindowStore implements MemoryWindowStore {
     }
 
     /**
-     * 获取或创建指定会话 ID 的记忆窗口。
-     * <p>
-     * 如果会话 ID 不存在，创建新窗口并加载历史记录。
-     * 可以重写 {@link #loadHistory(String)} 方法，从外部存储加载历史记录。
-     * @param sessionId 会话唯一标识
-     * @return 记忆窗口实例
+     * 获取或创建指定会话的记忆窗口。不存在时创建并加载历史，可重写 {@link #loadHistory(String)}。
      */
     @Override
     public MemoryWindow getOrCreate(String sessionId) {
@@ -77,8 +70,7 @@ public class InMemoryMemoryWindowStore implements MemoryWindowStore {
             return raced;
         }
 
-        log.debug(
-                "Memory window created. sessionId={}, historySize={}",
+        log.debug("Window created. session={}, history={}",
                 sessionId,
                 history == null ? 0 : history.size()
         );
@@ -111,10 +103,7 @@ public class InMemoryMemoryWindowStore implements MemoryWindowStore {
                 continue;
             }
 
-            /*
-             * remove(key, value) 确保不会删除在本次检查期间
-             * 已被其他请求重新访问的 session。
-             */
+            /* remove(key, value) 确保不删除检查期间被重新访问的 session。 */
             if (lastAccessTimes.remove(sessionId, lastAccessTime)) {
                 windows.remove(sessionId);
             }

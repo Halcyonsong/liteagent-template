@@ -35,6 +35,12 @@
         </dependency>
 
         <dependency>
+            <groupId>io.github.halcyonsong</groupId>
+            <artifactId>liteagent-memory</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
             <version>3.4.8</version>

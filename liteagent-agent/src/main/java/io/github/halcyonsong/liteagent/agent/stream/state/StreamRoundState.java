@@ -9,51 +9,27 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 单轮流式请求的运行时状态。
- * <p>
- * 保存当前轮的增量聚合器、最终响应、待追加消息和附加属性。
- * 多轮历史由 StreamAgentContext 的 rounds 列表维护。
+ * 单轮流式请求的运行时状态。多轮历史由 StreamAgentContext 的 rounds 列表维护。
  */
 @Getter
 @Setter
 public class StreamRoundState {
 
-    /**
-     * 当前轮索引，从 0 开始。
-     */
     private final int roundIndex;
 
-    /**
-     * 当前轮是否已经完成。
-     */
     private volatile boolean roundComplete;
 
-    /**
-     * 当前轮待写入 workingMessages 的 assistant 消息。
-     */
+    /** 当前轮待写入 workingMessages 的 assistant 消息。 */
     private final List<Message> pendingAssistantMessages = new ArrayList<>();
 
-    /**
-     * 当前轮待写入 workingMessages 的 tool 消息。
-     */
+    /** 当前轮待写入 workingMessages 的 tool 消息。 */
     private final List<ToolMessage> pendingToolMessages = new ArrayList<>();
 
-    /**
-     * 当前轮增量聚合器。
-     */
     private volatile Object accumulator;
 
-    /**
-     * 当前轮聚合完成后的最终响应。
-     */
     private volatile Object finalResponse;
 
-    /**
-     * 当前轮附加状态。
-     * <p>
-     * 可用于存放 toolCalls、finishReason、usage、raw response metadata
-     * 等当前轮特有的 provider-specific 数据。
-     */
+    /** 可存放 toolCalls、finishReason、usage 等 provider-specific 数据。 */
     private final Map<String, Object> attributes = new ConcurrentHashMap<>();
 
     public StreamRoundState(int roundIndex) {
@@ -63,9 +39,6 @@ public class StreamRoundState {
         this.roundIndex = roundIndex;
     }
 
-    /**
-     * 写入或覆盖当前轮附加属性。
-     */
     public void setAttribute(String key, Object value) {
         if (key == null || key.isBlank()) {
             throw new IllegalArgumentException("attribute key must not be blank");
@@ -108,16 +81,10 @@ public class StreamRoundState {
         pendingToolMessages.clear();
     }
 
-    /**
-     * 读取当前轮附加属性。
-     */
     public Object getAttribute(String key) {
         return attributes.get(key);
     }
 
-    /**
-     * 以强类型方式读取当前轮附加属性。
-     */
     public <T> T getAttribute(String key, Class<T> type) {
         Object value = attributes.get(key);
         return value == null ? null : type.cast(value);

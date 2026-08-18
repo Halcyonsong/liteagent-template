@@ -21,9 +21,7 @@ public class OpenAiChatInitWorkingMessagesStep implements ChatStep {
         context.appendWorkingMessages(invocation.getChatRequest().getMessages());
 
         log.debug(
-                "Initialized working messages. " +
-                        "executionId={}, " +
-                        "messageCount={}",
+                "Init working messages. execId={}, msgs={}",
                 context.getExecutionId(),
                 context.getWorkingMessages().size()
         );

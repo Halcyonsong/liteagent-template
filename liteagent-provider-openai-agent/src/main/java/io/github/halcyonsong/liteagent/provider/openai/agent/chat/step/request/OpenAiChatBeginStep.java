@@ -15,11 +15,11 @@ public class OpenAiChatBeginStep implements ChatStep {
     public ChatStepKey invoke(ChatAgentContext context) {
         if (context.getIteration() == 0) {
             if (context.getWorkingMessages().isEmpty()) {
-                log.debug("workingMessages is empty, init it");
+                log.debug("workingMessages empty, init");
                 return ChatStepKey.INIT_WORKING_MESSAGES;
             }
             if (context.getToolRegistry() == null) {
-                log.debug("toolRegistry is null, init it");
+                log.debug("toolRegistry null, init");
                 return ChatStepKey.INIT_TOOL_REGISTRY;
             }
         }

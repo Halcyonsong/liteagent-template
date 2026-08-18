@@ -7,10 +7,7 @@ import lombok.ToString;
 import java.util.Objects;
 
 /**
- * 基础 WebClient 运行时实例缓存键。
- * <p>
- * 所有会影响底层 WebClient 构造结果的基础运行时参数，
- * 都应参与该键的唯一性计算。
+ * 基础 WebClient 运行时实例缓存键。影响 WebClient 构造结果的参数均参与唯一性计算。
  */
 @Getter
 @ToString

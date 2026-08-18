@@ -7,10 +7,7 @@ import io.github.halcyonsong.liteagent.agent.stream.step.StreamSyncStep;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 流式最终结果构建步骤。
- * <p>
- * 当前最小实现只负责补全 terminationReason。
- * 后续可在这里统一触发记忆窗口沉淀、trace 收口等逻辑。
+ * 流式最终结果构建步骤，当前只负责补全 terminationReason，后续可在此触发记忆窗口沉淀、trace 收口等逻辑。
  */
 @Slf4j
 public class OpenAiStreamBuildResultStep implements StreamSyncStep {
@@ -22,10 +19,7 @@ public class OpenAiStreamBuildResultStep implements StreamSyncStep {
         }
 
         log.debug(
-                "Built stream result. " +
-                        "executionId={}, " +
-                        "iteration={}, " +
-                        "terminationReason={}",
+                "Built stream result. execId={}, iter={}, reason={}",
                 context.getExecutionId(),
                 context.getIteration(),
                 context.getTerminationReason()

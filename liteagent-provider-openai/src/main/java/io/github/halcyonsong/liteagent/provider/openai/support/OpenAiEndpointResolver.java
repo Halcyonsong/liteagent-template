@@ -9,12 +9,7 @@ public final class OpenAiEndpointResolver {
     }
 
     /**
-     * 规范化 OpenAI-compatible chat completions 接口地址。
-     * <p>
-     * 若调用方未完整提供 /v1/chat/completions 后缀，则自动补全。
-     *
-     * @param baseUrl 用户提供的基础地址
-     * @return 完整的 chat completions 接口地址
+     * 规范化 chat completions 接口地址，自动补全 /v1/chat/completions 后缀。
      */
     public static String resolveChatCompletionsEndpoint(String baseUrl) {
         if (baseUrl == null || baseUrl.isBlank()) {
@@ -35,13 +30,6 @@ public final class OpenAiEndpointResolver {
         return normalized + "/v1/chat/completions";
     }
 
-    /**
-     * 移除字符串末尾的斜杠。
-     * <p>
-     * 用于规范化 OpenAI-compatible 接口地址，确保路径无多余斜杠。
-     * @param value 输入字符串
-     * @return 处理后的字符串，末尾无斜杠
-     */
     private static String trimTrailingSlash(String value) {
         String result = value;
         while (result.endsWith("/")) {

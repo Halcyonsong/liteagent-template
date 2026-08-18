@@ -12,8 +12,7 @@ import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 /**
- * 工具并行执行协调器。
- * 负责将多个工具调用提交到线程池并行执行，并统一管理超时。
+ * 工具并行执行协调器，将多个工具调用提交到线程池并行执行并统一管理超时。
  */
 final class ToolExecutionCoordinator {
 

@@ -14,9 +14,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * OpenAI-compatible 流式 completion 响应包装对象映射器。
- * <p>
- * 表示一次流式返回中的单个 chunk，不负责跨 chunk 聚合。
+ * OpenAI-compatible 流式 completion 响应映射器，表示单个 chunk，不负责跨 chunk 聚合。
  */
 @Slf4j
 public class OpenAiStreamResponseMapper extends OpenAiResponseMappingSupport {
@@ -25,12 +23,10 @@ public class OpenAiStreamResponseMapper extends OpenAiResponseMappingSupport {
         List<StreamChoice> choices = mapChoices(rawResponse);
         OpenAiBaseResponse baseResponse = mapBaseResponse(rawResponse);
         OpenAiUsage usage = mapUsage(rawResponse.getUsage());
-        log.debug(
-                "Mapped OpenAI stream chunk. responseId={}, model={}, choiceCount={}, usagePresent={}",
+        log.debug("Mapped stream chunk. id={}, model={}, choices={}",
                 baseResponse.getId(),
                 baseResponse.getModel(),
-                choices.size(),
-                usage != null
+                choices.size()
         );
         return new OpenAiStreamCompletionResponse(baseResponse, choices, usage);
     }
@@ -73,10 +69,8 @@ public class OpenAiStreamResponseMapper extends OpenAiResponseMappingSupport {
     }
 
     /**
-     * 流式中间 chunk 的 finish_reason 通常为 null。
-     * <p>
-     * 这里必须保留 null 语义，不能映射为 UNKNOWN，
-     * 否则上层可能把普通中间 chunk 误判为结束 chunk。
+     * 流式中间 chunk 的 finish_reason 通常为 null。必须保留 null 语义，
+     * 否则上层可能把中间 chunk 误判为结束 chunk。
      */
     private FinishReason mapStreamFinishReason(String finishReason) {
         if (finishReason == null) {

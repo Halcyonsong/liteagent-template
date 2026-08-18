@@ -17,14 +17,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * OpenAI 流式 Agent 自动装配入口。
- * <p>
- * 提供三类创建方式，按由简到繁排列：
- * <ol>
- *     <li>传入现成 {@link WebClient} — 调用方完全自行管理 HTTP 客户端生命周期</li>
- *     <li>传入 {@link HttpRuntimeConfig} — 通过 {@link OpenAiRuntime} 全局共享 registry 复用 WebClient</li>
- *     <li>传入自定义 {@link WebClientRegistry} + {@link HttpRuntimeConfig} — 适合 Spring 等外部管理 registry 的场景</li>
- * </ol>
+ * OpenAI 流式 Agent 自动装配入口，支持传入现成 WebClient、HttpRuntimeConfig（共享 registry）或自定义 WebClientRegistry 三类创建方式。
  */
 public final class OpenAiStreamAgents {
 
@@ -38,11 +31,7 @@ public final class OpenAiStreamAgents {
     // ─── WebClient 入口 ───────────────────────────────────────────
 
     /**
-     * 基于现成的 WebClient 创建 OpenAiStreamAgent。
-     * <p>
-     * 适合调用方已经自行管理 WebClient 生命周期的场景。
-     *
-     * @param webClient 已构建好的 WebClient 实例
+     * 基于现成的 WebClient 创建 OpenAiStreamAgent，适合调用方自行管理 WebClient 生命周期。
      */
     public static OpenAiStreamAgent create(WebClient webClient) {
         return create(webClient, List.of(), 1000, 10);
@@ -50,9 +39,6 @@ public final class OpenAiStreamAgents {
 
     /**
      * 基于现成的 WebClient 创建 OpenAiStreamAgent，并指定最大步骤数。
-     *
-     * @param webClient    已构建好的 WebClient 实例
-     * @param maxStepCount agent 编排最大步骤数（防止无限循环）
      */
     public static OpenAiStreamAgent create(WebClient webClient, int maxStepCount) {
         return create(webClient, List.of(), maxStepCount, 10);
@@ -60,10 +46,6 @@ public final class OpenAiStreamAgents {
 
     /**
      * 基于现成的 WebClient 创建 OpenAiStreamAgent，并指定最大步骤数与最大迭代轮次。
-     *
-     * @param webClient     已构建好的 WebClient 实例
-     * @param maxStepCount  agent 编排最大步骤数（防止无限循环）
-     * @param maxIterations 最大模型调用轮次（防止无限工具调用循环）
      */
     public static OpenAiStreamAgent create(WebClient webClient, int maxStepCount, int maxIterations) {
         return create(webClient, List.of(), maxStepCount, maxIterations);
@@ -71,10 +53,6 @@ public final class OpenAiStreamAgents {
 
     /**
      * 基于现成的 WebClient 创建 OpenAiStreamAgent，并允许传入 hook 与最大步骤数。
-     *
-     * @param webClient    已构建好的 WebClient 实例
-     * @param hooks        步骤钩子列表
-     * @param maxStepCount agent 编排最大步骤数（防止无限循环）
      */
     public static OpenAiStreamAgent create(WebClient webClient,
                                            List<StreamStepHook> hooks,
@@ -84,11 +62,6 @@ public final class OpenAiStreamAgents {
 
     /**
      * 基于现成的 WebClient 创建 OpenAiStreamAgent，允许传入全部配置参数。
-     *
-     * @param webClient     已构建好的 WebClient 实例
-     * @param hooks         步骤钩子列表
-     * @param maxStepCount  agent 编排最大步骤数（防止无限循环）
-     * @param maxIterations 最大模型调用轮次（防止无限工具调用循环）
      */
     public static OpenAiStreamAgent create(WebClient webClient,
                                            List<StreamStepHook> hooks,
@@ -100,12 +73,6 @@ public final class OpenAiStreamAgents {
 
     /**
      * 基于现成的 WebClient 创建 OpenAiStreamAgent，允许传入全部配置参数及自定义工具执行器。
-     *
-     * @param webClient     已构建好的 WebClient 实例
-     * @param hooks         步骤钩子列表
-     * @param maxStepCount  agent 编排最大步骤数（防止无限循环）
-     * @param maxIterations 最大模型调用轮次（防止无限工具调用循环）
-     * @param toolExecutor  自定义工具执行器
      */
     public static OpenAiStreamAgent create(WebClient webClient,
                                            List<StreamStepHook> hooks,
@@ -120,12 +87,7 @@ public final class OpenAiStreamAgents {
     // ─── HttpRuntimeConfig 入口（全局共享 registry）─────────────────
 
     /**
-     * 基于运行时配置创建 OpenAiStreamAgent。
-     * <p>
-     * 内部通过 {@link OpenAiRuntime#sharedRegistry()} 复用 WebClient，
-     * 相同配置的多次调用不会重复创建 HTTP 客户端。
-     *
-     * @param runtimeConfig HTTP 运行时配置
+     * 基于运行时配置创建 OpenAiStreamAgent，内部通过 sharedRegistry 复用 WebClient。
      */
     public static OpenAiStreamAgent create(HttpRuntimeConfig runtimeConfig) {
         return create(OpenAiRuntime.sharedRegistry(), runtimeConfig, List.of(), 1000, 10);
@@ -133,9 +95,6 @@ public final class OpenAiStreamAgents {
 
     /**
      * 基于运行时配置创建 OpenAiStreamAgent，并指定最大步骤数。
-     *
-     * @param runtimeConfig HTTP 运行时配置
-     * @param maxStepCount  agent 编排最大步骤数（防止无限循环）
      */
     public static OpenAiStreamAgent create(HttpRuntimeConfig runtimeConfig, int maxStepCount) {
         return create(OpenAiRuntime.sharedRegistry(), runtimeConfig, List.of(), maxStepCount, 10);
@@ -143,10 +102,6 @@ public final class OpenAiStreamAgents {
 
     /**
      * 基于运行时配置创建 OpenAiStreamAgent，并指定最大步骤数与最大迭代轮次。
-     *
-     * @param runtimeConfig HTTP 运行时配置
-     * @param maxStepCount  agent 编排最大步骤数（防止无限循环）
-     * @param maxIterations 最大模型调用轮次（防止无限工具调用循环）
      */
     public static OpenAiStreamAgent create(HttpRuntimeConfig runtimeConfig,
                                            int maxStepCount,
@@ -156,12 +111,6 @@ public final class OpenAiStreamAgents {
 
     /**
      * 基于运行时配置创建 OpenAiStreamAgent，并允许传入 hook 与最大步骤数。
-     * <p>
-     * 内部通过 {@link OpenAiRuntime#sharedRegistry()} 复用 WebClient。
-     *
-     * @param runtimeConfig HTTP 运行时配置
-     * @param hooks         步骤钩子列表
-     * @param maxStepCount  agent 编排最大步骤数（防止无限循环）
      */
     public static OpenAiStreamAgent create(HttpRuntimeConfig runtimeConfig,
                                            List<StreamStepHook> hooks,
@@ -171,13 +120,6 @@ public final class OpenAiStreamAgents {
 
     /**
      * 基于运行时配置创建 OpenAiStreamAgent，允许传入全部配置参数。
-     * <p>
-     * 内部通过 {@link OpenAiRuntime#sharedRegistry()} 复用 WebClient。
-     *
-     * @param runtimeConfig HTTP 运行时配置
-     * @param hooks         步骤钩子列表
-     * @param maxStepCount  agent 编排最大步骤数（防止无限循环）
-     * @param maxIterations 最大模型调用轮次（防止无限工具调用循环）
      */
     public static OpenAiStreamAgent create(HttpRuntimeConfig runtimeConfig,
                                            List<StreamStepHook> hooks,
@@ -188,12 +130,6 @@ public final class OpenAiStreamAgents {
 
     /**
      * 基于运行时配置创建 OpenAiStreamAgent，并使用自定义工具执行器。
-     *
-     * @param runtimeConfig HTTP 运行时配置
-     * @param hooks         步骤钩子列表
-     * @param maxStepCount  agent 编排最大步骤数
-     * @param maxIterations 最大模型调用轮次
-     * @param toolExecutor  自定义工具执行器
      */
     public static OpenAiStreamAgent create(HttpRuntimeConfig runtimeConfig,
                                            List<StreamStepHook> hooks,
@@ -206,12 +142,7 @@ public final class OpenAiStreamAgents {
     // ─── 自定义 WebClientRegistry 入口 ────────────────────────────
 
     /**
-     * 基于自定义 WebClientRegistry 和运行时配置创建 OpenAiStreamAgent。
-     * <p>
-     * 适合 Spring 等由外部管理 registry 生命周期的场景。
-     *
-     * @param registry      自定义的 WebClientRegistry 实例
-     * @param runtimeConfig HTTP 运行时配置
+     * 基于自定义 WebClientRegistry 和运行时配置创建 OpenAiStreamAgent，适合 Spring 等外部管理 registry 的场景。
      */
     public static OpenAiStreamAgent create(WebClientRegistry registry, HttpRuntimeConfig runtimeConfig) {
         return create(registry, runtimeConfig, List.of(), 1000, 10);
@@ -219,10 +150,6 @@ public final class OpenAiStreamAgents {
 
     /**
      * 基于自定义 WebClientRegistry 和运行时配置创建 OpenAiStreamAgent，并指定最大步骤数。
-     *
-     * @param registry      自定义的 WebClientRegistry 实例
-     * @param runtimeConfig HTTP 运行时配置
-     * @param maxStepCount  agent 编排最大步骤数（防止无限循环）
      */
     public static OpenAiStreamAgent create(WebClientRegistry registry,
                                            HttpRuntimeConfig runtimeConfig,
@@ -231,13 +158,7 @@ public final class OpenAiStreamAgents {
     }
 
     /**
-     * 基于自定义 WebClientRegistry 和运行时配置创建 OpenAiStreamAgent，
-     * 并指定最大步骤数与最大迭代轮次。
-     *
-     * @param registry      自定义的 WebClientRegistry 实例
-     * @param runtimeConfig HTTP 运行时配置
-     * @param maxStepCount  agent 编排最大步骤数（防止无限循环）
-     * @param maxIterations 最大模型调用轮次（防止无限工具调用循环）
+     * 基于自定义 WebClientRegistry 和运行时配置创建 OpenAiStreamAgent，并指定最大步骤数与最大迭代轮次。
      */
     public static OpenAiStreamAgent create(WebClientRegistry registry,
                                            HttpRuntimeConfig runtimeConfig,
@@ -247,13 +168,7 @@ public final class OpenAiStreamAgents {
     }
 
     /**
-     * 基于自定义 WebClientRegistry 和运行时配置创建 OpenAiStreamAgent，
-     * 并允许传入 hook 与最大步骤数。
-     *
-     * @param registry      自定义的 WebClientRegistry 实例
-     * @param runtimeConfig HTTP 运行时配置
-     * @param hooks         步骤钩子列表
-     * @param maxStepCount  agent 编排最大步骤数（防止无限循环）
+     * 基于自定义 WebClientRegistry 和运行时配置创建 OpenAiStreamAgent，并允许传入 hook 与最大步骤数。
      */
     public static OpenAiStreamAgent create(WebClientRegistry registry,
                                            HttpRuntimeConfig runtimeConfig,
@@ -263,14 +178,7 @@ public final class OpenAiStreamAgents {
     }
 
     /**
-     * 基于自定义 WebClientRegistry 和运行时配置创建 OpenAiStreamAgent，
-     * 允许传入全部配置参数。
-     *
-     * @param registry      自定义的 WebClientRegistry 实例
-     * @param runtimeConfig HTTP 运行时配置
-     * @param hooks         步骤钩子列表
-     * @param maxStepCount  agent 编排最大步骤数（防止无限循环）
-     * @param maxIterations 最大模型调用轮次（防止无限工具调用循环）
+     * 基于自定义 WebClientRegistry 和运行时配置创建 OpenAiStreamAgent，允许传入全部配置参数。
      */
     public static OpenAiStreamAgent create(WebClientRegistry registry,
                                            HttpRuntimeConfig runtimeConfig,
@@ -283,15 +191,7 @@ public final class OpenAiStreamAgents {
     }
 
     /**
-     * 基于自定义 WebClientRegistry 和运行时配置创建 OpenAiStreamAgent，
-     * 并使用自定义工具执行器。
-     *
-     * @param registry      自定义的 WebClientRegistry 实例
-     * @param runtimeConfig HTTP 运行时配置
-     * @param hooks         步骤钩子列表
-     * @param maxStepCount  agent 编排最大步骤数
-     * @param maxIterations 最大模型调用轮次
-     * @param toolExecutor  自定义工具执行器
+     * 基于自定义 WebClientRegistry 和运行时配置创建 OpenAiStreamAgent，并使用自定义工具执行器。
      */
     public static OpenAiStreamAgent create(WebClientRegistry registry,
                                            HttpRuntimeConfig runtimeConfig,

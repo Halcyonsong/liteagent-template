@@ -17,10 +17,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * 分析当前轮流式 chunk，并在收到结束信号时标记 round 完成。
- * <p>
- * 标准结束依赖 finishReason；
- * 对未返回 finishReason 的流，追加内部哨兵触发一次收尾判断。
+ * 分析当前轮流式 chunk，在收到结束信号时标记 round 完成。标准结束依赖 finishReason；对未返回 finishReason 的流追加内部哨兵触发一次收尾判断。
  */
 @Slf4j
 public class OpenAiStreamAnalyzeChunkStep
@@ -68,9 +65,7 @@ public class OpenAiStreamAnalyzeChunkStep
 
                     if (finalResponse == null) {
                         log.warn(
-                                "Detected stream finishReason but aggregated final response is missing. " +
-                                        "executionId={}, " +
-                                        "roundIndex={}",
+                                "Detected finishReason but aggregated response missing. execId={}, round={}",
                                 context.getExecutionId(),
                                 roundState.getRoundIndex()
                         );
@@ -83,15 +78,10 @@ public class OpenAiStreamAnalyzeChunkStep
                     }
 
                     log.debug(
-                            "Detected stream round completion from finishReason. " +
-                                    "executionId={}, " +
-                                    "roundIndex={}, " +
-                                    "responseId={}, " +
-                                    "hasFinalResponse={}",
+                            "Detected round completion from finishReason. execId={}, round={}, respId={}",
                             context.getExecutionId(),
                             roundState.getRoundIndex(),
-                            finalResponse.getBaseResponse() == null ? null : finalResponse.getBaseResponse().getId(),
-                            true
+                            finalResponse.getBaseResponse() == null ? null : finalResponse.getBaseResponse().getId()
                     );
 
                     roundState.setFinalResponse(finalResponse);
@@ -101,10 +91,7 @@ public class OpenAiStreamAnalyzeChunkStep
         Flux<OpenAiStreamCompletionResponse> streamWithCompletionSignal =
                 analyzedStream.concatWith(
                         Flux.defer(() -> {
-                            /*
-                             * 标准供应商已经通过任何 emitted chunk 触发过 expand，
-                             * 不需要再次追加哨兵。
-                             */
+                            // 标准供应商已通过 emitted chunk 触发过，无需再追加哨兵。
                             if (finishSignalSeen.get()
                                     || roundState.isRoundComplete()) {
                                 return Flux.empty();
@@ -113,18 +100,13 @@ public class OpenAiStreamAnalyzeChunkStep
                             OpenAiStreamCompletionResponse finalResponse =
                                     accumulator.tryToFinalResponse();
 
-                            /*
-                             * 完全没有有效响应时不能构造哨兵，
-                             * 直接让订阅失败，避免空流被误判为正常完成。
-                             */
+                            // 无有效响应时不能构造哨兵，直接让订阅失败以避免空流被误判为正常完成。
                             if (finalResponse == null) {
                                 context.setTerminationReason(
                                         AgentTerminationReason.MODEL_ERROR
                                 );
                                 log.warn(
-                                        "Stream completed without a valid aggregated response. " +
-                                                "executionId={}, " +
-                                                "roundIndex={}",
+                                        "Stream completed without valid response. execId={}, round={}",
                                         context.getExecutionId(),
                                         roundState.getRoundIndex()
                                 );
@@ -139,10 +121,7 @@ public class OpenAiStreamAnalyzeChunkStep
                             roundState.setFinalResponse(finalResponse);
                             roundState.setRoundComplete(true);
 
-                            /*
-                             * 哨兵必须是独立对象，不能直接复用 finalResponse，
-                             * 否则它可能被误认为真实的对外响应 chunk。
-                             */
+                            // 哨兵必须是独立对象，不能复用 finalResponse，否则会被误认为真实响应 chunk。
                             OpenAiStreamCompletionResponse sentinel =
                                     new OpenAiStreamCompletionResponse(
                                             finalResponse.getBaseResponse(),
@@ -153,10 +132,7 @@ public class OpenAiStreamAnalyzeChunkStep
                             context.setControlSignal(sentinel);
 
                             log.debug(
-                                    "Injected stream completion sentinel. " +
-                                            "executionId={}, " +
-                                            "roundIndex={}, " +
-                                            "responseId={}",
+                                    "Injected completion sentinel. execId={}, round={}, respId={}",
                                     context.getExecutionId(),
                                     roundState.getRoundIndex(),
                                     finalResponse.getBaseResponse() == null ? null : finalResponse.getBaseResponse().getId()

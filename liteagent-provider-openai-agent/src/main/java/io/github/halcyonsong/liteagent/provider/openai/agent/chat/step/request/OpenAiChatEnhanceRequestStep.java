@@ -12,9 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Objects;
 
 /**
- * 对 OpenAI raw request 应用增强逻辑。
- * <p>
- * 当前主要负责执行 request advisor，并显式设定为普通 chat 请求。
+ * 对 OpenAI raw request 应用增强逻辑，执行 request advisor 并设定为普通 chat 请求。
  */
 @Slf4j
 public class OpenAiChatEnhanceRequestStep implements ChatStep {
@@ -36,13 +34,7 @@ public class OpenAiChatEnhanceRequestStep implements ChatStep {
         rawRequest.setStream(false);
 
         log.debug(
-                "Enhanced OpenAI chat raw request. " +
-                        "executionId={}, " +
-                        "iteration={}, " +
-                        "advisorCount={}, " +
-                        "toolCount={}, " +
-                        "hasToolChoice={}, " +
-                        "stream={}",
+                "Enhanced raw request. execId={}, iter={}, advisors={}, tools={}, toolChoice={}, stream={}",
                 context.getExecutionId(),
                 context.getIteration(),
                 providerRequest.getRequestAdvisors().size(),

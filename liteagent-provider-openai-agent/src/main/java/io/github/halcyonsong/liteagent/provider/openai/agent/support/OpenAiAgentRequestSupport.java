@@ -8,12 +8,7 @@ import io.github.halcyonsong.liteagent.provider.openai.request.raw.OpenAiChatCom
 import io.github.halcyonsong.liteagent.provider.openai.support.OpenAiEndpointResolver;
 
 /**
- * OpenAI provider-agent 请求读取辅助类。
- * <p>
- * 统一封装 chat / stream 步骤中重复出现的：
- * 1. provider request / raw request 读取
- * 2. 空值校验
- * 3. endpoint / apiKey 解析
+ * OpenAI provider-agent 请求读取辅助类，统一封装 chat / stream 步骤中的 provider/raw request 读取、空值校验与 endpoint/apiKey 解析。
  */
 public final class OpenAiAgentRequestSupport {
 

@@ -48,10 +48,7 @@ public class OpenAiChatEnhanceResponseStep implements ChatStep {
         clientSupport.applyChatResponseAdvisors(providerRequest, rawResponse, providerResponse);
 
         log.debug(
-                "Enhanced OpenAI chat response. " +
-                        "executionId={}, " +
-                        "iteration={}, " +
-                        "responseAdvisorCount={}",
+                "Enhanced chat response. execId={}, iter={}, advisors={}",
                 context.getExecutionId(),
                 context.getIteration(),
                 providerRequest.getChatResponseAdvisors().size()

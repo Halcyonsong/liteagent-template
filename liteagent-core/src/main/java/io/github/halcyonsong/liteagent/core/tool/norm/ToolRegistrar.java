@@ -8,12 +8,6 @@ import java.util.List;
  */
 public interface ToolRegistrar {
 
-    /**
-     * 将一个工具对象注册到注册表。
-     *
-     * @param toolObject 工具对象
-     * @param registry 工具注册表
-     */
     void register(Object toolObject, ToolRegistry registry);
 
     void register(Object toolObject, Method method, ToolRegistry registry);

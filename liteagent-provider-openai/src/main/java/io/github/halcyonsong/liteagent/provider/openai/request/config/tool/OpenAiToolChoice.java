@@ -6,13 +6,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * OpenAI-compatible tool_choice 请求字段。
- * <p>
- * 支持：
- * - none
- * - auto
- * - required
- * - 指定某个 function
+ * OpenAI-compatible tool_choice 请求字段。支持 none / auto / required / 指定 function。
  */
 @Getter
 public class OpenAiToolChoice {

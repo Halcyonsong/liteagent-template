@@ -20,3 +20,6 @@ liteagent:
       connect-timeout-millis: ${LITEAGENT_OPENAI_CONNECT_TIMEOUT_MILLIS:5000}
       response-timeout-millis: ${LITEAGENT_OPENAI_RESPONSE_TIMEOUT_MILLIS:60000}
       stream-response-timeout-millis: ${LITEAGENT_OPENAI_STREAM_RESPONSE_TIMEOUT_MILLIS:300000}
+    memory:
+      chat-max-size: ${LITEAGENT_MEMORY_CHAT_MAX_SIZE:40}
+      stream-max-size: ${LITEAGENT_MEMORY_STREAM_MAX_SIZE:100}

@@ -11,9 +11,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 基础 WebClient 注册表。
- * <p>
- * 按运行时配置缓存和复用 WebClient 实例，避免重复构建底层 HTTP 客户端。
+ * 基础 WebClient 注册表。按运行时配置缓存和复用 WebClient 实例。
  */
 @Slf4j
 public class WebClientRegistry {
@@ -31,11 +29,11 @@ public class WebClientRegistry {
 
         WebClient existing = clientCache.get(key);
         if (existing != null) {
-            log.debug("Reusing cached chat WebClient. cacheSize={}, runtimeKey={}", clientCache.size(), key);
+            log.debug("Reusing cached chat WebClient. cacheSize={}", clientCache.size());
             return existing;
         }
 
-        log.debug("Creating new chat WebClient. cacheSizeBefore={}, runtimeKey={}", clientCache.size(), key);
+        log.debug("Creating new chat WebClient. cacheSize={}", clientCache.size());
 
         return clientCache.computeIfAbsent(key, ignored -> factory.createChatClient(config));
     }
@@ -46,11 +44,11 @@ public class WebClientRegistry {
 
         WebClient existing = clientCache.get(key);
         if (existing != null) {
-            log.debug("Reusing cached stream WebClient. cacheSize={}, runtimeKey={}", clientCache.size(), key);
+            log.debug("Reusing cached stream WebClient. cacheSize={}", clientCache.size());
             return existing;
         }
 
-        log.debug("Creating new stream WebClient. cacheSizeBefore={}, runtimeKey={}", clientCache.size(), key);
+        log.debug("Creating new stream WebClient. cacheSize={}", clientCache.size());
 
         return clientCache.computeIfAbsent(key, ignored -> factory.createStreamClient(config));
     }
@@ -67,15 +65,13 @@ public class WebClientRegistry {
         HttpRuntimeKey key = config.toKey(mode);
         clientCache.remove(key);
 
-        log.debug("Removed WebClient from registry. cacheSizeNow={}, runtimeKey={}",
-                clientCache.size(),
-                key);
+        log.debug("Removed WebClient. cacheSize={}", clientCache.size());
     }
 
     public void clear() {
         int sizeBefore = clientCache.size();
         clientCache.clear();
-        log.debug("Cleared WebClient registry. cacheSizeBefore={}, cacheSizeNow={}", sizeBefore, clientCache.size());
+        log.debug("Cleared registry. sizeBefore={}, sizeNow={}", sizeBefore, clientCache.size());
     }
 
     public int size() {

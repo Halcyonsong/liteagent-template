@@ -12,9 +12,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * 工具执行结果转换辅助类。
- * <p>
- * 负责调用 ToolExecutor，并将结果转换为可回写到 workingMessages 的 ToolMessage。
+ * 工具执行结果转换辅助类，调用 ToolExecutor 并将结果转换为可回写到 workingMessages 的 ToolMessage。
  */
 public final class OpenAiToolExecutionSupport implements JsonSerializable {
 
@@ -36,9 +34,7 @@ public final class OpenAiToolExecutionSupport implements JsonSerializable {
     }
 
     /**
-     * 并行执行工具请求，每个调用限制在 timeoutMillis 内完成。
-     *
-     * @param timeoutMillis 总超时，0 表示不限制
+     * 并行执行工具请求，每个调用限制在 timeoutMillis 内完成（0 表示不限制）。
      */
     public static List<ToolMessage> executeToMessages(
             List<ToolExecutionRequest> requests,

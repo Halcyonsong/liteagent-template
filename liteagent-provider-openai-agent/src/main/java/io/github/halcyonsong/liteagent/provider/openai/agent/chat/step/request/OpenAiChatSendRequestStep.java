@@ -35,7 +35,7 @@ public class OpenAiChatSendRequestStep implements ChatStep {
         String endpoint = OpenAiAgentRequestSupport.resolveEndpoint(providerRequest);
         String apiKey = OpenAiAgentRequestSupport.resolveApiKey(providerRequest);
         log.debug(
-                "Sending chat round. executionId={}, iteration={}, endpoint={}, messageCount={}",
+                "Sending chat round. execId={}, iter={}, endpoint={}, msgs={}",
                 context.getExecutionId(),
                 context.getIteration(),
                 endpoint,
@@ -45,7 +45,7 @@ public class OpenAiChatSendRequestStep implements ChatStep {
         OpenAiChatCompletionRawResponse rawResponse = transport.send(endpoint, apiKey, rawRequest);
         context.setAttribute(OpenAiAgentAttributes.RAW_RESPONSE, rawResponse);
         log.debug(
-                "Received raw chat response. executionId={}, iteration={}, responseId={}",
+                "Received raw response. execId={}, iter={}, respId={}",
                 context.getExecutionId(),
                 context.getIteration(),
                 rawResponse.getId()

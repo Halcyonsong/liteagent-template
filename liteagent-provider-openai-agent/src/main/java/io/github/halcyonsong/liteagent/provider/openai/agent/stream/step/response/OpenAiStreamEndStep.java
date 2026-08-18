@@ -6,11 +6,7 @@ import io.github.halcyonsong.liteagent.agent.stream.step.StreamSyncStep;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Stream 编排终止步骤。
- * <p>
- * 在所有轮次调度完毕后单独执行，
- * 可用于收尾日志、metrics 上报或资源清理。
- * </p>
+ * Stream 编排终止步骤，可用于收尾日志、metrics 上报或资源清理。
  */
 @Slf4j
 public class OpenAiStreamEndStep implements StreamSyncStep {
@@ -18,10 +14,7 @@ public class OpenAiStreamEndStep implements StreamSyncStep {
     @Override
     public StreamStepKey invoke(StreamAgentContext<?> context) {
         log.debug(
-                "Stream agent finished. " +
-                        "executionId={}, " +
-                        "iteration={}, " +
-                        "terminationReason={}",
+                "Stream agent finished. execId={}, iter={}, reason={}",
                 context.getExecutionId(),
                 context.getIteration(),
                 context.getTerminationReason()

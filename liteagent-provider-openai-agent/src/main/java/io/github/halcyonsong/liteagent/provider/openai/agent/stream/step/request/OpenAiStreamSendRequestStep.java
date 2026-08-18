@@ -48,7 +48,7 @@ public class OpenAiStreamSendRequestStep implements StreamStep<Flux<OpenAiStream
         String apiKey = OpenAiAgentRequestSupport.resolveApiKey(providerRequest);
 
         log.debug(
-                "Starting stream round. executionId={}, roundIndex={}, iteration={}, endpoint={}, messageCount={}",
+                "Starting stream round. execId={}, round={}, iter={}, endpoint={}, msgs={}",
                 context.getExecutionId(),
                 context.currentRound().getRoundIndex(),
                 context.getIteration(),

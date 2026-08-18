@@ -34,12 +34,7 @@ public class OpenAiChatMapRequestStep implements ChatStep {
         context.setAttribute(OpenAiAgentAttributes.RAW_REQUEST, result.rawRequest());
 
         log.debug(
-                "Mapped OpenAI chat request. " +
-                        "executionId={}, " +
-                        "iteration={}, " +
-                        "workingMessageCount={}, " +
-                        "rawMessageCount={}, " +
-                        "hasCompletionOptions={}",
+                "Mapped chat request. execId={}, iter={}, workingMsgs={}, rawMsgs={}, hasOpts={}",
                 context.getExecutionId(),
                 context.getIteration(),
                 context.getWorkingMessages().size(),

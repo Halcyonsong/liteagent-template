@@ -8,10 +8,7 @@ import io.github.halcyonsong.liteagent.provider.openai.agent.support.ToolRegistr
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 初始化 chat 编排中的工具注册表。
- * <p>
- * 只在第 0 轮执行，通过扫描 request advisors 提取
- * OpenAiRegistryToolsAdvisor 中持有的 ToolRegistry。
+ * 初始化 chat 编排中的工具注册表，仅在第 0 轮通过扫描 request advisors 提取 ToolRegistry。
  */
 @Slf4j
 public class OpenAiChatInitToolRegistryStep implements ChatStep {
@@ -22,7 +19,7 @@ public class OpenAiChatInitToolRegistryStep implements ChatStep {
         context.setToolRegistry(registry);
 
         log.debug(
-                "Initialized OpenAI chat tool registry. executionId={}, iteration={}, registryResolved={}",
+                "Init tool registry. execId={}, iter={}, resolved={}",
                 context.getExecutionId(),
                 context.getIteration(),
                 registry != null

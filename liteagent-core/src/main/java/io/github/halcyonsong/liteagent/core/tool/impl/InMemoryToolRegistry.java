@@ -10,9 +10,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 基于内存的工具注册表实现。
- *
- * <p>支持并发注册和查询。</p>
+ * 基于内存的工具注册表实现，支持并发注册和查询。
  */
 public class InMemoryToolRegistry implements ToolRegistry {
 

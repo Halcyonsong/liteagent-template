@@ -3,46 +3,22 @@ package io.github.halcyonsong.liteagent.provider.openai.runtime.config;
 import lombok.Getter;
 
 /**
- * 基础 WebClient 运行时配置。
- * <p>
- * 该配置用于控制底层 HTTP 客户端实例的运行时行为，
- * 仅包含与网络传输和响应解码相关的基础参数，
- * 不包含 provider 地址、鉴权信息或单次模型请求参数。
+ * 基础 WebClient 运行时配置。控制 HTTP 客户端网络传输和响应解码行为，
+ * 不含 provider 地址、鉴权或单次请求参数。
  */
 @Getter
 public class HttpRuntimeConfig {
 
-    /**
-     * 单次响应体允许聚合到内存中的最大字节数。
-     * <p>
-     * 该值用于限制 WebClient 解码响应体时的最大缓冲区大小，
-     * 默认值为 16MB。
-     */
+    /** 单次响应体最大聚合内存字节数，默认 16MB。 */
     private final Integer maxInMemorySize;
 
-    /**
-     * 连接超时时间，单位毫秒。
-     * <p>
-     * 该值控制建立 TCP 连接的最大等待时间，
-     * 默认值为 5000 毫秒。
-     */
+    /** 连接超时时间（毫秒），默认 5000。 */
     private final Integer connectTimeoutMillis;
 
-    /**
-     * 响应超时时间，单位毫秒。
-     * <p>
-     * 该值控制请求发出后等待响应完成的最大时间，
-     * 默认值为 60000 毫秒。
-     */
+    /** 响应超时时间（毫秒），默认 60000。 */
     private final Long chatResponseTimeoutMillis;
 
-
-    /**
-     * 流式响应超时时间，单位毫秒。
-     * <p>
-     * 该值控制请求发出后等待流式响应完成的最大时间，
-     * 默认不设置超时时间。
-     */
+    /** 流式响应超时时间（毫秒），默认不设置超时。 */
     private final Long streamResponseTimeoutMillis;
 
     /** 连接池最大连接数，默认 50。 */

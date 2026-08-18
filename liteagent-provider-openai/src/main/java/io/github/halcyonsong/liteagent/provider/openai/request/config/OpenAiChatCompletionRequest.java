@@ -22,38 +22,26 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * OpenAI-compatible provider 级编排输入对象。
- * <p>
- * 封装基础请求、聊天消息、completion 参数以及 request/response advisor，
- * 供 agent 链路在构造 raw 请求和处理响应时使用。
- * 它不是直接发送的 JSON 请求体。
+ * OpenAI-compatible provider 级编排输入对象。封装基础请求、聊天消息、completion 参数及 advisor。
+ * 不是直接发送的 JSON 请求体。
  */
 @Getter
 public class OpenAiChatCompletionRequest implements Invocation, JsonSerializable {
 
     private final BaseRequest baseRequest;
     private final ChatRequest chatRequest;
-    /**
-     * OpenAI-compatible 协议的扩展请求参数。
-     * 该部分参数不属于 core 统一抽象范围。
-     */
+    /** OpenAI-compatible 协议扩展请求参数，不属于 core 统一抽象范围。 */
     private final OpenAiCompletionOptions completionOptions;
 
-    /**
-     * 请求增强器列表，作用于 request -> rawRequest 的构造阶段。
-     */
+    /** 请求增强器列表，作用于 request -> rawRequest 构造阶段。 */
     @JsonIgnore
     private final List<RequestAdvisor<OpenAiChatCompletionRequest, OpenAiChatCompletionRawRequest>> requestAdvisors;
 
-    /**
-     * 普通聊天响应增强器列表，作用于 raw response -> chat response。
-     */
+    /** 聊天响应增强器列表，作用于 raw response -> chat response。 */
     @JsonIgnore
     private final List<ResponseAdvisor<OpenAiChatCompletionRawResponse, OpenAiChatCompletionResponse>> chatResponseAdvisors;
 
-    /**
-     * 流式响应增强器列表，作用于 raw response -> stream response。
-     */
+    /** 流式响应增强器列表，作用于 raw response -> stream response。 */
     @JsonIgnore
     private final List<ResponseAdvisor<OpenAiChatCompletionRawResponse, OpenAiStreamCompletionResponse>> streamResponseAdvisors;
 
@@ -114,9 +102,7 @@ public class OpenAiChatCompletionRequest implements Invocation, JsonSerializable
         }
 
         /**
-         * 使用已有工具注册表启用工具定义注入与 Agent 工具执行。
-         * <p>
-         * 推荐应用启动时创建并复用 ToolRegistry。
+         * 使用已有工具注册表启用工具定义注入与 Agent 工具执行。推荐应用启动时创建并复用 ToolRegistry。
          */
         public Builder toolRegistry(ToolRegistry registry) {
             return requestAdvisor(new OpenAiRegistryToolsAdvisor(
@@ -125,9 +111,7 @@ public class OpenAiChatCompletionRequest implements Invocation, JsonSerializable
         }
 
         /**
-         * 直接注册工具对象。
-         * <p>
-         * 适合示例、一次性调用或工具集较小的场景；
+         * 直接注册工具对象。适合示例、一次性调用或工具集较小的场景；
          * 应用级 Agent 建议优先使用 {@link #toolRegistry(ToolRegistry)} 复用注册表。
          */
         public Builder tools(Object... toolObjects) {

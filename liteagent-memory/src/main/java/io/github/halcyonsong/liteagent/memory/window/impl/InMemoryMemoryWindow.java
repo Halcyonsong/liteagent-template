@@ -6,10 +6,7 @@ import io.github.halcyonsong.liteagent.memory.window.norm.MemoryWindow;
 import java.util.*;
 
 /**
- * 基于内存 Deque 的记忆窗口实现。
- * <p>
- * 队列头部保存最早消息，队列尾部保存最新消息。
- * 所有操作通过 synchronized 保证线程安全。
+ * 基于内存 Deque 的记忆窗口实现。头部保存最早消息，尾部保存最新消息，synchronized 保证线程安全。
  */
 public final class InMemoryMemoryWindow implements MemoryWindow {
 

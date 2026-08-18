@@ -69,10 +69,6 @@ public class OpenAiStreamAgentExecutorFactory {
 
     /**
      * 组装 OpenAI stream 步骤注册表并创建执行器，允许指定最大迭代轮次。
-     *
-     * @param hooks          步骤钩子列表
-     * @param maxStepCount   agent 编排最大步骤数（防止无限循环）
-     * @param maxIterations  最大模型调用轮次（防止无限工具调用循环）
      */
     public StreamAgentExecutor<OpenAiStreamCompletionResponse> create(List<StreamStepHook> hooks,
                                                                       int maxStepCount,

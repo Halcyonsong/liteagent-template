@@ -10,11 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Objects;
 
 /**
- * 将当前轮 pending assistant/tool 消息写入 workingMessages。
- * <p>
- * 无工具结果时进入 BUILD_RESULT；
- * 有工具结果时递增 iteration 并开始下一轮。
- * 有工具结果但超过 maxIterations 时走 BUILD_RESULT。
+ * 将当前轮 pending assistant/tool 消息写入 workingMessages。无工具结果时进入 BUILD_RESULT；有工具结果时递增 iteration 开始下一轮，超过 maxIterations 时走 BUILD_RESULT。
  */
 @Slf4j
 public class OpenAiStreamAppendMessagesStep
@@ -38,21 +34,13 @@ public class OpenAiStreamAppendMessagesStep
 
         if (!hasToolMessages) {
             log.debug(
-                    "Appended stream messages. " +
-                            "executionId={}, " +
-                            "roundIndex={}, " +
-                            "iteration={}, " +
-                            "appendedAssistantCount={}, " +
-                            "appendedToolCount={}, " +
-                            "workingMessageCount={}, " +
-                            "nextStep={}",
+                    "Appended messages. execId={}, round={}, iter={}, assistant={}, tool={}, total={}, next=BUILD_RESULT",
                     context.getExecutionId(),
                     roundState.getRoundIndex(),
                     context.getIteration(),
                     pendingAssistantCount,
                     pendingToolCount,
-                    context.getWorkingMessages().size(),
-                    StreamStepKey.BUILD_RESULT.name()
+                    context.getWorkingMessages().size()
             );
             return StreamStepKey.BUILD_RESULT;
         }
@@ -63,42 +51,26 @@ public class OpenAiStreamAppendMessagesStep
             );
 
             log.debug(
-                    "Appended stream messages and reached max iterations. " +
-                            "executionId={}, " +
-                            "roundIndex={}, " +
-                            "iteration={}, " +
-                            "appendedAssistantCount={}, " +
-                            "appendedToolCount={}, " +
-                            "workingMessageCount={}, " +
-                            "nextStep={}",
+                    "Appended messages, reached max iterations. execId={}, round={}, iter={}, assistant={}, tool={}, total={}, next=BUILD_RESULT",
                     context.getExecutionId(),
                     roundState.getRoundIndex(),
                     context.getIteration(),
                     pendingAssistantCount,
                     pendingToolCount,
-                    context.getWorkingMessages().size(),
-                    StreamStepKey.BUILD_RESULT.name()
+                    context.getWorkingMessages().size()
             );
 
             return StreamStepKey.BUILD_RESULT;
         }
 
         log.debug(
-                "Appended stream messages and continue next round. " +
-                            "executionId={}, " +
-                            "roundIndex={}, " +
-                            "iteration={}, " +
-                            "appendedAssistantCount={}, " +
-                            "appendedToolCount={}, " +
-                            "workingMessageCount={}, " +
-                            "nextStep={}",
+                "Appended messages, continue next round. execId={}, round={}, iter={}, assistant={}, tool={}, total={}, next=BEGIN",
                 context.getExecutionId(),
                 roundState.getRoundIndex(),
                 context.getIteration(),
                 pendingAssistantCount,
                 pendingToolCount,
-                context.getWorkingMessages().size(),
-                StreamStepKey.BEGIN.name()
+                context.getWorkingMessages().size()
         );
 
         return StreamStepKey.BEGIN;

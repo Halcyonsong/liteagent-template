@@ -17,30 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * OpenAI 单轮流式响应聚合器。
- * <p>
- * 负责把当前轮多个 chunk 聚合为一个可供后续判断和工具执行使用的最终响应。
- *
- * <ul>
- *     <li>工具执行</li>
- *     <li>下一轮调度</li>
- *     <li>消息写入 workingMessages</li>
- * </ul>
- *
- * <p>流式响应结构为：</p>
- *
- * <pre>
- * response
- *   └── choices
- *         └── choice.index
- *               ├── delta.content
- *               ├── delta.reasoningContent
- *               └── delta.toolCalls
- *                     └── toolCall.index
- * </pre>
- *
- * <p>因此聚合时需要先按照 choice.index 分组，
- * 再按照 toolCall.index 聚合工具调用。</p>
+ * OpenAI 单轮流式响应聚合器，把当前轮多个 chunk 聚合为最终响应。聚合时先按 choice.index 分组，再按 toolCall.index 聚合工具调用。
  */
 @Getter
 public class OpenAiStreamRoundAccumulator {
@@ -51,17 +28,12 @@ public class OpenAiStreamRoundAccumulator {
     private OpenAiBaseResponse baseResponse;
 
     /**
-     * 最后一个非空的 usage。
-     *
-     * <p>不同供应商可能只在最后一个 chunk 返回 usage，
-     * 也可能多个 chunk 重复返回 usage，因此这里采用最后一个非空值。</p>
+     * 最后一个非空的 usage（不同供应商可能只在最后一个 chunk 返回或重复返回 usage）。
      */
     private OpenAiUsage usage;
 
     /**
-     * 按 choice.index 保存当前轮的聚合结果。
-     *
-     * <p>LinkedHashMap 用于保持模型返回 choice 的顺序。</p>
+     * 按 choice.index 保存当前轮的聚合结果，LinkedHashMap 保持模型返回 choice 的顺序。
      */
     private final Map<Integer, ChoiceAccumulator> choiceAccumulators = new LinkedHashMap<>();
 
@@ -72,8 +44,6 @@ public class OpenAiStreamRoundAccumulator {
 
     /**
      * 接收并聚合一个流式 chunk。
-     *
-     * @param chunk 当前流式响应 chunk
      */
     public void accumulate(OpenAiStreamCompletionResponse chunk) {
         if (chunk == null) {
@@ -129,10 +99,7 @@ public class OpenAiStreamRoundAccumulator {
     }
 
     /**
-     * 获取已经聚合的 choice。
-     *
-     * <p>返回值是根据当前已收到 chunk 实时构造的快照，
-     * 不会暴露内部可变 Map。</p>
+     * 获取已经聚合的 choice，返回实时构造的快照，不暴露内部可变 Map。
      */
     public List<StreamChoice> getChoices() {
         List<StreamChoice> result = new ArrayList<>(choiceAccumulators.size());
@@ -272,8 +239,7 @@ public class OpenAiStreamRoundAccumulator {
         private String functionName;
 
         /**
-         * function.arguments 可能跨多个 chunk 返回，
-         * 因此必须追加而不是覆盖。
+         * function.arguments 可能跨多个 chunk 返回，必须追加而不是覆盖。
          */
         private final StringBuilder arguments = new StringBuilder();
 

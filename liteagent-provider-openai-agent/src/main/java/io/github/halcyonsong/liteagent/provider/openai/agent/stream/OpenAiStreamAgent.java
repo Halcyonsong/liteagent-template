@@ -9,10 +9,7 @@ import reactor.core.publisher.Flux;
 import java.util.Objects;
 
 /**
- * OpenAI-compatible 流式 agent 门面。
- * <p>
- * 该类在通用 stream 执行器之上，
- * 提供面向 OpenAI-compatible provider 的流式调用入口。
+ * OpenAI-compatible 流式 agent 门面，在通用 stream 执行器之上提供面向 OpenAI-compatible provider 的流式调用入口。
  */
 public class OpenAiStreamAgent {
 

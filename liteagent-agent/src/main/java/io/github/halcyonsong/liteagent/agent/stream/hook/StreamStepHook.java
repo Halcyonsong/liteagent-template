@@ -4,9 +4,7 @@ import io.github.halcyonsong.liteagent.agent.stream.context.StreamAgentContext;
 import io.github.halcyonsong.liteagent.agent.stream.step.StreamStepKey;
 
 /**
- * 流式步骤生命周期钩子。
- * <p>
- * 用于接入日志、metrics、trace 或 checkpoint 等横切逻辑。
+ * 流式步骤生命周期钩子，用于接入日志、metrics、trace 或 checkpoint 等横切逻辑。
  */
 public interface StreamStepHook {
 

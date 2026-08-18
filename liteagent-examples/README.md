@@ -1,72 +1,69 @@
 # liteagent-examples
 
-`liteagent-examples` 是调用方式展示模块。
-它不承担框架功能断言，重点是展示请求构造、Agent 创建、工具接入、流式消费和结果打印等完整调用链路。
+`liteagent-examples` 是调用方式展示模块，通过 Spring Boot 测试 + `@Configuration` Bean 注入的形式演示框架完整调用链路。
 
-## 职责
+## 设计理念
 
-- 演示 provider request 直接调用
-- 演示流式 provider 调用
-- 演示 provider 扩展字段读取
-- 演示 reasoning 模型调用
-- 演示 tools 注入与 tool_choice
-- 演示 chatAgent 同步编排（含多轮工具调用）
-- 演示 streamAgent 流式编排（含多轮工具调用）
-- 演示 Step Hook 用法
-- 演示 QuickRequest 快捷构造
-- 演示本地配置拆分
+所有示例统一通过 Spring DI 注入框架组件，而非手动调用静态工厂：
 
-## 当前范围
+- `OpenAiConfig` 作为 `@Configuration` 类，通过 `@Bean` 方法创建 Agent、ToolRegistry、MemoryWindowStore 等组件
+- `OpenAiExampleSupport` 作为测试基类，`@Autowired` 注入所有 Bean
+- `application.yaml` 外部化配置，`application-local.yaml` 覆盖真实值
 
-当前 examples 覆盖 `liteagent-provider-openai-agent` 的 agent 编排入口，统一通过 `OpenAiChatAgents` / `OpenAiStreamAgents` 工厂创建 agent。
+## Bean 装配结构
 
-也就是说，这里的示例覆盖：
-
-- `OpenAiChatAgent` / `OpenAiStreamAgent`（agent 编排，含工具调用回环）
-- `OpenAiQuickChatRequest`（快捷请求构造）
-- tools / tool_choice 请求增强
-- Step Hook（before / after）
-- 同步响应、流式 delta、reasoning、工具调用和 usage 的统一打印
-
-## 当前主线流程
-
-### OpenAI 请求调用
-
-```mermaid
-flowchart TD
-    A1[构造 ChatRequest + OpenAiBaseRequest] --> A2[组装 OpenAiChatCompletionRequest]
-    A2 --> A3[OpenAiChatAgents / OpenAiStreamAgents]
-    A3 --> A4[raw request 映射]
-    A4 --> A5[advisor 增强]
-    A5 --> A6[transport 发送]
-    A6 --> A7[provider response 映射]
-    A7 --> A8[打印 provider response / stream chunk]
+```
+OpenAiConfig (@Configuration)
+├── chatRuntimeConfig       — HttpRuntimeConfig（同步）
+├── streamRuntimeConfig     — HttpRuntimeConfig（流式）
+├── baseRequest             — OpenAiBaseRequest（baseUrl/apiKey/model）
+├── weatherTools            — @ToolComponent 工具实例
+├── toolRegistry            — ToolRegistry（注册 WeatherTools）
+├── memoryWindowStore       — MemoryWindowStore（内存记忆窗口）
+├── chatAgent               — OpenAiChatAgent（基础，无 hook）
+├── streamAgent             — OpenAiStreamAgent（基础，无 hook）
+├── chatAgentWithMemory     — OpenAiChatAgent（带记忆窗口 hook）
+└── streamAgentWithMemory   — OpenAiStreamAgent（带记忆窗口 hook）
 ```
 
-### agent 编排
+## 示例清单
 
-```mermaid
-flowchart TD
-    B1[构造 OpenAiChatCompletionRequest] --> B2[OpenAiChatAgents / OpenAiStreamAgents.create]
-    B2 --> B3[OpenAiChatAgent / OpenAiStreamAgent.execute]
-    B3 --> B4[ChatAgentExecutor / StreamAgentExecutor]
-    B4 --> B5[步骤链调度]
-    B5 --> B6[返回 provider response / stream chunks]
-```
+### 基础对话
+
+| 测试类 | 演示内容 |
+|--------|---------|
+| `ChatAgentExampleTest` | ChatAgent 同步对话 |
+| `StreamAgentExampleTest` | StreamAgent 流式对话 |
+| `ProviderChatExampleTest` | ChatAgent + CompletionOptions |
+| `ProviderStreamExampleTest` | StreamAgent + CompletionOptions |
+| `ProviderReasoningExampleTest` | reasoning（思考链）输出 |
+
+### 工具调用
+
+| 测试类 | 演示内容 |
+|--------|---------|
+| `ChatAgentToolCallExampleTest` | ChatAgent 多轮工具调用 |
+| `StreamAgentToolCallExampleTest` | StreamAgent 多轮工具调用 |
+| `ProviderToolCallExampleTest` | tool_choice 强制调用指定工具 |
+
+### 记忆窗口
+
+| 测试类 | 演示内容 |
+|--------|---------|
+| `MemoryChatExampleTest` | ChatAgent + sessionId 连续两轮记忆 |
+| `MemoryStreamExampleTest` | StreamAgent + sessionId 连续两轮记忆 |
+
+### Hook 与快捷请求
+
+| 测试类 | 演示内容 |
+|--------|---------|
+| `AgentHookExampleTest` | StepHook / StreamStepHook 前后回调追踪 |
+| `QuickRequestChatExampleTest` | OpenAiQuickChatRequest 快捷构造 + Chat |
+| `ProviderQuickRequestStreamExampleTest` | OpenAiQuickChatRequest 快捷构造 + Stream |
 
 ## 配置方式
 
-示例通过 `application.yaml` 读取公共模板配置，再通过 `application-local.yaml` 覆盖真实本地值。
-
-推荐形式：
-
-```yaml
-spring:
-  config:
-    import: optional:classpath:application-local.yaml
-```
-
-主配置保留模板字段：
+`application.yaml` 保留模板字段（环境变量占位）：
 
 ```yaml
 liteagent:
@@ -80,38 +77,21 @@ liteagent:
       connect-timeout-millis: ${LITEAGENT_OPENAI_CONNECT_TIMEOUT_MILLIS:5000}
       response-timeout-millis: ${LITEAGENT_OPENAI_RESPONSE_TIMEOUT_MILLIS:60000}
       stream-response-timeout-millis: ${LITEAGENT_OPENAI_STREAM_RESPONSE_TIMEOUT_MILLIS:300000}
+    memory:
+      chat-max-size: ${LITEAGENT_MEMORY_CHAT_MAX_SIZE:40}
+      stream-max-size: ${LITEAGENT_MEMORY_STREAM_MAX_SIZE:100}
 ```
 
-副配置写真实值，并保持忽略提交。
+`application-local.yaml` 覆盖真实值，建议加入 `.gitignore`。
 
-## 推荐保留的示例类别
+## 运行方式
 
-### provider 直调
+```bash
+# 运行全部示例
+mvn test -pl liteagent-examples
 
-- `ProviderChatExampleTest` — 普通对话调用
-- `ProviderReasoningExampleTest` — reasoning 模型调用
-- `ProviderStreamExampleTest` — 流式对话调用
-- `ProviderToolCallExampleTest` — 工具注入与 tool_choice
-- `QuickRequestChatExampleTest` — QuickRequest 快捷构造
+# 运行单个示例
+mvn test -pl liteagent-examples -Dtest=MemoryChatExampleTest
+```
 
-### agent 编排
-
-- `ChatAgentExampleTest` — chatAgent 同步编排
-- `StreamAgentExampleTest` — streamAgent 流式编排
-- `ChatAgentToolCallExampleTest` — chatAgent 多轮工具调用
-- `StreamAgentToolCallExampleTest` — streamAgent 多轮工具调用
-- `AgentHookExampleTest` — Step Hook 用法（chat + stream）
-
-### QuickRequest 流式
-
-- `ProviderQuickRequestStreamExampleTest` — QuickRequest 流式调用
-
-## 示例定位
-
-这个模块更像一个"可运行文档"，不是最终业务代码，也不是框架功能测试模块。
-
-适合做这些事：
-
-- 查找某种调用方式的最小完整示例
-- 复制请求构造、Agent 创建和结果消费代码
-- 观察普通输出、reasoning、工具调用和流式响应的打印效果
+未配置有效 API key 时，测试通过 `Assumptions.assumeTrue` 自动跳过。

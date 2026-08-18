@@ -10,10 +10,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * OpenAI-compatible 流式 completion 响应包装对象。
- * <p>
- * 该对象表示一次流式返回中的单个 chunk，
- * 顶层保留 provider 响应语义，内部复用 core 流式结构。
+ * OpenAI-compatible 流式 completion 响应包装对象，表示单个 chunk。
  */
 @Getter
 public class OpenAiStreamCompletionResponse implements JsonSerializable {

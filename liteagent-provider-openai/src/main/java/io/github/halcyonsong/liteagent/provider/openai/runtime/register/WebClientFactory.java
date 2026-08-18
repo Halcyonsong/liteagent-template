@@ -11,15 +11,13 @@ import reactor.netty.resources.ConnectionProvider;
 import java.time.Duration;
 
 /**
- * 基础 WebClient 工厂。
- * <p>
- * 仅负责创建运行时客户端，不负责 provider 认证和 endpoint 绑定。
+ * 基础 WebClient 工厂。仅负责创建运行时客户端，不负责 provider 认证和 endpoint 绑定。
  */
 @Slf4j
 public class WebClientFactory {
 
     public WebClient createChatClient(HttpRuntimeConfig config) {
-        log.debug("Creating chat WebClient. maxConnections={}, connectTimeoutMillis={}, responseTimeoutMillis={}",
+        log.debug("Creating chat WebClient. maxConn={}, connectTimeout={}, responseTimeout={}",
                 config.getMaxConnections(),
                 config.getConnectTimeoutMillis(),
                 config.getChatResponseTimeoutMillis());
@@ -32,7 +30,7 @@ public class WebClientFactory {
     }
 
     public WebClient createStreamClient(HttpRuntimeConfig config) {
-        log.debug("Creating stream WebClient. maxConnections={}, connectTimeoutMillis={}, streamResponseTimeoutMillis={}",
+        log.debug("Creating stream WebClient. maxConn={}, connectTimeout={}, streamTimeout={}",
                 config.getMaxConnections(),
                 config.getConnectTimeoutMillis(),
                 config.getStreamResponseTimeoutMillis());

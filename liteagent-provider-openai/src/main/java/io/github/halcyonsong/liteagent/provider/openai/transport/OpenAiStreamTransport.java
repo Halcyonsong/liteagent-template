@@ -40,14 +40,11 @@ public class OpenAiStreamTransport {
         Objects.requireNonNull(apiKey, "apiKey must not be null");
         Objects.requireNonNull(rawRequest, "rawRequest must not be null");
 
-        log.debug(
-                "Sending OpenAI-compatible streaming HTTP request. endpoint={}, model={}, stream={}, messageCount={}, toolCount={}, hasToolChoice={}",
+        log.debug("Sending stream request. endpoint={}, model={}, msgs={}, tools={}",
                 endpoint,
                 rawRequest.getModel(),
-                rawRequest.getStream(),
                 rawRequest.getMessages() == null ? 0 : rawRequest.getMessages().size(),
-                rawRequest.getTools() == null ? 0 : rawRequest.getTools().size(),
-                rawRequest.getToolChoice() != null
+                rawRequest.getTools() == null ? 0 : rawRequest.getTools().size()
         );
 
         return webClient.post()
@@ -59,7 +56,7 @@ public class OpenAiStreamTransport {
                 .retrieve()
                 .bodyToFlux(new org.springframework.core.ParameterizedTypeReference<ServerSentEvent<String>>() {})
                 .doOnSubscribe(subscription -> log.debug(
-                        "Subscribed OpenAI-compatible streaming response. endpoint={}, model={}",
+                        "Subscribed stream. endpoint={}, model={}",
                         endpoint,
                         rawRequest.getModel()
                 ))
@@ -70,13 +67,12 @@ public class OpenAiStreamTransport {
                 .filter(data -> !"[DONE]".equals(data))
                 .map(this::deserializeChunk)
                 .doOnNext(chunk -> log.trace(
-                        "Received OpenAI-compatible streaming chunk. responseId={}, model={}, choiceCount={}",
+                        "Received chunk. id={}, choices={}",
                         chunk.getId(),
-                        chunk.getModel(),
                         chunk.getChoices() == null ? 0 : chunk.getChoices().size()
                 ))
                 .onErrorMap(WebClientResponseException.class, e -> {
-                    log.error("OpenAI-compatible streaming API error. endpoint={}, status={}, responseBody={}",
+                    log.error("Stream API error. endpoint={}, status={}, body={}",
                             endpoint,
                             e.getStatusCode(),
                             e.getResponseBodyAsString(),
@@ -86,17 +82,14 @@ public class OpenAiStreamTransport {
                 })
                 .onErrorMap(ModelException.class, e -> e)
                 .onErrorMap(e -> {
-                    log.error("Failed to call OpenAI-compatible streaming chat completion. endpoint={}, model={}",
-                            endpoint,
-                            rawRequest.getModel(),
-                            e);
+                    log.error("Stream call failed. endpoint={}, model={}", endpoint, rawRequest.getModel(), e);
                     if (e instanceof Error) {
                         return e;
                     }
                     return OpenAiErrorClassifier.classify((Exception) e, endpoint);
                 })
                 .doOnComplete(() -> log.debug(
-                        "Completed OpenAI-compatible streaming response. endpoint={}, model={}",
+                        "Stream completed. endpoint={}, model={}",
                         endpoint,
                         rawRequest.getModel()
                 ));

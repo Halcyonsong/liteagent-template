@@ -31,14 +31,11 @@ public class OpenAiChatTransport {
         Objects.requireNonNull(rawRequest, "rawRequest must not be null");
 
         try {
-            log.debug(
-                    "Sending OpenAI-compatible HTTP request. endpoint={}, model={}, stream={}, messageCount={}, toolCount={}, hasToolChoice={}",
+            log.debug("Sending request. endpoint={}, model={}, msgs={}, tools={}",
                     endpoint,
                     rawRequest.getModel(),
-                    rawRequest.getStream(),
                     rawRequest.getMessages() == null ? 0 : rawRequest.getMessages().size(),
-                    rawRequest.getTools() == null ? 0 : rawRequest.getTools().size(),
-                    rawRequest.getToolChoice() != null
+                    rawRequest.getTools() == null ? 0 : rawRequest.getTools().size()
             );
 
             OpenAiChatCompletionRawResponse rawResponse = webClient.post()
@@ -54,15 +51,14 @@ public class OpenAiChatTransport {
                 throw new ModelException("OpenAI response is null");
             }
 
-            log.debug("Received OpenAI-compatible HTTP response. endpoint={}, responseId={}, model={}, choiceCount={}",
+            log.debug("Received response. endpoint={}, id={}, choices={}",
                     endpoint,
                     rawResponse.getId(),
-                    rawResponse.getModel(),
                     rawResponse.getChoices() == null ? 0 : rawResponse.getChoices().size());
 
             return rawResponse;
         } catch (WebClientResponseException e) {
-            log.error("OpenAI-compatible API error. endpoint={}, status={}, responseBody={}",
+            log.error("API error. endpoint={}, status={}, body={}",
                     endpoint,
                     e.getStatusCode(),
                     e.getResponseBodyAsString(),
@@ -70,16 +66,10 @@ public class OpenAiChatTransport {
 
             throw OpenAiErrorClassifier.classify(e, endpoint);
         } catch (ModelException e) {
-            log.error("Model exception occurred while calling OpenAI-compatible API. endpoint={}, message={}",
-                    endpoint,
-                    e.getMessage(),
-                    e);
+            log.error("Model exception. endpoint={}, msg={}", endpoint, e.getMessage(), e);
             throw e;
         } catch (Exception e) {
-            log.error("Failed to call OpenAI-compatible chat completion. endpoint={}, model={}",
-                    endpoint,
-                    rawRequest.getModel(),
-                    e);
+            log.error("Call failed. endpoint={}, model={}", endpoint, rawRequest.getModel(), e);
             throw OpenAiErrorClassifier.classify(e, endpoint);
         }
     }

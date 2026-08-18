@@ -10,21 +10,12 @@ public final class JsonSupport {
     private JsonSupport() {
     }
 
-    /**
-     * 创建一个继承默认配置、可由调用方独立定制的 ObjectMapper。
-     *
-     * @return 独立的 ObjectMapper 副本
-     */
+    /** 创建一个继承默认配置、可由调用方独立定制的 ObjectMapper 副本。 */
     public static ObjectMapper createObjectMapper() {
         return OBJECT_MAPPER.copy();
     }
 
-    /**
-     * 将对象转换为 JSON 字符串。
-     * 主要用于调试，查看原始结构
-     * @param value 要转换的对象
-     * @return 对象的 JSON 字符串表示
-     */
+    /** 主要用于调试，查看原始结构。 */
     public static String toJson(Object value) {
         try {
             return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(value);
@@ -33,12 +24,7 @@ public final class JsonSupport {
         }
     }
 
-    /**
-     * 将对象转换为紧凑的 JSON 字符串。
-     * 主要用于快速查看
-     * @param value 要转换的对象
-     * @return 对象的紧凑 JSON 字符串表示
-     */
+    /** 主要用于快速查看。 */
     public static String toCompactJson(Object value) {
         try {
             return OBJECT_MAPPER.writeValueAsString(value);

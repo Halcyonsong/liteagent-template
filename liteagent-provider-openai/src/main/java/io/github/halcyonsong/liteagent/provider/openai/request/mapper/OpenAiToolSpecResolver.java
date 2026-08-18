@@ -11,16 +11,14 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * OpenAI-compatible 工具定义解析器。
- * <p>
- * 负责将 core 层注册的工具定义转换为 OpenAI-compatible tools 请求结构。
+ * OpenAI-compatible 工具定义解析器。将 core 层工具定义转换为 tools 请求结构。
  */
 @Slf4j
 public class OpenAiToolSpecResolver {
 
     public List<OpenAiToolSpec> resolve(ToolRegistry registry) {
         Objects.requireNonNull(registry, "registry must not be null");
-        log.debug("Resolving tool registry definition to OpenAI tool specs. definitionCount={}",
+        log.debug("Resolving tool definitions. definitions={}",
                 registry.getAll().size());
         return registry.getAll().stream()
                 .map(this::resolve)
@@ -29,8 +27,7 @@ public class OpenAiToolSpecResolver {
 
     public OpenAiToolSpec resolve(ToolDefinition tool) {
         Objects.requireNonNull(tool, "tool must not be null");
-        log.debug("Converted tool registry definition to OpenAI tool specs. definitionName={}",
-                tool.getName());
+        log.debug("Converted tool definition. name={}", tool.getName());
         return OpenAiToolSpec.function(
                 OpenAiFunctionSpec.of(
                         tool.getName(),

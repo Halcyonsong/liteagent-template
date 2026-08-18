@@ -16,9 +16,7 @@ final class OpenAiErrorClassifier {
 
     private OpenAiErrorClassifier() {}
 
-    /**
-     * 根据 HTTP 状态码 + 异常信息构建分类异常。
-     */
+    /** 根据 HTTP 状态码和异常信息构建分类异常。 */
     static ModelException classify(WebClientResponseException e, String endpoint) {
         int status = e.getStatusCode().value();
         ErrorCode code = mapHttpStatus(status);
@@ -28,9 +26,7 @@ final class OpenAiErrorClassifier {
         return new ModelException(code, msg, e);
     }
 
-    /**
-     * 将非 HTTP 异常（连接超时、DNS 失败等）映射为分类异常。
-     */
+    /** 将非 HTTP 异常（连接超时、DNS 失败等）映射为分类异常。 */
     static ModelException classify(Exception e, String endpoint) {
         ErrorCode code = mapNetworkException(e);
         String msg = "Failed to call OpenAI API: endpoint=" + endpoint;

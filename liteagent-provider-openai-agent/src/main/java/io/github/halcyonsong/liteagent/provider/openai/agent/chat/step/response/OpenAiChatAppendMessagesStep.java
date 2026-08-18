@@ -9,11 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Objects;
 
 /**
- * 将当前轮 pending assistant/tool 消息按顺序写入 workingMessages。
- * <p>
- * 无工具结果时结束本轮并进入 BUILD_RESULT；
- * 有工具结果时递增 iteration 并进入下一轮。
- * 有工具结果但超过 maxIterations 时也走 BUILD_RESULT。
+ * 将当前轮 pending assistant/tool 消息写入 workingMessages。无工具结果时进入 BUILD_RESULT；有工具结果时递增 iteration 进入下一轮，超过 maxIterations 时也走 BUILD_RESULT。
  */
 @Slf4j
 public class OpenAiChatAppendMessagesStep implements ChatStep {
@@ -31,13 +27,7 @@ public class OpenAiChatAppendMessagesStep implements ChatStep {
         context.clearPendingMessages();
 
         log.debug(
-                "Appended chat pending messages. " +
-                        "executionId={}, " +
-                        "iteration={}, " +
-                        "appendedAssistantCount={}, " +
-                        "appendedToolCount={}, " +
-                        "workingMessageCount={}, " +
-                        "hasToolMessages={}",
+                "Appended pending messages. execId={}, iter={}, assistant={}, tool={}, total={}, hasToolMsgs={}",
                 context.getExecutionId(),
                 context.getIteration(),
                 assistantCount,
@@ -54,7 +44,7 @@ public class OpenAiChatAppendMessagesStep implements ChatStep {
 
         if (context.getIteration() >= context.getMaxIterations()) {
             log.warn(
-                    "Chat max iterations reached. executionId={}, iteration={}, maxIterations={}",
+                    "Max iterations reached. execId={}, iter={}, max={}",
                     context.getExecutionId(),
                     context.getIteration(),
                     context.getMaxIterations()

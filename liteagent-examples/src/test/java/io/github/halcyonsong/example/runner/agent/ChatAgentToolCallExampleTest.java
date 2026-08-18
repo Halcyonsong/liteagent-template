@@ -6,13 +6,6 @@ import io.github.halcyonsong.example.support.Printers;
 import io.github.halcyonsong.liteagent.core.message.type.AssistantResponseMessage;
 import io.github.halcyonsong.liteagent.core.message.type.constructor.Messages;
 import io.github.halcyonsong.liteagent.core.model.request.impl.ChatRequest;
-import io.github.halcyonsong.liteagent.core.tool.annotation.ToolComponent;
-import io.github.halcyonsong.liteagent.core.tool.annotation.ToolMethod;
-import io.github.halcyonsong.liteagent.core.tool.annotation.ToolParam;
-import io.github.halcyonsong.liteagent.core.tool.impl.ToolRegistries;
-import io.github.halcyonsong.liteagent.core.tool.norm.ToolRegistry;
-import io.github.halcyonsong.liteagent.provider.openai.agent.chat.OpenAiChatAgent;
-import io.github.halcyonsong.liteagent.provider.openai.agent.chat.factory.OpenAiChatAgents;
 import io.github.halcyonsong.liteagent.provider.openai.advisor.OpenAiRegistryToolsAdvisor;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiChatCompletionRequest;
 import io.github.halcyonsong.liteagent.provider.openai.request.config.OpenAiCompletionOptions;
@@ -20,6 +13,9 @@ import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.Open
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
+/**
+ * Chat Agent + 工具调用示例：注入 {@code toolRegistry}，通过 {@code OpenAiRegistryToolsAdvisor} 在请求级注入工具。
+ */
 @SpringBootTest(classes = OpenAiConfig.class)
 class ChatAgentToolCallExampleTest extends OpenAiExampleSupport {
 
@@ -27,26 +23,22 @@ class ChatAgentToolCallExampleTest extends OpenAiExampleSupport {
     void chat_agent_should_execute_multi_round_tool_calls() {
         assumeConfigReady();
 
-        ToolRegistry registry = ToolRegistries.inMemory(new WeatherTools());
-
-        OpenAiChatAgent agent = OpenAiChatAgents.create(buildRuntimeConfig());
-
         ChatRequest chatRequest = ChatRequest.builder()
                 .addMessage(Messages.system("你是一位助手，请使用提供的工具回答用户的问题。"))
                 .addMessage(Messages.user("北京和上海今天天气怎么样？"))
                 .build();
 
         OpenAiChatCompletionRequest request = OpenAiChatCompletionRequest.builder()
-                .baseRequest(createBaseRequest())
+                .baseRequest(baseRequest)
                 .chatRequest(chatRequest)
                 .completionOptions(OpenAiCompletionOptions.builder()
                         .temperature(0.0)
                         .maxTokens(512)
                         .build())
-                .requestAdvisor(new OpenAiRegistryToolsAdvisor(registry))
+                .requestAdvisor(new OpenAiRegistryToolsAdvisor(toolRegistry))
                 .build();
 
-        OpenAiChatCompletionResponse response = agent.execute(request);
+        OpenAiChatCompletionResponse response = chatAgent.execute(request);
         Printers.printChatResponse(response);
 
         response.getChoices().forEach(choice ->
@@ -59,16 +51,5 @@ class ChatAgentToolCallExampleTest extends OpenAiExampleSupport {
                     }
                 })
         );
-    }
-
-    @ToolComponent
-    public static class WeatherTools {
-
-        @ToolMethod(name = "get_weather", description = "获取指定城市的当前天气信息")
-        public String getWeather(
-                @ToolParam(description = "城市名称，例如：北京") String city
-        ) {
-            return city + "：晴，气温 28°C，湿度 45%";
-        }
     }
 }

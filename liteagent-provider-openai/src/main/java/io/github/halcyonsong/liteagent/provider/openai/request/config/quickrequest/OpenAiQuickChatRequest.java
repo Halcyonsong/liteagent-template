@@ -10,19 +10,12 @@ import lombok.Getter;
 import java.util.Objects;
 
 /**
- * OpenAI-compatible 快速构造入口。
- * <p>
- * 适合示例、测试或简单调用场景，
- * 最终通过 toChatCompletion() 转换为标准的 OpenAiChatCompletionRequest。
+ * OpenAI-compatible 快速构造入口。适合示例、测试或简单调用场景。
  */
 @Getter
 public class OpenAiQuickChatRequest implements JsonSerializable {
 
-    /**
-     * 当前会话 ID。
-     * 作为会话的唯一标识，用于关联记忆窗口。
-     * 允许为空，不使用记忆窗口。
-     */
+    /** 当前会话 ID，用于关联记忆窗口。允许为空。 */
     private final String sessionId;
 
     private final String baseUrl;
@@ -40,9 +33,7 @@ public class OpenAiQuickChatRequest implements JsonSerializable {
         this.systemMessage = builder.systemMessage;
     }
 
-    /**
-     * 转换为完整的 OpenAI provider 基础请求对象。
-     */
+    /** 转换为完整的 OpenAI provider 基础请求对象。 */
     public OpenAiBaseRequest toOpenAiBaseRequest() {
         return OpenAiBaseRequest.builder()
                 .baseUrl(baseUrl)
@@ -51,9 +42,7 @@ public class OpenAiQuickChatRequest implements JsonSerializable {
                 .build();
     }
 
-    /**
-     * 转换为完整的聊天消息请求对象。
-     */
+    /** 转换为完整的聊天消息请求对象。 */
     public ChatRequest toChatRequest() {
         ChatRequest.Builder builder = ChatRequest.builder()
                 .sessionId(sessionId);
@@ -66,11 +55,7 @@ public class OpenAiQuickChatRequest implements JsonSerializable {
         return builder.build();
     }
 
-    /**
-     * 转换为完整的 OpenAI-compatible provider 请求对象。
-     * <p>
-     * 当前快速构造场景不包含 completionOptions，默认使用 null。
-     */
+    /** 转换为完整的 OpenAI-compatible provider 请求对象。快速构造场景不含 completionOptions。 */
     public OpenAiChatCompletionRequest toChatCompletion() {
         return OpenAiChatCompletionRequest.builder()
                 .baseRequest(toOpenAiBaseRequest())

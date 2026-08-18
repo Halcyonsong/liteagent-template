@@ -16,10 +16,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * OpenAI-compatible chat 请求映射器。
- * <p>
- * 负责将编排层 ChatRequest 转换为 OpenAI raw request，
- * 同时保留 assistant tool_calls 和 tool tool_call_id 等协议字段。
+ * OpenAI-compatible chat 请求映射器。将编排层 ChatRequest 转换为 raw request，
+ * 保留 assistant tool_calls 和 tool tool_call_id 等协议字段。
  */
 @Slf4j
 public class OpenAiChatRequestMapper {
@@ -38,19 +36,15 @@ public class OpenAiChatRequestMapper {
         rawRequest.setFrequencyPenalty(options == null ? null : options.getFrequencyPenalty());
         rawRequest.setResponseFormat(options == null ? null : options.getResponseFormat());
         rawRequest.setStop(options == null || options.getStop() == null ? null : options.getStop().toRawValue());
-        log.debug(
-                "Mapped OpenAI chat request. model={}, messageCount={}, hasOptions={}",
+        log.debug("Mapped request. model={}, msgs={}",
                 rawRequest.getModel(),
-                rawRequest.getMessages() == null ? 0 : rawRequest.getMessages().size(),
-                options != null
+                rawRequest.getMessages() == null ? 0 : rawRequest.getMessages().size()
         );
         return rawRequest;
     }
 
     /**
-     * 映射消息列表到 OpenAI wire format。
-     * <p>
-     * 除 role/content 外，还保留 assistant 的 tool_calls 和 tool 消息的 tool_call_id。
+     * 映射消息列表到 OpenAI wire format，保留 assistant tool_calls 和 tool tool_call_id。
      */
     private List<Map<String, Object>> mapMessages(List<Message> messages) {
         List<Map<String, Object>> result = new ArrayList<>();

@@ -8,13 +8,7 @@ import io.github.halcyonsong.liteagent.provider.openai.response.config.chat.Open
 import java.util.Objects;
 
 /**
- * OpenAI-compatible 同步 chat agent 门面。
- * <p>
- * 该类在通用 chat 执行器之上，
- * 提供面向 OpenAI-compatible provider 的调用入口。
- * <p>
- * 当前实现只负责普通 chat 编排，
- * 并返回 OpenAI provider 的响应对象。
+ * OpenAI-compatible 同步 chat agent 门面，在通用 chat 执行器之上提供面向 OpenAI-compatible provider 的调用入口。
  */
 public class OpenAiChatAgent {
 

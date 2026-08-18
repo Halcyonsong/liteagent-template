@@ -33,11 +33,7 @@ public class OpenAiChatBuildResultStep implements ChatStep {
         }
 
         log.debug(
-                "Built chat result. " +
-                        "executionId={}, " +
-                        "iteration={}, " +
-                        "terminationReason={}, " +
-                        "responseId={}",
+                "Built result. execId={}, iter={}, reason={}, respId={}",
                 context.getExecutionId(),
                 context.getIteration(),
                 context.getTerminationReason(),

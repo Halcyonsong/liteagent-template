@@ -13,9 +13,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * OpenAI tool call 解析辅助类。
- * <p>
- * 负责从 chat 响应中提取 assistant 消息、tool calls 和工具执行请求。
+ * OpenAI tool call 解析辅助类，从 chat 响应中提取 assistant 消息、tool calls 和工具执行请求。
  */
 public final class OpenAiToolCallSupport {
 
@@ -23,9 +21,7 @@ public final class OpenAiToolCallSupport {
     }
 
     /**
-     * 判断是否存在任意一个 assistant message 带有 tool calls。
-     * <p>
-     * 找到即返回，适合用于 ANALYZE_RESPONSE 的快速分支判断。
+     * 判断是否存在任意一个 assistant message 带有 tool calls，适合用于 ANALYZE_RESPONSE 的快速分支判断。
      */
     public static boolean hasAnyToolCalls(OpenAiChatCompletionResponse response) {
         if (response == null || response.getChoices() == null || response.getChoices().isEmpty()) {
@@ -55,9 +51,7 @@ public final class OpenAiToolCallSupport {
     }
 
     /**
-     * 收集当前响应中的全部 assistant 消息。
-     * <p>
-     * 这些消息会在后续步骤中写入 workingMessages。
+     * 收集当前响应中的全部 assistant 消息，会在后续步骤中写入 workingMessages。
      */
     public static List<ToolCall> collectAllToolCalls(OpenAiChatCompletionResponse response) {
         if (response == null || response.getChoices() == null || response.getChoices().isEmpty()) {
@@ -89,10 +83,7 @@ public final class OpenAiToolCallSupport {
     }
 
     /**
-     * 收集所有 assistant message 中的完整工具执行请求。
-     * <p>
-     * 保留 index / id / type / function 全部字段，
-     * 后续执行层内部可自行决定取舍。
+     * 收集所有 assistant message 中的完整工具执行请求，保留 index / id / type / function 全部字段。
      */
     public static List<ToolExecutionRequest> collectExecutionRequests(OpenAiChatCompletionResponse response) {
         List<ToolCall> toolCalls = collectAllToolCalls(response);
@@ -111,10 +102,7 @@ public final class OpenAiToolCallSupport {
     }
 
     /**
-     * 收集全部 assistant 响应消息。
-     * <p>
-     * 后续如果 EXECUTE_TOOL 需要把原 assistant 消息回写到 workingMessages，
-     * 可以直接复用这个方法。
+     * 收集全部 assistant 响应消息，可供 EXECUTE_TOOL 回写原 assistant 消息到 workingMessages 时复用。
      */
     public static List<AssistantResponseMessage> collectAssistantMessages(OpenAiChatCompletionResponse response) {
         if (response == null || response.getChoices() == null || response.getChoices().isEmpty()) {

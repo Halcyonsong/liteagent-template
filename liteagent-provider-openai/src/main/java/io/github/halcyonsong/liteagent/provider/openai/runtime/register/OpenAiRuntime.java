@@ -1,14 +1,11 @@
-// runtime/OpenAiRuntime.java
 package io.github.halcyonsong.liteagent.provider.openai.runtime.register;
 
 import io.github.halcyonsong.liteagent.provider.openai.runtime.config.HttpRuntimeConfig;
 import org.springframework.web.reactive.function.client.WebClient;
 
 /**
- * 全局共享的 WebClient 运行时。
- * <p>
- * 持有唯一的 WebClientRegistry 实例，chat 和 stream 共享同一份缓存。
- * 非 Spring 场景直接使用静态方法；Spring 场景可忽略此类，自行注入 WebClientRegistry Bean。
+ * 全局共享的 WebClient 运行时。持有唯一 WebClientRegistry，chat 和 stream 共享缓存。
+ * 非 Spring 场景直接用静态方法；Spring 场景可自行注入 WebClientRegistry Bean。
  */
 public final class OpenAiRuntime {
 

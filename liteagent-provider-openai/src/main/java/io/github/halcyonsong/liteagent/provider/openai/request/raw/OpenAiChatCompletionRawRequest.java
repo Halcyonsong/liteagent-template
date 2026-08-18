@@ -11,10 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * OpenAI-compatible chat completions 原始请求体。
- * <p>
- * 该类字段与实际发送到远端接口的 JSON 请求结构一一对应，
- * 用于 provider 层发起 HTTP 调用，不直接作为 core 通用请求模型对外暴露。
+ * OpenAI-compatible chat completions 原始请求体。字段与远端 JSON 请求结构一一对应。
  */
 @Setter
 @Getter
@@ -31,12 +28,7 @@ public class OpenAiChatCompletionRawRequest implements JsonSerializable {
     @JsonProperty("stream")
     private Boolean stream;
 
-    /**
-     * 流式请求选项。
-     * <p>
-     * 仅在 stream=true 时生效，用于控制流式响应的附加行为。
-     * 目前用于开启 usage 统计返回。
-     */
+    /** 流式请求选项，仅在 stream=true 时生效。目前用于开启 usage 统计返回。 */
     @JsonProperty("stream_options")
     private Map<String, Object> streamOptions;
 
@@ -52,9 +44,7 @@ public class OpenAiChatCompletionRawRequest implements JsonSerializable {
     @JsonProperty("n")
     private Integer n;
 
-    /**
-     * 停止生成序列，可以是单个字符串或字符串数组。
-     */
+    /** 停止生成序列，单个字符串或字符串数组。 */
     @JsonProperty("stop")
     private Object stop;
 
@@ -64,18 +54,11 @@ public class OpenAiChatCompletionRawRequest implements JsonSerializable {
     @JsonProperty("frequency_penalty")
     private Double frequencyPenalty;
 
-    /**
-     * 指定模型输出格式，例如强制返回 JSON 对象。
-     */
+    /** 指定模型输出格式，例如强制返回 JSON 对象。 */
     @JsonProperty("response_format")
     private Map<String, Object> responseFormat;
 
-    /**
-     * 工具定义列表。
-     * <p>
-     * 该字段用于向 OpenAI-compatible 协议声明本次请求可用的工具。
-     * 具体结构后续可再细化，目前先保留为通用 JSON 容器。
-     */
+    /** 工具定义列表，声明本次请求可用的工具。 */
     @JsonProperty("tools")
     private List<Map<String, Object>> tools;
 

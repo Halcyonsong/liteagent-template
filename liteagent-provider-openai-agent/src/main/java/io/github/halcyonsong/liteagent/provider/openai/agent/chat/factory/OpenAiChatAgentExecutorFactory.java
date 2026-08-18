@@ -24,9 +24,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * OpenAI chat 编排执行器工厂。
- * <p>
- * 负责组装 chat 主链路所需的 step，并生成可执行的 ChatAgentExecutor。
+ * OpenAI chat 编排执行器工厂，组装 chat 主链路所需的 step 并生成可执行的 ChatAgentExecutor。
  */
 public class OpenAiChatAgentExecutorFactory {
 
@@ -70,10 +68,6 @@ public class OpenAiChatAgentExecutorFactory {
 
     /**
      * 组装 OpenAI chat 步骤注册表并创建执行器，允许指定最大迭代轮次。
-     *
-     * @param hooks          步骤钩子列表
-     * @param maxStepCount   agent 编排最大步骤数（防止无限循环）
-     * @param maxIterations  最大模型调用轮次（防止无限工具调用循环）
      */
     public ChatAgentExecutor create(List<StepHook> hooks, int maxStepCount, int maxIterations) {
         Map<ChatStepKey, ChatStep> steps = new HashMap<>();

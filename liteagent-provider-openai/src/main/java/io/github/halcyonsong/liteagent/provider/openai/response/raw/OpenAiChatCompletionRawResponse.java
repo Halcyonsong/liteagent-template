@@ -12,10 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * OpenAI-compatible chat completions 原始响应体。
- * <p>
- * 该类字段与远端返回的 JSON 结构一一对应，
- * 用于接收原始协议响应，并在后续映射为 provider 包装响应对象。
+ * OpenAI-compatible chat completions 原始响应体。字段与远端返回的 JSON 结构一一对应。
  */
 @Setter
 @Getter
@@ -44,10 +41,7 @@ public class OpenAiChatCompletionRawResponse implements JsonSerializable {
     @JsonProperty("system_fingerprint")
     private String systemFingerprint;
 
-    /**
-     * 某些 OpenAI-compatible 供应商可能返回的扩展字段。
-     * 结构不统一，先按原始 map 接收。
-     */
+    /** 某些供应商返回的扩展字段，结构不统一，按原始 map 接收。 */
     @JsonProperty("base_resp")
     private Map<String, Object> baseResp;
 
@@ -62,12 +56,7 @@ public class OpenAiChatCompletionRawResponse implements JsonSerializable {
                 '}';
     }
 
-    /**
-     * 原始响应中的单条 choice 结构。
-     * <p>
-     * 普通响应使用 message；
-     * 流式 chunk 使用 delta。
-     */
+    /** 原始响应中的单条 choice 结构。普通响应用 message，流式 chunk 用 delta。 */
     @Setter
     @Getter
     @ToString
@@ -89,11 +78,7 @@ public class OpenAiChatCompletionRawResponse implements JsonSerializable {
 
     }
 
-    /**
-     * 原始响应中的 message/delta 结构。
-     * <p>
-     * 普通响应和流式 chunk 均可复用该结构。
-     */
+    /** 原始响应中的 message/delta 结构，普通响应和流式 chunk 均可复用。 */
     @Setter
     @Getter
     @ToString
@@ -151,9 +136,7 @@ public class OpenAiChatCompletionRawResponse implements JsonSerializable {
 
     }
 
-    /**
-     * 原始响应中的 token 用量结构。
-     */
+    /** 原始响应中的 token 用量结构。 */
     @Setter
     @Getter
     @ToString

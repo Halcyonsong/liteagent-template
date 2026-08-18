@@ -14,9 +14,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * 将 ToolRegistry 解析为 OpenAI tools 并写入 rawRequest。
- * <p>
- * 只负责工具定义注入，不负责工具执行。
+ * 将 ToolRegistry 解析为 OpenAI tools 并写入 rawRequest。只负责工具定义注入，不负责工具执行。
  */
 @Getter
 @Slf4j
@@ -39,13 +37,13 @@ public class OpenAiRegistryToolsAdvisor implements RequestAdvisor<OpenAiChatComp
     public void enhance(OpenAiChatCompletionRequest request,
                         OpenAiChatCompletionRawRequest rawRequest) {
         List<OpenAiToolSpec> tools = resolver.resolve(registry);
-        log.debug("Resolved OpenAI tools from registry. toolCount={}, toolNames={}",
+        log.debug("Resolved tools. tools={}, names={}",
                 tools.size(),
                 tools.stream()
                         .map(tool -> tool.getFunction().getName())
                         .toList());
         if (tools.isEmpty()) {
-            log.debug("No tools resolved from registry, skipping OpenAI tools injection.");
+            log.debug("No tools resolved, skipping injection.");
             return;
         }
 

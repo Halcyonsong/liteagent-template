@@ -17,10 +17,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 单次 chat 编排调用的上下文。
- * <p>
- * 该对象只在一次 execute 调用内使用，不跨请求复用。
- * 它承载本次执行的输入、工作态消息、扩展属性、工具注册表和最终结果。
+ * 单次 chat 编排调用的上下文，只在一次 execute 调用内使用，不跨请求复用。
  */
 @Getter
 public class ChatAgentContext {
@@ -33,20 +30,14 @@ public class ChatAgentContext {
     @Setter
     private Result result;
 
-    /**
-     * 当前编排可用的工具注册表，由初始化阶段的增强器写入。
-     */
+    /** 由初始化阶段的增强器写入。 */
     @Setter
     private ToolRegistry toolRegistry;
 
-    /**
-     * 当前轮待统一追加到 workingMessages 的 assistant 消息缓存。
-     */
+    /** 当前轮待统一追加到 workingMessages 的 assistant 消息缓存。 */
     private final List<Message> pendingAssistantMessages = new ArrayList<>();
 
-    /**
-     * 当前轮待统一追加到 workingMessages 的 tool 消息缓存。
-     */
+    /** 当前轮待统一追加到 workingMessages 的 tool 消息缓存。 */
     private final List<ToolMessage> pendingToolMessages = new ArrayList<>();
 
     private volatile int iteration;

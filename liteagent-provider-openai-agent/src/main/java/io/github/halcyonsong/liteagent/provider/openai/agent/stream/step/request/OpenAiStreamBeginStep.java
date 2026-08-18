@@ -15,15 +15,15 @@ public class OpenAiStreamBeginStep implements StreamSyncStep {
     public StreamStepKey invoke(StreamAgentContext<?> context) {
         if (context.getIteration() == 0) {
             if (context.getWorkingMessages().isEmpty()) {
-                log.info("workingMessages is empty, init it");
+                log.debug("workingMessages empty, init");
                 return StreamStepKey.INIT_WORKING_MESSAGES;
             }
             if (context.getToolRegistry() == null) {
-                log.info("toolRegistry is null, init it");
+                log.debug("toolRegistry null, init");
                 return StreamStepKey.INIT_TOOL_REGISTRY;
             }
         }
-        log.info("map request");
+        log.debug("map request");
         return StreamStepKey.MAP_REQUEST;
     }
 }

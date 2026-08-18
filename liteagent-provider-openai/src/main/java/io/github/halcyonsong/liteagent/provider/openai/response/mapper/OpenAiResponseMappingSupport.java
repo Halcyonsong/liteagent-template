@@ -12,9 +12,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * OpenAI 响应字段映射辅助类。
- * <p>
- * 这里只做协议字段到统一模型的转换，不负责跨 chunk 聚合或业务编排。
+ * OpenAI 响应字段映射辅助类。只做协议字段到统一模型的转换，不负责跨 chunk 聚合。
  */
 public class OpenAiResponseMappingSupport {
 

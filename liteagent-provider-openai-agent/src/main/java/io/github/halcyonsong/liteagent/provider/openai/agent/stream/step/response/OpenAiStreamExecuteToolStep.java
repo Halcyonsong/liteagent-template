@@ -18,10 +18,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * 执行当前轮流式响应中的全部工具调用。
- * <p>
- * 该步骤只把工具结果写入当前轮 pending 区，
- * 不直接修改 workingMessages。
+ * 执行当前轮流式响应中的全部工具调用，只把工具结果写入当前轮 pending 区，不直接修改 workingMessages。
  */
 @Slf4j
 public class OpenAiStreamExecuteToolStep implements StreamSyncStep {
@@ -46,9 +43,7 @@ public class OpenAiStreamExecuteToolStep implements StreamSyncStep {
         ToolRegistry registry = context.getToolRegistry();
         if (registry == null) {
             log.warn(
-                    "Stream tool execution requested but tool registry is missing. " +
-                            "executionId={}, " +
-                            "roundIndex={}",
+                    "Tool execution requested but registry missing. execId={}, round={}",
                     context.getExecutionId(),
                     context.currentRound().getRoundIndex()
             );
@@ -68,7 +63,7 @@ public class OpenAiStreamExecuteToolStep implements StreamSyncStep {
                 OpenAiStreamToolCallSupport.collectExecutionRequests(response);
 
         log.debug(
-                "Collected stream tool execution requests. executionId={}, roundIndex={}, requestCount={}",
+                "Collected tool requests. execId={}, round={}, reqs={}",
                 context.getExecutionId(),
                 context.currentRound().getRoundIndex(),
                 requests.size()
@@ -89,7 +84,7 @@ public class OpenAiStreamExecuteToolStep implements StreamSyncStep {
             context.setTerminationReason(AgentTerminationReason.TOOL_ERROR);
 
             log.error(
-                    "Failed to execute stream tools. executionId={}, roundIndex={}, toolRequestCount={}",
+                    "Failed to execute tools. execId={}, round={}, reqs={}",
                     context.getExecutionId(),
                     roundState.getRoundIndex(),
                     requests.size(),
@@ -100,7 +95,7 @@ public class OpenAiStreamExecuteToolStep implements StreamSyncStep {
         }
 
         log.debug(
-                "Executed stream tools. executionId={}, roundIndex={}, toolMessageCount={}",
+                "Executed tools. execId={}, round={}, toolMsgs={}",
                 context.getExecutionId(),
                 context.currentRound().getRoundIndex(),
                 context.currentRound().getPendingToolMessages().size()

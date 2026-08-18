@@ -14,22 +14,11 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ToolParam {
 
-    /**
-     * 参数名。
-     * <p>
-     * 不填时优先使用反射参数名。
-     */
+    /** 不填时优先使用反射参数名。 */
     String name() default "";
 
-    /**
-     * 参数描述。
-     */
     String description() default "";
 
-    /**
-     * 是否必填。
-     * <p>
-     * 默认必填；如果是可选参数，显式设置为 false。
-     */
+    /** 默认必填；如果是可选参数，显式设置为 false。 */
     boolean required() default true;
 }

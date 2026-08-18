@@ -7,9 +7,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 工具组件标记。
- * <p>
- * 只有标记了该注解的类，才会被工具注册器扫描并处理。
+ * 工具组件标记，只有标记了该注解的类才会被工具注册器扫描。
  */
 @Documented
 @Target(ElementType.TYPE)

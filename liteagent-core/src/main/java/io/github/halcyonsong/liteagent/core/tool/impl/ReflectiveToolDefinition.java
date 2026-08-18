@@ -10,11 +10,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * 基于反射的可执行工具定义。
- * <p>
- * 同时用于：
- * 1. 向模型暴露工具静态描述
- * 2. 运行时反射执行工具方法
+ * 基于反射的可执行工具定义，既用于向模型暴露静态描述，也用于运行时反射执行。
  */
 @Getter
 public class ReflectiveToolDefinition implements ExecutableToolDefinition {

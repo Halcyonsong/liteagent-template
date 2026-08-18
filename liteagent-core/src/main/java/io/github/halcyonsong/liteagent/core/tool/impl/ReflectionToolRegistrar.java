@@ -16,9 +16,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * 基于反射的可执行工具定义。
- * <p>
- * 既用于向模型暴露 schema，也用于运行时反射执行。
+ * 基于反射的工具注册器，向模型暴露 schema 并支持运行时反射执行。
  */
 public class ReflectionToolRegistrar implements ToolRegistrar {
 

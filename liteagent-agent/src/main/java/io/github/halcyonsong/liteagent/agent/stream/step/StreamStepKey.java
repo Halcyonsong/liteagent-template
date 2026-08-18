@@ -1,14 +1,7 @@
 package io.github.halcyonsong.liteagent.agent.stream.step;
 
 /**
- * 流式编排步骤标识。
- * <p>
- * 以接口形式定义，内置常量覆盖标准流式编排流程，
- * 同时允许调用方通过 {@link #of(String)} 创建自定义 key，
- * 将自定义步骤插入链路。
- * <p>
- * 内置常量均为单例，建议使用 {@code equals} 比较；
- * 自定义 key 基于 name 做相等性判断。
+ * 流式编排步骤标识。内置常量覆盖标准流式编排流程，也支持通过 {@link #of(String)} 创建自定义 key。
  */
 public interface StreamStepKey {
 
@@ -37,14 +30,7 @@ public interface StreamStepKey {
 
     // ─── 自定义 key 工厂 ───────────────────────────────────────
 
-    /**
-     * 创建自定义步骤标识。
-     * <p>
-     * 两个相同 name 的 key 视为相等，可用于在步骤注册表中查找。
-     *
-     * @param name 步骤标识名称，不可为 blank
-     * @return 新的步骤标识实例
-     */
+    /** 两个相同 name 的 key 视为相等。 */
     static StreamStepKey of(String name) {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("name must not be blank");

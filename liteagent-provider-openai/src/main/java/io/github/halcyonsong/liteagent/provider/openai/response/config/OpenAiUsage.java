@@ -7,9 +7,7 @@ import lombok.ToString;
 import java.util.Map;
 
 /**
- * OpenAI-compatible provider 专属 usage。
- * <p>
- * 在 core 统一 usage 之外，额外保留 provider 特有或扩展字段。
+ * OpenAI-compatible provider 专属 usage，在 core 统一 usage 之外保留扩展字段。
  */
 @Getter
 @ToString

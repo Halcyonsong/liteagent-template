@@ -14,13 +14,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ToolMethod {
 
-    /**
-     * 工具名称。
-     */
     String name();
 
-    /**
-     * 工具描述。
-     */
     String description() default "";
 }

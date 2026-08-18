@@ -13,9 +13,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * OpenAI 同步 Agent 构造器。
- * <p>
- * 用于集中配置 HTTP 客户端来源、步骤 Hook 和执行限制。
+ * OpenAI 同步 Agent 构造器，集中配置 HTTP 客户端来源、步骤 Hook 和执行限制。
  */
 public final class OpenAiChatAgentBuilder {
 
@@ -67,11 +65,7 @@ public final class OpenAiChatAgentBuilder {
     }
 
     /**
-     * 指定自定义工具执行器。
-     * 未设置时使用默认的 ReflectionToolExecutor。
-     *
-     * @param toolExecutor 工具执行器实例
-     * @return 当前构造器
+     * 指定自定义工具执行器，未设置时使用默认的 ReflectionToolExecutor。
      */
     public OpenAiChatAgentBuilder toolExecutor(ToolExecutor toolExecutor) {
         this.toolExecutor = Objects.requireNonNull(toolExecutor, "toolExecutor must not be null");

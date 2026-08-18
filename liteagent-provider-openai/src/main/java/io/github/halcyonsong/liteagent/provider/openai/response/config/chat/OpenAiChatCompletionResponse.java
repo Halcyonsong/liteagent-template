@@ -11,9 +11,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * OpenAI-compatible chat completions 响应包装对象。
- * <p>
- * 该对象保留 provider 层语义，封装基础响应信息、候选结果列表以及 token 用量，
+ * OpenAI-compatible chat completions 响应包装对象，封装基础响应、候选结果及 token 用量。
  */
 @Getter
 public class OpenAiChatCompletionResponse implements Result, JsonSerializable {

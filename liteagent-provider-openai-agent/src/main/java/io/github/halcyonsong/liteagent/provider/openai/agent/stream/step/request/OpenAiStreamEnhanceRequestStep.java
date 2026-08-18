@@ -36,7 +36,7 @@ public class OpenAiStreamEnhanceRequestStep implements StreamSyncStep {
         rawRequest.setStreamOptions(Map.of("include_usage", true));
 
         log.debug(
-                "Enhanced stream request. executionId={}, iteration={}, requestAdvisorCount={}, stream={}",
+                "Enhanced stream request. execId={}, iter={}, advisors={}, stream={}",
                 context.getExecutionId(),
                 context.getIteration(),
                 providerRequest.getRequestAdvisors() == null ? 0 : providerRequest.getRequestAdvisors().size(),

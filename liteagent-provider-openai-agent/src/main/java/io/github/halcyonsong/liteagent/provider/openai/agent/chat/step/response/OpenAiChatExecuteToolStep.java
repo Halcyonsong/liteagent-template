@@ -19,10 +19,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * 执行当前轮 chat 响应中的全部工具调用。
- * <p>
- * 该步骤只负责填充 pending assistant/tool 消息，
- * 不直接写入 workingMessages。
+ * 执行当前轮 chat 响应中的全部工具调用，只填充 pending assistant/tool 消息，不直接写入 workingMessages。
  */
 @Slf4j
 public class OpenAiChatExecuteToolStep implements ChatStep {
@@ -46,7 +43,7 @@ public class OpenAiChatExecuteToolStep implements ChatStep {
 
         if (response == null) {
             log.warn(
-                    "Chat tool execution requested but response is missing. executionId={}, iteration={}",
+                    "Tool execution requested but response missing. execId={}, iter={}",
                     context.getExecutionId(),
                     context.getIteration()
             );
@@ -58,7 +55,7 @@ public class OpenAiChatExecuteToolStep implements ChatStep {
 
         if (toolRegistry == null) {
             log.warn(
-                    "Chat tool execution requested but tool registry is missing. executionId={}, iteration={}",
+                    "Tool execution requested but registry missing. execId={}, iter={}",
                     context.getExecutionId(),
                     context.getIteration()
             );
@@ -69,7 +66,7 @@ public class OpenAiChatExecuteToolStep implements ChatStep {
         List<ToolExecutionRequest> executionRequests = OpenAiToolCallSupport.collectExecutionRequests(response);
 
         log.debug(
-                "Collected chat tool execution requests. executionId={}, iteration={}, requestCount={}",
+                "Collected tool requests. execId={}, iter={}, reqs={}",
                 context.getExecutionId(),
                 context.getIteration(),
                 executionRequests.size()
@@ -99,7 +96,7 @@ public class OpenAiChatExecuteToolStep implements ChatStep {
             context.setTerminationReason(AgentTerminationReason.TOOL_ERROR);
 
             log.error(
-                    "Failed to execute chat tools. executionId={}, iteration={}, requestCount={}",
+                    "Failed to execute tools. execId={}, iter={}, reqs={}",
                     context.getExecutionId(),
                     context.getIteration(),
                     executionRequests.size(),
@@ -110,7 +107,7 @@ public class OpenAiChatExecuteToolStep implements ChatStep {
         }
 
         log.debug(
-                "Executed chat tools. executionId={}, iteration={}, assistantMessageCount={}, toolMessageCount={}",
+                "Executed tools. execId={}, iter={}, msgs={}, toolMsgs={}",
                 context.getExecutionId(),
                 context.getIteration(),
                 context.getPendingAssistantMessages().size(),

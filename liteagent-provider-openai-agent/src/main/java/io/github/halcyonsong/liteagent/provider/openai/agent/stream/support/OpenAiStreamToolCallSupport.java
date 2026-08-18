@@ -15,10 +15,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * 流式响应工具调用辅助类。
- *
- * <p>该类只读取当前轮已经聚合完成的 finalResponse，
- * 不读取单个增量 chunk。</p>
+ * 流式响应工具调用辅助类，只读取当前轮已经聚合完成的 finalResponse，不读取单个增量 chunk。
  */
 public final class OpenAiStreamToolCallSupport {
 
@@ -110,10 +107,7 @@ public final class OpenAiStreamToolCallSupport {
     }
 
     /**
-     * 将当前轮聚合结果转换为 assistant 消息。
-     *
-     * <p>工具调用轮次必须先写入 assistant tool_calls，
-     * 然后再写入对应的 tool 消息。</p>
+     * 将当前轮聚合结果转换为 assistant 消息。工具调用轮次必须先写入 assistant tool_calls，再写入对应的 tool 消息。
      */
     public static List<AssistantResponseMessage> collectAssistantMessages(OpenAiStreamCompletionResponse response) {
         if (response == null

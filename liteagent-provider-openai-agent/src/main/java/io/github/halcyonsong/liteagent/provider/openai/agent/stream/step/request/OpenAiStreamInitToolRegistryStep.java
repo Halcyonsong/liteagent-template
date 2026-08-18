@@ -8,10 +8,7 @@ import io.github.halcyonsong.liteagent.provider.openai.agent.support.ToolRegistr
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 初始化流式编排中的工具注册表。
- * <p>
- * 只在第 0 轮执行，通过扫描 request advisors 提取
- * OpenAiRegistryToolsAdvisor 中持有的 ToolRegistry。
+ * 初始化流式编排中的工具注册表，仅在第 0 轮通过扫描 request advisors 提取 ToolRegistry。
  */
 @Slf4j
 public class OpenAiStreamInitToolRegistryStep implements StreamSyncStep {
@@ -22,7 +19,7 @@ public class OpenAiStreamInitToolRegistryStep implements StreamSyncStep {
         context.setToolRegistry(registry);
 
         log.debug(
-                "Initialized stream tool registry. executionId={}, registryResolved={}",
+                "Init stream tool registry. execId={}, resolved={}",
                 context.getExecutionId(),
                 registry != null
         );

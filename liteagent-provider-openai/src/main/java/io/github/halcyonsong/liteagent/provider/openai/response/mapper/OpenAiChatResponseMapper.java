@@ -15,9 +15,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * OpenAI-compatible chat completion 响应包装对象映射器。
- * <p>
- * 表示 provider 返回的一次完整响应，供上层编排消费。
+ * OpenAI-compatible chat completion 响应映射器，表示 provider 返回的一次完整响应。
  */
 @Slf4j
 public class OpenAiChatResponseMapper extends OpenAiResponseMappingSupport {
@@ -26,12 +24,10 @@ public class OpenAiChatResponseMapper extends OpenAiResponseMappingSupport {
         List<ChatChoice> choices = mapChoices(rawResponse);
         OpenAiBaseResponse baseResponse = mapBaseResponse(rawResponse);
         OpenAiUsage usage = mapUsage(rawResponse.getUsage());
-        log.debug(
-                "Mapped OpenAI chat response. responseId={}, model={}, choiceCount={}, usagePresent={}",
+        log.debug("Mapped chat response. id={}, model={}, choices={}",
                 baseResponse.getId(),
                 baseResponse.getModel(),
-                choices.size(),
-                usage != null
+                choices.size()
         );
         return new OpenAiChatCompletionResponse(baseResponse, choices, usage);
     }

@@ -6,9 +6,7 @@ import lombok.Getter;
 import lombok.ToString;
 
 /**
- * 工具调用中的函数信息。
- * <p>
- * 用于统一承载函数名称与参数 JSON 字符串。
+ * 工具调用中的函数信息，承载函数名称与参数 JSON 字符串。
  */
 @Getter
 @ToString

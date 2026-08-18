@@ -8,23 +8,14 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * 统一的聊天请求内容对象。
- * <p>
- * 仅封装消息序列，不包含基础调用信息和 provider 扩展参数。
+ * 统一的聊天请求内容对象，仅封装消息序列。
  */
 @Getter
 public class ChatRequest {
 
-    /**
-     * 当前会话 ID。
-     * 作为会话的唯一标识，用于关联记忆窗口。
-     * 允许为空，不使用记忆窗口。
-     */
+    /** 允许为空，不使用记忆窗口。 */
     private final String sessionId;
 
-    /**
-     * 本次对话请求携带的消息集合，按发送顺序组织。
-     */
     private final List<Message> messages;
 
     private ChatRequest(Builder builder) {

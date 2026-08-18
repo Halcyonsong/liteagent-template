@@ -38,11 +38,7 @@ public class OpenAiChatMapResponseStep implements ChatStep {
         context.setAttribute(OpenAiAgentAttributes.PROVIDER_RESPONSE, providerResponse);
 
         log.debug(
-                "Mapped OpenAI chat response. " +
-                        "executionId={}, " +
-                        "iteration={}, " +
-                        "responseId={}, " +
-                        "choiceCount={}",
+                "Mapped chat response. execId={}, iter={}, respId={}, choices={}",
                 context.getExecutionId(),
                 context.getIteration(),
                 providerResponse.getBaseResponse() == null ? null : providerResponse.getBaseResponse().getId(),

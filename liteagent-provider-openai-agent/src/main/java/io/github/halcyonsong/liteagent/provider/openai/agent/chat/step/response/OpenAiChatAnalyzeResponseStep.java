@@ -14,9 +14,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * 分析当前轮 chat 响应，并决定进入普通收尾还是工具执行分支。
- * <p>
- * assistant 消息先写入 pending 区，后续统一由 APPEND_MESSAGES 落入 workingMessages。
+ * 分析当前轮 chat 响应，决定进入普通收尾还是工具执行分支。assistant 消息先写入 pending 区，由 APPEND_MESSAGES 落入 workingMessages。
  */
 @Slf4j
 public class OpenAiChatAnalyzeResponseStep implements ChatStep {
@@ -32,7 +30,7 @@ public class OpenAiChatAnalyzeResponseStep implements ChatStep {
 
         if (response == null) {
             log.warn(
-                    "Missing provider chat response. executionId={}, iteration={}",
+                    "Missing provider response. execId={}, iter={}",
                     context.getExecutionId(),
                     context.getIteration()
             );
@@ -44,12 +42,12 @@ public class OpenAiChatAnalyzeResponseStep implements ChatStep {
         boolean hasToolCalls = OpenAiToolCallSupport.hasAnyToolCalls(response);
 
         log.debug(
-                "Analyzed chat response. executionId={}, iteration={}, assistantMessageCount={}, hasToolCalls={}, nextStep={}",
+                "Analyzed response. execId={}, iter={}, msgs={}, tools={}, next={}",
                 context.getExecutionId(),
                 context.getIteration(),
                 assistantMessages.size(),
                 hasToolCalls,
-                hasToolCalls ? ChatStepKey.EXECUTE_TOOL.name() : ChatStepKey.APPEND_MESSAGES.name()
+                hasToolCalls ? "EXECUTE_TOOL" : "APPEND_MESSAGES"
         );
 
         if (!hasToolCalls) {

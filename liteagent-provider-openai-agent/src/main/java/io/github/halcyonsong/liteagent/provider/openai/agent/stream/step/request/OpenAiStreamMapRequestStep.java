@@ -34,12 +34,7 @@ public class OpenAiStreamMapRequestStep implements StreamSyncStep {
         context.setAttribute(OpenAiAgentAttributes.RAW_REQUEST, result.rawRequest());
 
         log.debug(
-                "Mapped stream request. " +
-                        "executionId={}, " +
-                        "iteration={}, " +
-                        "workingMessageCount={}, " +
-                        "rawMessageCount={}, " +
-                        "hasCompletionOptions={}",
+                "Mapped stream request. execId={}, iter={}, workingMsgs={}, rawMsgs={}, hasOpts={}",
                 context.getExecutionId(),
                 context.getIteration(),
                 context.getWorkingMessages().size(),

@@ -27,10 +27,7 @@ public class OpenAiStreamDecideNextActionStep implements StreamSyncStep {
                 || terminationReason == AgentTerminationReason.TOOL_ERROR
                 || terminationReason == AgentTerminationReason.CANCELLED) {
             log.warn(
-                    "Ending stream round due to termination reason. " +
-                            "executionId={}, " +
-                            "roundIndex={}, " +
-                            "terminationReason={}",
+                    "Ending stream round due to termination. execId={}, round={}, reason={}",
                     context.getExecutionId(),
                     context.currentRound().getRoundIndex(),
                     terminationReason
@@ -53,19 +50,13 @@ public class OpenAiStreamDecideNextActionStep implements StreamSyncStep {
         StreamStepKey nextKey = hasToolCalls ? StreamStepKey.EXECUTE_TOOL : StreamStepKey.APPEND_MESSAGES;
 
         log.debug(
-                "Decided stream next action. " +
-                        "executionId={}, " +
-                        "roundIndex={}, " +
-                        "terminationReason={}, " +
-                        "assistantMessageCount={}, " +
-                        "hasToolCalls={}, " +
-                        "nextStep={}",
+                "Decided next action. execId={}, round={}, reason={}, msgs={}, tools={}, next={}",
                 context.getExecutionId(),
                 roundState.getRoundIndex(),
                 terminationReason,
                 assistantMessageCount,
                 hasToolCalls,
-                nextKey.name()
+                hasToolCalls ? "EXECUTE_TOOL" : "APPEND_MESSAGES"
         );
 
         return nextKey;

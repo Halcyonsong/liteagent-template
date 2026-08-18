@@ -6,10 +6,7 @@ import lombok.Getter;
 import lombok.ToString;
 
 /**
- * 统一工具调用结构。
- * <p>
- * chat 场景下 index 通常可为空；
- * stream 场景下可用于跨 chunk 聚合。
+ * 统一工具调用结构。chat 场景下 index 通常可为空；stream 场景下可用于跨 chunk 聚合。
  */
 @Getter
 @ToString

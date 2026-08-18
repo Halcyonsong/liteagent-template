@@ -7,15 +7,10 @@ import io.github.halcyonsong.liteagent.memory.hook.support.MemoryHookSupport;
 import io.github.halcyonsong.liteagent.memory.window.norm.MemoryWindowStore;
 
 /**
- * Stream 侧记忆窗口 Hook。
- * <p>
- * 读取时机：INIT_WORKING_MESSAGES 之后，把历史消息拼到 workingMessages 前面。
- * 写回时机：END 之前，折叠本轮消息后追加到窗口尾部，并按 maxSize 裁剪。
- * <p>
- * 共享逻辑见 {@link MemoryHookSupport}。
- * <p>
- * 边界场景：Stream 侧下游 cancel 时 END 不一定触发，本轮消息可能不写回。
- * 这是可接受语义——取消意味着用户主动中断，本轮消息不完整。
+ * Stream 侧记忆窗口 Hook。INIT_WORKING_MESSAGES 后读历史拼到 workingMessages 前面，
+ * END 前折叠本轮消息追加到窗口尾部并按 maxSize 裁剪。共享逻辑见 {@link MemoryHookSupport}。
+ * 边界：Stream 下游 cancel 时 END 不一定触发，本轮消息可能不写回——
+ * 取消意味着用户主动中断，本轮消息不完整，此为可接受语义。
  */
 public class MemoryStreamStepHook implements StreamStepHook {
 
@@ -53,16 +48,12 @@ public class MemoryStreamStepHook implements StreamStepHook {
         MemoryHookSupport.saveRound(store, ctx.getInvocation(), ctx.getWorkingMessages(), maxSize);
     }
 
-    /**
-     * 步骤匹配，可重写以适配自定义步骤链。
-     */
+    /** 可重写以适配自定义步骤链。 */
     protected boolean shouldLoadHistory(StreamStepKey key) {
         return StreamStepKey.INIT_WORKING_MESSAGES.equals(key);
     }
 
-    /**
-     * 步骤匹配，可重写以适配自定义步骤链。
-     */
+    /** 可重写以适配自定义步骤链。 */
     protected boolean shouldSaveRound(StreamStepKey key) {
         return StreamStepKey.END.equals(key);
     }

@@ -24,6 +24,6 @@ public class OpenAiToolChoiceAdvisor implements RequestAdvisor<OpenAiChatComplet
     public void enhance(OpenAiChatCompletionRequest request,
                         OpenAiChatCompletionRawRequest rawRequest) {
         rawRequest.setToolChoice(toolChoice.toRawValue());
-        log.debug("Applied OpenAI tool_choice. value={}", toolChoice);
+        log.debug("Applied tool_choice. value={}", toolChoice);
     }
 }
