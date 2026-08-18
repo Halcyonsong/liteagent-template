@@ -90,6 +90,9 @@ public class OpenAiStreamTransport {
                             endpoint,
                             rawRequest.getModel(),
                             e);
+                    if (e instanceof Error) {
+                        return e;
+                    }
                     return OpenAiErrorClassifier.classify((Exception) e, endpoint);
                 })
                 .doOnComplete(() -> log.debug(

@@ -4,6 +4,8 @@ import io.github.halcyonsong.liteagent.core.tool.norm.ExecutableToolDefinition;
 import lombok.Getter;
 
 import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -30,7 +32,11 @@ public class ReflectiveToolDefinition implements ExecutableToolDefinition {
                                     Method method) {
         this.name = Objects.requireNonNull(name, "name must not be null");
         this.description = description == null ? "" : description;
-        this.parameters = Objects.requireNonNull(parameters, "parameters must not be null");
+        this.parameters = Collections.unmodifiableMap(
+                new LinkedHashMap<>(
+                        Objects.requireNonNull(parameters, "parameters must not be null")
+                )
+        );
         this.target = Objects.requireNonNull(target, "target must not be null");
         this.method = Objects.requireNonNull(method, "method must not be null");
     }

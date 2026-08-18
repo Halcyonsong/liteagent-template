@@ -41,12 +41,12 @@ public class StreamRoundState {
     /**
      * 当前轮增量聚合器。
      */
-    private Object accumulator;
+    private volatile Object accumulator;
 
     /**
      * 当前轮聚合完成后的最终响应。
      */
-    private Object finalResponse;
+    private volatile Object finalResponse;
 
     /**
      * 当前轮附加状态。
