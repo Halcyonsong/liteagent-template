@@ -47,6 +47,7 @@ class OpenAiStreamAgentTest {
         StreamAgentContext<OpenAiStreamCompletionResponse> context = agent.executeContext(createRequest());
 
         assertNotNull(context.getOutput());
+        context.getOutput().blockLast();
         assertFalse(context.getRounds().isEmpty());
     }
 

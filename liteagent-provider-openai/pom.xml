@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>liteagent-provider-openai</artifactId>
+    <name>LiteAgent Provider OpenAI</name>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>

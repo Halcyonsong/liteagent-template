@@ -29,12 +29,20 @@ class OpenAiChatMapRequestStepTest {
                 .build();
 
         ChatAgentContext context = ChatAgentContext.create(request);
+        context.appendWorkingMessage(Messages.user("hello"));
         OpenAiChatMapRequestStep step = new OpenAiChatMapRequestStep(new OpenAiChatRequestMapper());
 
         ChatStepKey next = step.invoke(context);
 
         assertEquals(ChatStepKey.ENHANCE_REQUEST, next);
-        assertSame(request, context.getAttribute(OpenAiAgentAttributes.PROVIDER_REQUEST));
+
+        OpenAiChatCompletionRequest providerRequest = context.getAttribute(
+                OpenAiAgentAttributes.PROVIDER_REQUEST,
+                OpenAiChatCompletionRequest.class
+        );
+        assertNotNull(providerRequest);
+        assertEquals("https://api.example.com", providerRequest.getBaseRequest().getBaseUrl());
+        assertEquals("test-model", providerRequest.getBaseRequest().getModel());
 
         OpenAiChatCompletionRawRequest rawRequest = context.getAttribute(
                 OpenAiAgentAttributes.RAW_REQUEST,

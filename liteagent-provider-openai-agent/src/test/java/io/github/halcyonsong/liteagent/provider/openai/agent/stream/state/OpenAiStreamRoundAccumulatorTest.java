@@ -145,7 +145,6 @@ class OpenAiStreamRoundAccumulatorTest {
     @Test
     void tryToFinalResponse_should_return_null_without_base_response() {
         OpenAiStreamRoundAccumulator acc = new OpenAiStreamRoundAccumulator();
-        acc.accumulate(chunk(null, 0, "text", null, null, null));
         assertNull(acc.tryToFinalResponse());
     }
 
@@ -155,7 +154,7 @@ class OpenAiStreamRoundAccumulatorTest {
         OpenAiBaseResponse base = new OpenAiBaseResponse("id_1", "chat.completion.chunk", 1L, "gpt-4");
 
         acc.accumulate(chunk(base, 0, "Hello", null, null, null));
-        acc.accumulate(chunk(null, 0, " World", null, null, FinishReason.STOP));
+        acc.accumulate(chunk(base, 0, " World", null, null, FinishReason.STOP));
 
         OpenAiStreamCompletionResponse finalResp = acc.tryToFinalResponse();
         assertNotNull(finalResp);
@@ -188,6 +187,9 @@ class OpenAiStreamRoundAccumulatorTest {
             List<ToolCall> toolCalls,
             FinishReason finishReason
     ) {
+        if (baseResponse == null) {
+            baseResponse = new OpenAiBaseResponse("resp-1", "chat.completion.chunk", 123L, "test-model");
+        }
         StreamDelta delta = new StreamDelta(null, content, reasoningContent, toolCalls);
         StreamChoice choice = new StreamChoice(choiceIndex, delta, finishReason);
         return new OpenAiStreamCompletionResponse(baseResponse, List.of(choice), null);

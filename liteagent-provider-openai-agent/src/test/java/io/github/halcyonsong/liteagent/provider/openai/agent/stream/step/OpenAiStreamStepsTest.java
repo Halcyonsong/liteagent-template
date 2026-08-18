@@ -51,6 +51,7 @@ class OpenAiStreamStepsTest {
     void begin_step_should_route_to_map_request_when_messages_exist() {
         StreamAgentContext<OpenAiStreamCompletionResponse> ctx = createContext();
         ctx.appendWorkingMessage(Messages.user("existing"));
+        ctx.setToolRegistry(io.github.halcyonsong.liteagent.core.tool.impl.ToolRegistries.inMemory());
         OpenAiStreamBeginStep step = new OpenAiStreamBeginStep();
 
         StreamStepKey next = step.invoke(ctx);
@@ -65,7 +66,7 @@ class OpenAiStreamStepsTest {
 
         StreamStepKey next = step.invoke(ctx);
 
-        assertEquals(StreamStepKey.MAP_REQUEST, next);
+        assertEquals(StreamStepKey.INIT_TOOL_REGISTRY, next);
         assertEquals(1, ctx.getWorkingMessages().size());
     }
 
@@ -156,21 +157,28 @@ class OpenAiStreamStepsTest {
     @Test
     void decide_next_action_should_default_to_build_result() {
         StreamAgentContext<OpenAiStreamCompletionResponse> ctx = createContext();
+        StreamRoundState roundState = new StreamRoundState(0);
+        roundState.setFinalResponse(createChunk("hello", null));
+        ctx.addRound(roundState);
         OpenAiStreamDecideNextActionStep step = new OpenAiStreamDecideNextActionStep();
 
         StreamStepKey next = step.invoke(ctx);
 
-        assertEquals(StreamStepKey.BUILD_RESULT, next);
+        assertEquals(StreamStepKey.APPEND_MESSAGES, next);
     }
 
     @Test
-    void execute_tool_should_return_end() {
+    void execute_tool_should_return_append_messages() {
         StreamAgentContext<OpenAiStreamCompletionResponse> ctx = createContext();
+        ctx.setToolRegistry(io.github.halcyonsong.liteagent.core.tool.impl.ToolRegistries.inMemory());
+        StreamRoundState roundState = new StreamRoundState(0);
+        roundState.setFinalResponse(createChunk("hello", null));
+        ctx.addRound(roundState);
         OpenAiStreamExecuteToolStep step = new OpenAiStreamExecuteToolStep();
 
         StreamStepKey next = step.invoke(ctx);
 
-        assertEquals(StreamStepKey.END, next);
+        assertEquals(StreamStepKey.APPEND_MESSAGES, next);
     }
 
     @Test

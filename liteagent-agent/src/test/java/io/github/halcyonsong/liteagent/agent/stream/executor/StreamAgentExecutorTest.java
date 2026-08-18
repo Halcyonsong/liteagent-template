@@ -151,7 +151,7 @@ class StreamAgentExecutorTest {
         StreamAgentExecutor<String> executor = new StreamAgentExecutor<>(syncSteps, streamSteps, List.of(), 10);
 
         IllegalStateException ex = assertThrows(IllegalStateException.class,
-                () -> executor.execute(StreamAgentContext.create(new TestInvocation())));
+                () -> executor.execute(StreamAgentContext.create(new TestInvocation())).blockLast());
         assertTrue(ex.getMessage().contains("No stream sync step registered for key"));
         assertTrue(ex.getMessage().contains("BEGIN"));
     }
@@ -167,7 +167,7 @@ class StreamAgentExecutorTest {
         StreamAgentExecutor<String> executor = new StreamAgentExecutor<>(syncSteps, streamSteps, List.of(), 10);
 
         assertThrows(IllegalStateException.class,
-                () -> executor.execute(StreamAgentContext.create(new TestInvocation())));
+                () -> executor.execute(StreamAgentContext.create(new TestInvocation())).blockLast());
     }
 
     @Test

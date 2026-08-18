@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>liteagent-core</artifactId>
+    <name>LiteAgent Core</name>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>

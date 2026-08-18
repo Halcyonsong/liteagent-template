@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>liteagent-memory</artifactId>
+    <name>LiteAgent Memory</name>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>

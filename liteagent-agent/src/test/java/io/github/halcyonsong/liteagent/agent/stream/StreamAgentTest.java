@@ -38,6 +38,7 @@ class StreamAgentTest {
         StreamAgentContext<String> context = agent.executeContext(new TestInvocation());
 
         assertNotNull(context.getOutput());
+        context.getOutput().blockLast();
         assertNotNull(context.getRounds());
         assertFalse(context.getRounds().isEmpty());
     }
