@@ -2,7 +2,33 @@
 
 `liteagent-template` 是一个基于 Java 17 的轻量级 LLM / Agent 调用框架。它以统一的消息、请求和工具模型为基础，提供 OpenAI-compatible 协议调用、同步与流式 Agent 编排，以及工具调用的多轮回环能力。
 
-当前版本为 `0.9.0-SNAPSHOT`（由父 POM `${revision}` 属性统一管理）。
+当前版本为 `1.0.0`（由父 POM `${revision}` 属性统一管理）。
+
+## Maven 依赖
+
+在 `pom.xml` 中添加所需模块：
+
+```xml
+<dependency>
+    <groupId>io.github.halcyonsong</groupId>
+    <artifactId>liteagent-core</artifactId>
+    <version>1.0.0</version>
+</dependency>
+<dependency>
+    <groupId>io.github.halcyonsong</groupId>
+    <artifactId>liteagent-provider-openai-agent</artifactId>
+    <version>1.0.0</version>
+</dependency>
+<dependency>
+    <groupId>io.github.halcyonsong</groupId>
+    <artifactId>liteagent-memory</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
+`liteagent-provider-openai-agent` 会自动引入 `liteagent-provider-openai`、`liteagent-agent` 和 `liteagent-core`。
+
+> **重要**：使用 `@ToolParam` 注解的工具方法需要编译时保留参数名。请在 `pom.xml` 的 `maven-compiler-plugin` 中配置 `<parameters>true</parameters>`，或在每个 `@ToolParam` 中显式指定 `name` 属性。
 
 ## 推荐入口
 
