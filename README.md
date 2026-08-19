@@ -11,11 +11,6 @@
 ```xml
 <dependency>
     <groupId>io.github.halcyonsong</groupId>
-    <artifactId>liteagent-core</artifactId>
-    <version>1.0.0</version>
-</dependency>
-<dependency>
-    <groupId>io.github.halcyonsong</groupId>
     <artifactId>liteagent-provider-openai-agent</artifactId>
     <version>1.0.0</version>
 </dependency>
