@@ -1,6 +1,8 @@
 # liteagent-template
 
-`liteagent-template` 是一个基于 Java 17 的轻量级 LLM / Agent 调用框架。它以统一的消息、请求和工具模型为基础，提供 OpenAI-compatible 协议调用、同步与流式 Agent 编排，以及工具调用的多轮回环能力。
+Spring AI 把工具调用循环封装在 ChatModel 内部，中间过程不可见也不可改（[Issue #4997](https://github.com/spring-projects/spring-ai/issues/4997)）。当你需要监控每轮工具调用的请求参数、在步骤之间插入自定义逻辑、或控制编排流程时，很难介入。
+
+`liteagent-template` 是一个基于 Java 17 的轻量级 LLM / Agent 调用框架。核心思路是把 Agent 编排拆成独立步骤，注册到 Map 里，每步返回值决定下一步——所有步骤可替换、可插拔，编排上下文全程可读写。
 
 当前版本为 `1.0.0`（由父 POM `${revision}` 属性统一管理）。
 
